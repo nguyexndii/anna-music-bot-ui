@@ -25,9 +25,18 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
   const [dragMs, setDragMs] = useState(0);
   const [hoverInfo, setHoverInfo] = useState(null); // { percent, timeStr, x }
   const [previousVolume, setPreviousVolume] = useState(100);
+  const [localVolume, setLocalVolume] = useState(player?.volume ?? 80);
+  const volumeDebounceRef = useRef(null);
+
+  // Sync local volume with server value (when not dragging)
+  useEffect(() => {
+    if (volumeDebounceRef.current) return; // user is actively dragging
+    if (player?.volume !== undefined) setLocalVolume(player.volume);
+  }, [player?.volume]);
 
   const progressBarRef = useRef(null);
   const totalMs = parseDurationToMs(current?.duration);
+
 
   // Sync with server startTime when not actively dragging
   useEffect(() => {
@@ -419,13 +428,22 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
               type="range"
               min="0"
               max="150"
-              value={player?.volume || 0}
-              onChange={(e) => onAction('volume', e.target.value)}
+              value={localVolume}
+              onChange={(e) => {
+                const vol = Number(e.target.value);
+                setLocalVolume(vol);
+                // Debounce: chỉ gửi lệnh lên bot sau 400ms không kéo nữa
+                if (volumeDebounceRef.current) clearTimeout(volumeDebounceRef.current);
+                volumeDebounceRef.current = setTimeout(() => {
+                  volumeDebounceRef.current = null;
+                  onAction('volume', vol);
+                }, 400);
+              }}
               aria-label="Điều chỉnh âm lượng bot nhạc"
               className="w-full accent-anna-accent h-1.5 bg-anna-border rounded-lg cursor-pointer focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none"
             />
             <span className="text-xs font-mono text-anna-muted w-8 text-right">
-              {player?.volume || 0}%
+              {localVolume}%
             </span>
           </div>
 

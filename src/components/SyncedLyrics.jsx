@@ -2,12 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, Music } from 'lucide-react';
 import { API_BASE } from '../config';
 
+const lyricsCache = new Map(); // key: `${guildId}:${title}` -> lyricsData
+
 export default function SyncedLyrics({ guildId, currentTrack }) {
-  const [lyricsData, setLyricsData] = useState(null);
+  const cacheKey = guildId && currentTrack?.title ? `${guildId}:${currentTrack.title}` : null;
+  const [lyricsData, setLyricsData] = useState(() => (cacheKey ? lyricsCache.get(cacheKey) || null : null));
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!guildId || !currentTrack) return;
+    if (!guildId || !currentTrack?.title) {
+      setLyricsData(null);
+      return;
+    }
+
+    const key = `${guildId}:${currentTrack.title}`;
+    if (lyricsCache.has(key)) {
+      setLyricsData(lyricsCache.get(key));
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
     setLoading(true);
 
@@ -17,6 +31,7 @@ export default function SyncedLyrics({ guildId, currentTrack }) {
         if (isMounted) {
           setLoading(false);
           if (data.success) {
+            lyricsCache.set(key, data);
             setLyricsData(data);
           } else {
             setLyricsData(null);
