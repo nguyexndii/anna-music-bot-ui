@@ -337,10 +337,10 @@ export default function App() {
       ) : (
         /* Giao diện Dashboard phát nhạc đầy đủ */
         <main
-          className={`flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 ${
+          className={`flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6 ${
             isPlayerMinimized
-              ? 'grid grid-cols-1 gap-6 pb-40 sm:pb-44'
-              : 'grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12'
+              ? 'grid grid-cols-1 gap-4 pb-24 sm:pb-28'
+              : 'grid grid-cols-1 lg:grid-cols-12 gap-6 pb-10'
           } animate-in fade-in duration-300`}
         >
           {/* Left Column: Hero Player Deck (5 Cols) when Expanded */}

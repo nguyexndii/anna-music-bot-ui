@@ -18,7 +18,7 @@ export default function SettingsTab({ player, onAction, user }) {
   };
 
   return (
-    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-6 flex-1 flex flex-col gap-6 animate-in fade-in">
+    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-6 pb-8 flex-1 min-h-[250px] max-h-[calc(100vh-320px)] overflow-y-auto flex flex-col gap-6 animate-in fade-in">
       
       {/* Header with Role Badge */}
       <div className="flex items-center justify-between pb-3 border-b border-anna-border/50">

@@ -38,6 +38,15 @@ function detectUrlType(text) {
   return { type: 'direct_url', label: 'Liên kết âm nhạc', isPlaylist: false };
 }
 
+function getPlaylistPreviewImage(url) {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (match && match[1]) {
+    return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
+  }
+  return null;
+}
+
 // Helper lấy ảnh bìa YouTube
 function getTrackThumb(track) {
   if (track?.thumbnail) return track.thumbnail;
@@ -151,21 +160,34 @@ export default function LiveSearch({ onOrderSong, player }) {
 
       {/* Instant Playlist Detection Banner */}
       {detected?.isPlaylist && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-anna-accent/20 to-purple-600/20 border border-anna-accent/40 shadow-xl flex items-center justify-between gap-3 animate-in fade-in">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-anna-accent text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-anna-accent/30">
-              <Disc3 className="w-5 h-5" />
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-anna-accent/25 via-purple-600/20 to-pink-500/20 border border-anna-accent/40 shadow-xl flex items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-3.5 min-w-0">
+            {/* Playlist Artwork Thumbnail */}
+            <div className="w-12 h-12 rounded-xl overflow-hidden relative flex-shrink-0 bg-anna-card border border-white/10 shadow-lg group">
+              {getPlaylistPreviewImage(query) ? (
+                <img
+                  src={getPlaylistPreviewImage(query)}
+                  alt="Ảnh Playlist"
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-tr from-anna-accent to-purple-600 flex items-center justify-center text-white">
+                  <Disc3 className="w-6 h-6 animate-spin" style={{ animationDuration: '8s' }} />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/20 ring-1 ring-inset ring-white/10 rounded-xl pointer-events-none"></div>
             </div>
+
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-white uppercase tracking-wider">
                   {detected.label}
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-anna-green/20 text-anna-green font-bold">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-anna-green/20 border border-anna-green/30 text-anna-green font-bold">
                   Sẵn sàng thêm
                 </span>
               </div>
-              <p className="text-xs text-anna-muted truncate mt-0.5 max-w-md">
+              <p className="text-xs text-anna-muted truncate mt-0.5 max-w-md font-mono">
                 {query}
               </p>
             </div>
@@ -182,7 +204,7 @@ export default function LiveSearch({ onOrderSong, player }) {
       )}
 
       {/* Main Container */}
-      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-5 pb-16 flex-1 min-h-[380px] max-h-[calc(100vh-290px)] overflow-y-auto flex flex-col gap-6 relative">
+      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-5 pb-8 flex-1 min-h-[250px] max-h-[calc(100vh-320px)] overflow-y-auto flex flex-col gap-6 relative">
         
         {/* Loading Overlay */}
         {loading && (

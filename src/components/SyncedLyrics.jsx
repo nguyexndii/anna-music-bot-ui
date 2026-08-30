@@ -109,7 +109,7 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
   };
 
   return (
-    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl flex-1 min-h-[420px] max-h-[540px] flex flex-col shadow-inner overflow-hidden">
+    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl flex-1 min-h-[250px] max-h-[calc(100vh-320px)] flex flex-col shadow-inner overflow-hidden">
       {/* Fixed Track Header */}
       <div className="px-6 py-3.5 border-b border-anna-border/60 bg-anna-card/50 backdrop-blur-md flex flex-col items-center text-center flex-shrink-0 z-10">
         <div className="flex items-center gap-1.5 text-anna-accent text-xs font-bold mb-0.5">
