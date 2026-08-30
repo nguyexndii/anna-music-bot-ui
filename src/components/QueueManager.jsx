@@ -1,9 +1,40 @@
 import React, { useState } from 'react';
-import { ListOrdered, Trash2, Music2, Clock, CheckSquare, Square, Play, ChevronUp, ChevronDown } from 'lucide-react';
+import { ListOrdered, Trash2, Music2, Clock, CheckSquare, Square, Play, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 
 export default function QueueManager({ queue, onAction }) {
   const songs = queue || [];
   const [selectedIndices, setSelectedIndices] = useState(new Set());
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  // Drag and Drop handlers
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+      onAction('move', { from: draggedIndex, to: targetIndex });
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   // Toggle selection for a single track
   const toggleSelect = (idx) => {
@@ -135,17 +166,37 @@ export default function QueueManager({ queue, onAction }) {
           <div className="flex flex-col gap-2">
             {songs.map((song, idx) => {
               const isSelected = selectedIndices.has(idx);
+              const isDragging = draggedIndex === idx;
+              const isDragOver = dragOverIndex === idx;
+
               return (
                 <div
                   key={idx}
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(e, idx)}
+                  onDragOver={(e) => handleDragOver(e, idx)}
+                  onDrop={(e) => handleDrop(e, idx)}
+                  onDragEnd={handleDragEnd}
                   onClick={() => toggleSelect(idx)}
-                  className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition group cursor-pointer ${
-                    isSelected
+                  className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition group cursor-pointer select-none ${
+                    isDragging
+                      ? 'opacity-40 scale-[0.98] border-dashed border-anna-accent bg-anna-accent/10'
+                      : isDragOver
+                      ? 'border-t-2 border-t-anna-accent bg-anna-accent/20 shadow-md scale-[1.01]'
+                      : isSelected
                       ? 'bg-anna-accent/15 border-anna-accent/50 shadow-sm'
                       : 'bg-anna-card hover:bg-anna-hover border-anna-border/60'
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {/* Drag Handle */}
+                    <div
+                      className="cursor-grab active:cursor-grabbing text-anna-muted group-hover:text-white p-0.5"
+                      title="Kéo thả để đổi thứ tự bài hát"
+                    >
+                      <GripVertical className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
+                    </div>
+
                     {/* Checkbox */}
                     <button
                       type="button"
@@ -162,7 +213,7 @@ export default function QueueManager({ queue, onAction }) {
                       )}
                     </button>
 
-                    <span className="w-5 text-center text-xs font-mono font-bold text-anna-muted">
+                    <span className="w-4 text-center text-xs font-mono font-bold text-anna-muted">
                       {idx + 1}
                     </span>
                     <img
