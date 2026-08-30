@@ -220,7 +220,6 @@ export default function LiveSearch({ onOrderSong, player }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
-  const [addedSuccessTrack, setAddedSuccessTrack] = useState(null);
   const debounceRef = useRef(null);
 
   const quickTags = ['Chill Lofi', 'V-Pop Hot', 'Indie Việt', 'Rap Việt', 'Acoustic', 'Remix'];
@@ -256,8 +255,6 @@ export default function LiveSearch({ onOrderSong, player }) {
 
   const handleOrderTrack = (track) => {
     onOrderSong(track);
-    setAddedSuccessTrack(track.title);
-    setTimeout(() => setAddedSuccessTrack(null), 2000);
   };
 
   const handleAddAllPlaylistTracks = (playlist) => {
@@ -267,8 +264,6 @@ export default function LiveSearch({ onOrderSong, player }) {
         onOrderSong(t);
       }, i * 350);
     });
-    setAddedSuccessTrack(`Đã thêm toàn bộ ${playlist.tracks.length} bài hát vào hàng chờ!`);
-    setTimeout(() => setAddedSuccessTrack(null), 3000);
   };
 
   return (
@@ -324,14 +319,6 @@ export default function LiveSearch({ onOrderSong, player }) {
           >
             <Loader2 className="w-7 h-7 text-anna-accent animate-spin" />
             <span className="text-xs text-anna-muted font-medium">Đang tìm kiếm bài hát...</span>
-          </div>
-        )}
-
-        {/* Success Toast when adding */}
-        {addedSuccessTrack && (
-          <div className="sticky top-0 z-30 px-3 py-2 rounded-xl bg-anna-green/20 border border-anna-green/40 text-anna-green text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in">
-            <span className="truncate">✓ Đã thêm: <b>{addedSuccessTrack}</b></span>
-            <Check className="w-4 h-4 flex-shrink-0" />
           </div>
         )}
 
