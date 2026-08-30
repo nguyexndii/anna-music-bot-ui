@@ -80,9 +80,9 @@ export default function PermissionModal({ isOpen, onClose, user }) {
         </div>
 
         {/* Note Box */}
-        <div className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl p-2.5 mt-3 text-[11px] text-amber-200/90 text-left">
+        {/* <div className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl p-2.5 mt-3 text-[11px] text-amber-200/90 text-left">
           💡 <b>Mẹo:</b> Các cài đặt như Treo Lofi 24/7 và DJ AI Autoplay tác động đến toàn bộ Server. Vui lòng liên hệ Admin Discord của bạn để cấu hình!
-        </div>
+        </div> */}
 
         {/* Action Button */}
         <button

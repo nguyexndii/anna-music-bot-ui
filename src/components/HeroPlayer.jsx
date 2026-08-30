@@ -12,10 +12,11 @@ import {
   Infinity,
   Mic,
   Music,
-  Lock
+  Lock,
+  Minimize2
 } from 'lucide-react';
 
-export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
+export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onToggleMinimize }) {
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current = player?.current;
 
@@ -215,12 +216,24 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
             )}
           </div>
 
-          {player?.mode247 && (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-anna-pink/10 border border-anna-pink/30 text-xs font-bold text-anna-pink">
-              <Infinity className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>24/7 Lofi</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {player?.mode247 && (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-anna-pink/10 border border-anna-pink/30 text-xs font-bold text-anna-pink">
+                <Infinity className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>24/7 Lofi</span>
+              </div>
+            )}
+            {onToggleMinimize && (
+              <button
+                onClick={onToggleMinimize}
+                title="Thu nhỏ thanh phát nhạc xuống đáy màn hình"
+                className="p-1.5 rounded-full bg-anna-bg/80 hover:bg-anna-hover border border-anna-border/60 text-anna-muted hover:text-white transition flex items-center gap-1 text-xs px-2.5"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px] font-medium">Thu nhỏ</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Vinyl Disc / Thumbnail */}
@@ -250,7 +263,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
           </h2>
           <p className="text-xs sm:text-sm font-medium text-anna-muted mt-1 flex items-center justify-center gap-1.5">
             <Music className="w-3.5 h-3.5 text-anna-accent" aria-hidden="true" />
-            <span>{current?.artist || 'Anna Music DJ AI'}</span>
+            <span>{current?.artist && current.artist !== 'Unknown' ? current.artist : 'YouTube Music'}</span>
           </p>
 
           {/* Requester Badge */}
@@ -263,7 +276,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
                 aria-hidden="true"
               />
             )}
-            <span>Yêu cầu bởi: <b className="text-white">{current?.requestedBy || 'Hệ thống (24/7)'}</b></span>
+            <span>Yêu cầu bởi: <b className="text-white">{current?.requestedBy || 'Tự động phát 🎵'}</b></span>
           </div>
         </div>
 

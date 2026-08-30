@@ -8,8 +8,9 @@ import SettingsTab from './components/SettingsTab';
 import PermissionModal from './components/PermissionModal';
 import ConnectingStepper from './components/ConnectingStepper';
 import NoVoiceSession from './components/NoVoiceSession';
+import BottomMiniPlayer from './components/BottomMiniPlayer';
 import Toast from './components/Toast';
-import { Search, ListMusic, Mic2, Settings, KeyRound, AlertCircle } from 'lucide-react';
+import { Search, ListMusic, Mic2, Settings, KeyRound, AlertCircle, Compass } from 'lucide-react';
 import { API_BASE } from './config';
 
 export default function App() {
@@ -27,7 +28,18 @@ export default function App() {
   const [player, setPlayer] = useState(null);
   const [activeWebUsers, setActiveWebUsers] = useState([]);
   const [activeTab, setActiveTab] = useState('search');
+  const [isPlayerMinimized, setIsPlayerMinimized] = useState(() => {
+    return localStorage.getItem('anna_player_minimized') === 'true';
+  });
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+
+  const togglePlayerMinimize = () => {
+    setIsPlayerMinimized((prev) => {
+      const next = !prev;
+      localStorage.setItem('anna_player_minimized', String(next));
+      return next;
+    });
+  };
   const [authError, setAuthError] = useState(null);
   const [isVerifying, setIsVerifying] = useState(Boolean(token));
   const [isRefreshingVoice, setIsRefreshingVoice] = useState(false);
@@ -323,19 +335,28 @@ export default function App() {
         />
       ) : (
         /* Giao diện Dashboard phát nhạc đầy đủ */
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-300">
-          {/* Left Column: Hero Player Deck (5 Cols) */}
-          <div className="lg:col-span-5">
-            <HeroPlayer
-              player={player}
-              onAction={handlePlayerAction}
-              user={user}
-              onRequireAdmin={() => setIsPermissionModalOpen(true)}
-            />
-          </div>
+        <main
+          className={`flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 ${
+            isPlayerMinimized
+              ? 'grid grid-cols-1 gap-6 pb-28'
+              : 'grid grid-cols-1 lg:grid-cols-12 gap-6'
+          } animate-in fade-in duration-300`}
+        >
+          {/* Left Column: Hero Player Deck (5 Cols) when Expanded */}
+          {!isPlayerMinimized && (
+            <div className="lg:col-span-5">
+              <HeroPlayer
+                player={player}
+                onAction={handlePlayerAction}
+                user={user}
+                onRequireAdmin={() => setIsPermissionModalOpen(true)}
+                onToggleMinimize={togglePlayerMinimize}
+              />
+            </div>
+          )}
 
-          {/* Right Column: Tabs (7 Cols) */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
+          {/* Right/Full Column: Tabs (7 Cols or 12 Cols when minimized) */}
+          <div className={`${isPlayerMinimized ? 'col-span-12' : 'lg:col-span-7'} flex flex-col gap-4`}>
             {/* Tab Navigation Buttons */}
             <div className="flex items-center gap-2 bg-anna-surface p-1.5 rounded-2xl border border-anna-border/80 shadow-md overflow-x-auto">
               <button
@@ -346,8 +367,8 @@ export default function App() {
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
                 }`}
               >
-                <Search className="w-4 h-4" />
-                <span>Live Search</span>
+                <Compass className="w-4 h-4" />
+                <span>Khám Phá</span>
               </button>
 
               <button
@@ -397,18 +418,35 @@ export default function App() {
               <QueueManager queue={player?.queue} onAction={handlePlayerAction} />
             </div>
             <div className={activeTab === 'lyrics' ? 'contents' : 'hidden'}>
-              <SyncedLyrics guildId={guildId || user?.guildId} currentTrack={player?.current} />
+              <SyncedLyrics
+                player={player}
+                isLyricsEnabled={player?.lyricsSync !== false}
+                onToggleLyrics={() => handlePlayerAction('toggleLyrics')}
+              />
             </div>
             <div className={activeTab === 'settings' ? 'contents' : 'hidden'}>
               <SettingsTab
+                guildId={guildId}
+                guildName={guild?.name}
+                token={token}
                 player={player}
                 onAction={handlePlayerAction}
-                user={user}
                 onRequireAdmin={() => setIsPermissionModalOpen(true)}
               />
             </div>
           </div>
         </main>
+      )}
+
+      {/* Bottom Mini Player when Minimized */}
+      {isPlayerMinimized && user?.isInVoice && (
+        <BottomMiniPlayer
+          player={player}
+          onAction={handlePlayerAction}
+          onToggleMinimize={togglePlayerMinimize}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {/* Permission Denied Modal for Non-Admins */}
