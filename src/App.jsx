@@ -420,6 +420,7 @@ export default function App() {
             <div className={activeTab === 'lyrics' ? 'contents' : 'hidden'}>
               <SyncedLyrics
                 player={player}
+                onAction={handlePlayerAction}
                 isLyricsEnabled={player?.lyricsSync !== false}
                 onToggleLyrics={() => handlePlayerAction('toggleLyrics')}
               />

@@ -4,7 +4,7 @@ import { API_BASE } from '../config';
 
 const lyricsCache = new Map();
 
-export default function SyncedLyrics({ guildId, currentTrack, player }) {
+export default function SyncedLyrics({ guildId, currentTrack, player, onAction }) {
   const current = currentTrack || player?.current;
   const targetGuildId = guildId || player?.guildId || localStorage.getItem('anna_guild_id');
 
@@ -32,13 +32,14 @@ export default function SyncedLyrics({ guildId, currentTrack, player }) {
   useEffect(() => {
     if (!current?.startTime || !lyricsData?.syncedLyrics || lyricsData.syncedLyrics.length === 0) return;
     
-    const interval = setInterval(() => {
-      const elapsedMs = Date.now() - current.startTime;
+    const checkActiveLine = () => {
+      const elapsedMs = Math.max(0, Date.now() - current.startTime);
       const lines = lyricsData.syncedLyrics;
       
       let foundIdx = -1;
       for (let i = 0; i < lines.length; i++) {
-        if (elapsedMs >= lines[i].timeMs) {
+        const lineTime = lines[i].time ?? lines[i].timeMs ?? lines[i].startTimeMs ?? 0;
+        if (elapsedMs >= lineTime) {
           foundIdx = i;
         } else {
           break;
@@ -46,7 +47,10 @@ export default function SyncedLyrics({ guildId, currentTrack, player }) {
       }
 
       setActiveLineIdx(foundIdx);
-    }, 500);
+    };
+
+    checkActiveLine();
+    const interval = setInterval(checkActiveLine, 250);
 
     return () => clearInterval(interval);
   }, [current?.startTime, lyricsData?.syncedLyrics]);
@@ -167,14 +171,22 @@ export default function SyncedLyrics({ guildId, currentTrack, player }) {
             {lyricsData.syncedLyrics && lyricsData.syncedLyrics.length > 0 ? (
               lyricsData.syncedLyrics.map((line, idx) => {
                 const isActive = idx === activeLineIdx;
+                const timeMs = line.time ?? line.timeMs ?? 0;
+
                 return (
                   <p
                     key={idx}
                     ref={isActive ? activeLineRef : null}
-                    className={`transition-all duration-300 py-1.5 px-4 rounded-xl cursor-default ${
+                    onClick={() => {
+                      if (timeMs >= 0 && onAction) {
+                        onAction('seek', Math.floor(timeMs / 1000));
+                      }
+                    }}
+                    title={timeMs > 0 ? `Nhấn để nhảy tới ${Math.floor(timeMs / 60000)}:${String(Math.floor((timeMs % 60000) / 1000)).padStart(2, '0')}` : ''}
+                    className={`transition-all duration-300 py-1.5 px-4 rounded-xl cursor-pointer select-none ${
                       isActive
                         ? 'text-white text-base sm:text-lg font-bold bg-anna-accent/20 scale-105 shadow-sm text-anna-accent'
-                        : 'text-anna-muted/70 hover:text-white'
+                        : 'text-anna-muted/70 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     {line.text}
