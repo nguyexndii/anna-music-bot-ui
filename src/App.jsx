@@ -50,12 +50,17 @@ export default function App() {
     setIsVerifying(true);
     setAuthError(null);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     fetch(`${API_BASE}/api/auth/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: tokenToVerify })
+      body: JSON.stringify({ token: tokenToVerify }),
+      signal: controller.signal
     })
       .then(async (res) => {
+        clearTimeout(timeoutId);
         const data = await res.json().catch(() => ({}));
         setIsVerifying(false);
 
@@ -74,11 +79,14 @@ export default function App() {
         }
       })
       .catch((err) => {
+        clearTimeout(timeoutId);
         setIsVerifying(false);
         setUser(null);
         localStorage.removeItem('anna_web_token');
         localStorage.removeItem('anna_guild_id');
-        setAuthError('Không thể kết nối đến máy chủ bot. Vui lòng kiểm tra lại container bot trên VPS!');
+        setAuthError(err.name === 'AbortError' 
+          ? 'Kết nối đến bot quá thời gian. Vui lòng kiểm tra lại bot trên VPS!' 
+          : 'Không thể kết nối đến máy chủ bot. Vui lòng kiểm tra lại bot trên VPS!');
       });
   }, []);
 

@@ -1,6 +1,94 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Loader2, Sparkles, Plus } from 'lucide-react';
+import { Search, X, Loader2, Sparkles, Plus, Play, Disc3, Radio, Flame, Headphones, Moon } from 'lucide-react';
 import { API_BASE } from '../config';
+
+const PRESET_PLAYLISTS = [
+  {
+    id: 'lofi_247',
+    title: 'Chill Lofi Beats',
+    desc: 'Nhạc nền thư giãn, học tập & làm việc',
+    icon: CoffeeIcon,
+    gradient: 'from-amber-500/20 to-orange-500/10',
+    borderColor: 'border-amber-500/30',
+    query: 'lofi hip hop radio beats to relax study to'
+  },
+  {
+    id: 'vpop_hot',
+    title: 'V-Pop Thịnh Hành',
+    desc: 'Top hit nhạc trẻ Việt Nam mới nhất',
+    icon: Flame,
+    gradient: 'from-rose-500/20 to-pink-500/10',
+    borderColor: 'border-rose-500/30',
+    query: 'v-pop hot hits 2026'
+  },
+  {
+    id: 'indie_chill',
+    title: 'Indie & Acoustic',
+    desc: 'Giai điệu mộc mạc, nhẹ nhàng, êm ái',
+    icon: Headphones,
+    gradient: 'from-cyan-500/20 to-blue-500/10',
+    borderColor: 'border-cyan-500/30',
+    query: 'nhạc indie việt nhẹ nhàng chill acoustic'
+  },
+  {
+    id: 'rap_viet',
+    title: 'Rap Việt & R&B',
+    desc: 'Sôi động, chất ngầu cùng dàn beat đỉnh',
+    icon: Radio,
+    gradient: 'from-purple-500/20 to-violet-500/10',
+    borderColor: 'border-purple-500/30',
+    query: 'rap việt r&b hot hits'
+  }
+];
+
+function CoffeeIcon(props) {
+  return <Moon {...props} />;
+}
+
+const TRENDING_TRACKS = [
+  {
+    title: 'Love Is',
+    artist: 'Dangrangto',
+    duration: '3:15',
+    thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120',
+    searchQuery: 'Love Is Dangrangto'
+  },
+  {
+    title: 'Từng Quen',
+    artist: 'Wren Evans',
+    duration: '2:56',
+    thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120',
+    searchQuery: 'Từng Quen Wren Evans'
+  },
+  {
+    title: 'Exit Sign',
+    artist: 'HIEUTHUHAI ft. marzuz',
+    duration: '3:20',
+    thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120',
+    searchQuery: 'Exit Sign HIEUTHUHAI'
+  },
+  {
+    title: 'Bình Yên',
+    artist: 'Vũ',
+    duration: '4:10',
+    thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=120',
+    searchQuery: 'Bình Yên Vũ'
+  },
+  {
+    title: 'Cắt Đôi Nỗi Sầu',
+    artist: 'Tăng Duy Tân',
+    duration: '3:05',
+    thumbnail: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=120',
+    searchQuery: 'Cắt Đôi Nỗi Sầu Tăng Duy Tân'
+  },
+  {
+    title: 'Đưa Em Về Nhà',
+    artist: 'GREY D ft. Chillies',
+    duration: '3:40',
+    thumbnail: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=120',
+    searchQuery: 'Đưa Em Về Nhà GREY D'
+  }
+];
 
 export default function LiveSearch({ onOrderSong }) {
   const [query, setQuery] = useState('');
@@ -8,7 +96,7 @@ export default function LiveSearch({ onOrderSong }) {
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef(null);
 
-  const quickTags = ['Chill Lofi', 'V-Pop Hot', 'Indie Việt', 'US-UK Hits'];
+  const quickTags = ['Chill Lofi', 'V-Pop Hot', 'Indie Việt', 'Rap Việt', 'Acoustic'];
 
   useEffect(() => {
     if (!query.trim()) {
@@ -22,7 +110,7 @@ export default function LiveSearch({ onOrderSong }) {
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}&limit=6`);
+        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}&limit=8`);
         const data = await res.json();
         setLoading(false);
         if (data.success && data.results) {
@@ -37,6 +125,10 @@ export default function LiveSearch({ onOrderSong }) {
 
     return () => clearTimeout(debounceRef.current);
   }, [query]);
+
+  const handleSelectPlaylist = (preset) => {
+    setQuery(preset.query);
+  };
 
   return (
     <div className="flex-1 flex flex-col gap-4">
@@ -76,8 +168,8 @@ export default function LiveSearch({ onOrderSong }) {
         ))}
       </div>
 
-      {/* Search Results Container */}
-      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-4 flex-1 min-h-[360px] max-h-[500px] overflow-y-auto flex flex-col gap-2 relative">
+      {/* Main Results / Discovery Container */}
+      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-4 flex-1 min-h-[380px] max-h-[520px] overflow-y-auto flex flex-col gap-4 relative">
         
         {/* Loading Overlay */}
         {loading && (
@@ -91,20 +183,128 @@ export default function LiveSearch({ onOrderSong }) {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && results.length === 0 && (
+        {/* Discovery View (Khi chưa gõ từ khóa tìm kiếm) */}
+        {!loading && results.length === 0 && !query && (
+          <div className="flex flex-col gap-6 animate-in fade-in">
+            
+            {/* Section 1: Phổ biến hôm nay (Popular Today - FlaviBot Style) */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-rose-400" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                    Phổ Biến Hôm Nay (Popular Today)
+                  </h3>
+                </div>
+                <span className="text-[11px] text-anna-muted font-medium">Cập nhật theo xu hướng</span>
+              </div>
+
+              {/* Horizontal Scroll Row of Square Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {TRENDING_TRACKS.map((t, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => onOrderSong(t)}
+                    className="group relative flex flex-col cursor-pointer transition hover:-translate-y-1"
+                  >
+                    {/* Square Cover Card */}
+                    <div className="aspect-square w-full rounded-2xl overflow-hidden relative bg-anna-card border border-anna-border/70 shadow-md">
+                      <img
+                        src={t.thumbnail}
+                        alt={t.title}
+                        className="w-full h-full object-cover transition duration-300 group-hover:scale-110"
+                      />
+                      
+                      {/* Rank Badge */}
+                      <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-black text-white font-mono flex items-center gap-1 border border-white/10">
+                        <span className="text-anna-green font-bold">#{idx + 1}</span>
+                      </div>
+
+                      {/* Play Overlay on Hover */}
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-anna-accent text-white flex items-center justify-center shadow-lg shadow-anna-accent/40 transform scale-75 group-hover:scale-100 transition">
+                          <Play className="w-5 h-5 fill-white ml-0.5" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Title & Artist */}
+                    <div className="mt-2 min-w-0">
+                      <h4 className="text-xs font-bold text-white group-hover:text-anna-accent transition truncate leading-tight">
+                        {t.title}
+                      </h4>
+                      <p className="text-[11px] text-anna-muted truncate mt-0.5">
+                        {t.artist}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 2: Playlist & Radio Có Sẵn (YouTube, Spotify & SoundCloud) */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Disc3 className="w-4 h-4 text-anna-accent" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                  Playlist & Radio Có Sẵn
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {PRESET_PLAYLISTS.map((p) => {
+                  const IconComp = p.icon;
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => handleSelectPlaylist(p)}
+                      className={`p-3.5 rounded-2xl bg-gradient-to-br ${p.gradient} border ${p.borderColor} hover:scale-[1.01] cursor-pointer transition shadow-sm group flex items-center justify-between gap-3`}
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-11 h-11 rounded-xl bg-anna-surface/90 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-md">
+                          <IconComp className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold text-white group-hover:text-anna-accent transition truncate">
+                            {p.title}
+                          </h4>
+                          <p className="text-[11px] text-anna-muted truncate mt-0.5">
+                            {p.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="px-3 py-1.5 rounded-xl bg-white/10 group-hover:bg-anna-accent text-white text-xs font-bold transition flex items-center gap-1 flex-shrink-0 shadow-sm"
+                        title="Khám phá playlist"
+                      >
+                        <Search className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Khám phá</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* Empty State when searched but nothing found */}
+        {!loading && results.length === 0 && query && (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-anna-muted">
             <div className="w-12 h-12 rounded-2xl bg-anna-card border border-anna-border flex items-center justify-center mb-3">
               <Sparkles className="w-6 h-6 text-anna-accent" aria-hidden="true" />
             </div>
-            <p className="text-sm font-semibold text-white">Tìm kiếm bài hát tức thời</p>
+            <p className="text-sm font-semibold text-white">Không tìm thấy bài hát</p>
             <p className="text-xs text-anna-muted mt-1 max-w-xs">
-              Gõ tên bài hát hoặc dán link YouTube/Spotify để thêm bài vào hàng chờ ngay lập tức!
+              Hãy thử tìm với tên ca sĩ, tên bài hát khác hoặc dán link YouTube trực tiếp!
             </p>
           </div>
         )}
 
-        {/* Results List */}
+        {/* Live Search Results List */}
         {!loading && results.length > 0 && (
           <div className="flex flex-col gap-2">
             {results.map((track, idx) => (
