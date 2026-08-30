@@ -194,7 +194,7 @@ export default function QueueManager({ queue, onAction }) {
           <div className="flex items-center gap-1.5">
             <ListOrdered className="w-4 h-4 text-anna-accent" aria-hidden="true" />
             <span className="text-xs font-bold text-white">
-              Hàng Chờ ({songs.length} bài)
+              Hàng Chờ ({songs.length}/100 bài)
             </span>
           </div>
 
