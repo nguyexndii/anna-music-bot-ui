@@ -412,7 +412,7 @@ export default function App() {
 
             {/* Active Tab Body (Giữ nguyên DOM để không mất nội dung tìm kiếm & không load lại Lyric) */}
             <div className={activeTab === 'search' ? 'contents' : 'hidden'}>
-              <LiveSearch onOrderSong={handleOrderSong} />
+              <LiveSearch onOrderSong={handleOrderSong} player={player} />
             </div>
             <div className={activeTab === 'queue' ? 'contents' : 'hidden'}>
               <QueueManager queue={player?.queue} onAction={handlePlayerAction} />

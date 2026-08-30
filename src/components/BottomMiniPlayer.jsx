@@ -11,7 +11,8 @@ import {
   Maximize2,
   Mic,
   ListMusic,
-  Infinity
+  Infinity,
+  Heart
 } from 'lucide-react';
 
 function parseDurationToMs(durationStr) {
@@ -169,13 +170,30 @@ export default function BottomMiniPlayer({
             </div>
           </div>
 
-          <div className="min-w-0">
-            <h4
-              onClick={onToggleMinimize}
-              className="text-xs sm:text-sm font-bold text-white truncate cursor-pointer hover:text-anna-accent transition"
-            >
-              {current?.title || 'Chưa phát bài nào'}
-            </h4>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <h4
+                onClick={onToggleMinimize}
+                className="text-xs sm:text-sm font-bold text-white truncate cursor-pointer hover:text-anna-accent transition"
+              >
+                {current?.title || 'Chưa phát bài nào'}
+              </h4>
+              {current && (
+                <button
+                  onClick={() => onAction('toggleFavorite', current)}
+                  title={player?.favorites?.some(f => f.title === current?.title || f.url === current?.url) ? "Xóa khỏi Yêu thích" : "Thêm vào Yêu thích ❤️"}
+                  className="p-1 text-anna-muted hover:text-rose-400 transition"
+                >
+                  <Heart
+                    className={`w-3.5 h-3.5 ${
+                      player?.favorites?.some(f => f.title === current?.title || f.url === current?.url)
+                        ? 'fill-rose-500 text-rose-500'
+                        : ''
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
             <p className="text-[11px] text-anna-muted truncate mt-0.5">
               {current?.artist && current.artist !== 'Unknown' ? current.artist : 'YouTube Music'}
             </p>
@@ -195,8 +213,8 @@ export default function BottomMiniPlayer({
             </button>
 
             <button
-              onClick={() => onAction('seek', 0)}
-              title="Phát lại từ đầu"
+              onClick={() => onAction('previous')}
+              title="Quay lại bài trước đó (Lưu 5 bài)"
               className="p-1.5 text-anna-muted hover:text-white transition"
             >
               <SkipBack className="w-4 h-4" />

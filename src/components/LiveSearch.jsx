@@ -17,7 +17,10 @@ import {
   ListPlus,
   Zap,
   HeartHandshake,
-  Globe
+  Globe,
+  Heart,
+  Clock,
+  History
 } from 'lucide-react';
 import { API_BASE } from '../config';
 
@@ -212,7 +215,7 @@ const TRENDING_TRACKS = [
   }
 ];
 
-export default function LiveSearch({ onOrderSong }) {
+export default function LiveSearch({ onOrderSong, player }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -410,9 +413,107 @@ export default function LiveSearch({ onOrderSong }) {
           </div>
         )}
 
-        {/* VIEW 2: Discovery Overview (Popular Today + 8 Preset Playlists) */}
+        {/* VIEW 2: Discovery Overview (Favorites + Recently Played + Popular Today + 8 Preset Playlists) */}
         {!loading && !query && !selectedPlaylist && results.length === 0 && (
           <div className="flex flex-col gap-6 animate-in fade-in">
+
+            {/* Section 0A: Bài Hát Yêu Thích Của Bạn (Favorites) */}
+            {player?.favorites && player.favorites.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                      Bài Hát Yêu Thích Của Bạn ({player.favorites.length})
+                    </h3>
+                  </div>
+                  <span className="text-[11px] text-anna-muted">Nhấn để phát</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                  {player.favorites.slice(0, 6).map((fav, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleOrderTrack(fav)}
+                      className="group relative flex flex-col cursor-pointer transition hover:-translate-y-1"
+                    >
+                      <div className="aspect-square w-full rounded-2xl overflow-hidden relative bg-anna-card border border-rose-500/30 shadow-md">
+                        <img
+                          src={fav.thumbnail || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=120'}
+                          alt={fav.title}
+                          className="w-full h-full object-cover transition duration-300 group-hover:scale-110"
+                        />
+                        <div className="absolute top-2 right-2 p-1 rounded-full bg-black/60 backdrop-blur-md">
+                          <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-500/40 transform scale-75 group-hover:scale-100 transition">
+                            <Play className="w-5 h-5 fill-white ml-0.5" />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-2 min-w-0">
+                        <h4 className="text-xs font-bold text-white group-hover:text-rose-400 transition truncate leading-tight">
+                          {fav.title}
+                        </h4>
+                        <p className="text-[11px] text-anna-muted truncate mt-0.5">
+                          {fav.artist || 'Yêu thích'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Section 0B: Nghe Gần Đây (Recently Played) */}
+            {player?.history && player.history.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-cyan-400" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                      Nghe Gần Đây (Recently Played)
+                    </h3>
+                  </div>
+                  <span className="text-[11px] text-anna-muted">Lịch sử bài hát</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                  {player.history.slice(0, 6).map((item, idx) => {
+                    const songData = typeof item === 'object' ? item : { title: String(item) };
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleOrderTrack(songData)}
+                        className="group relative flex flex-col cursor-pointer transition hover:-translate-y-1"
+                      >
+                        <div className="aspect-square w-full rounded-2xl overflow-hidden relative bg-anna-card border border-cyan-500/30 shadow-md">
+                          <img
+                            src={songData.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120'}
+                            alt={songData.title}
+                            className="w-full h-full object-cover transition duration-300 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-cyan-500 text-white flex items-center justify-center shadow-lg shadow-cyan-500/40 transform scale-75 group-hover:scale-100 transition">
+                              <Play className="w-5 h-5 fill-white ml-0.5" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-2 min-w-0">
+                          <h4 className="text-xs font-bold text-white group-hover:text-cyan-400 transition truncate leading-tight">
+                            {songData.title}
+                          </h4>
+                          <p className="text-[11px] text-anna-muted truncate mt-0.5">
+                            {songData.artist || 'Gần đây'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             
             {/* Section 1: Phổ biến hôm nay (Popular Today - FlaviBot Style Cards) */}
             <div>

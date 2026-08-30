@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ListOrdered, Trash2, Music2, Clock, CheckSquare, Square } from 'lucide-react';
+import { ListOrdered, Trash2, Music2, Clock, CheckSquare, Square, Play, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function QueueManager({ queue, onAction }) {
   const songs = queue || [];
@@ -184,17 +184,61 @@ export default function QueueManager({ queue, onAction }) {
                     </div>
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAction('remove', idx);
-                    }}
-                    aria-label={`Xóa bài ${song.title} khỏi hàng chờ`}
-                    className="p-1.5 rounded-lg text-anna-muted hover:text-anna-red hover:bg-anna-red/10 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-anna-red focus-visible:outline-none"
-                    title="Xóa khỏi hàng chờ"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {/* Play Now Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAction('playNow', idx);
+                      }}
+                      aria-label={`Phát ngay bài ${song.title}`}
+                      className="p-1.5 rounded-lg text-anna-muted hover:text-white hover:bg-anna-accent/30 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                      title="Phát ngay bài này"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                    </button>
+
+                    {/* Move Up */}
+                    {idx > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAction('move', { from: idx, to: idx - 1 });
+                        }}
+                        className="p-1 rounded-lg text-anna-muted hover:text-white hover:bg-white/10 transition opacity-0 group-hover:opacity-100"
+                        title="Đẩy lên trên"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    {/* Move Down */}
+                    {idx < songs.length - 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAction('move', { from: idx, to: idx + 1 });
+                        }}
+                        className="p-1 rounded-lg text-anna-muted hover:text-white hover:bg-white/10 transition opacity-0 group-hover:opacity-100"
+                        title="Đẩy xuống dưới"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    {/* Delete Single Track */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAction('remove', idx);
+                      }}
+                      aria-label={`Xóa bài ${song.title} khỏi hàng chờ`}
+                      className="p-1.5 rounded-lg text-anna-muted hover:text-anna-red hover:bg-anna-red/10 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-anna-red focus-visible:outline-none"
+                      title="Xóa khỏi hàng chờ"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               );
             })}

@@ -13,12 +13,14 @@ import {
   Mic,
   Music,
   Lock,
-  Minimize2
+  Minimize2,
+  Heart
 } from 'lucide-react';
 
 export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onToggleMinimize }) {
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current = player?.current;
+  const isFav = player?.favorites?.some(f => f.title === current?.title || f.url === current?.url);
 
   // Local progress interpolation for smooth 1-second ticks
   const [progressMs, setProgressMs] = useState(0);
@@ -266,17 +268,34 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
             <span>{current?.artist && current.artist !== 'Unknown' ? current.artist : 'YouTube Music'}</span>
           </p>
 
-          {/* Requester Badge */}
-          <div className="mt-3 inline-flex items-center gap-2 bg-anna-bg/80 border border-anna-border/60 px-3 py-1 rounded-full text-xs text-anna-muted">
-            {current?.requestedByAvatar && (
-              <img
-                src={current.requestedByAvatar}
-                alt=""
-                className="w-4 h-4 rounded-full object-cover"
-                aria-hidden="true"
-              />
+          {/* Requester Badge & Favorite Button */}
+          <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-2 bg-anna-bg/80 border border-anna-border/60 px-3 py-1 rounded-full text-xs text-anna-muted">
+              {current?.requestedByAvatar && (
+                <img
+                  src={current.requestedByAvatar}
+                  alt=""
+                  className="w-4 h-4 rounded-full object-cover"
+                  aria-hidden="true"
+                />
+              )}
+              <span>Yêu cầu bởi: <b className="text-white">{current?.requestedBy || 'Tự động phát 🎵'}</b></span>
+            </div>
+
+            {current && (
+              <button
+                onClick={() => onAction('toggleFavorite', current)}
+                title={isFav ? "Xóa khỏi danh sách Yêu thích" : "Thêm vào bài hát Yêu thích ❤️"}
+                className={`px-3 py-1 rounded-full border transition flex items-center gap-1.5 text-xs font-semibold active:scale-95 ${
+                  isFav
+                    ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 shadow-sm'
+                    : 'bg-anna-bg/80 hover:bg-anna-hover text-anna-muted hover:text-white border-anna-border/60'
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : ''}`} />
+                <span>{isFav ? 'Đã thích' : 'Yêu thích'}</span>
+              </button>
             )}
-            <span>Yêu cầu bởi: <b className="text-white">{current?.requestedBy || 'Tự động phát 🎵'}</b></span>
           </div>
         </div>
 
@@ -366,18 +385,12 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
           </button>
           
           <button
-            onClick={() => {
-              if (current && totalMs > 0) {
-                handleSeekCommit(0);
-              } else {
-                onAction('resume');
-              }
-            }}
-            aria-label="Phát lại từ đầu"
-            title="Phát lại từ đầu"
+            onClick={() => onAction('previous')}
+            aria-label="Quay lại bài trước đó (tối đa 5 bài)"
+            title="Quay lại bài trước đó (Lưu 5 bài)"
             className="p-2.5 rounded-xl hover:bg-anna-hover text-anna-muted hover:text-white transition active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none"
           >
-            <SkipBack className="w-5 h-5" />
+            <SkipBack className="w-5 h-5 fill-current" />
           </button>
 
           <button
