@@ -482,6 +482,9 @@ export default function LiveSearch({ onOrderSong, player }) {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                   {player.history.slice(0, 6).map((item, idx) => {
                     const songData = typeof item === 'object' ? item : { title: String(item) };
+                    const ytMatch = songData.url ? songData.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) : null;
+                    const thumb = songData.thumbnail || (ytMatch ? `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg` : 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=120');
+
                     return (
                       <div
                         key={idx}
@@ -490,7 +493,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                       >
                         <div className="aspect-square w-full rounded-2xl overflow-hidden relative bg-anna-card border border-cyan-500/30 shadow-md">
                           <img
-                            src={songData.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120'}
+                            src={thumb}
                             alt={songData.title}
                             className="w-full h-full object-cover transition duration-300 group-hover:scale-110"
                           />
