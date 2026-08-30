@@ -184,7 +184,7 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
                     }}
                     title={timeMs > 0 ? `Nhấn để nhảy tới ${Math.floor(timeMs / 60000)}:${String(Math.floor((timeMs % 60000) / 1000)).padStart(2, '0')}` : ''}
                     className={`transition-all duration-300 py-1.5 px-4 rounded-xl cursor-pointer select-none ${
-                      isActive
+                      isActive && autoScroll
                         ? 'text-white text-base sm:text-lg font-bold bg-anna-accent/20 scale-105 shadow-sm text-anna-accent'
                         : 'text-anna-muted/70 hover:text-white hover:bg-white/5'
                     }`}

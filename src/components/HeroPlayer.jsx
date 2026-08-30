@@ -195,15 +195,22 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Player Card */}
-      <div className="bg-gradient-to-b from-anna-surface to-anna-card border border-anna-border/80 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center relative overflow-hidden">
+      {/* Player Card (Nhấp vào bất kỳ đâu trên khung để thu nhỏ) */}
+      <div
+        onClick={onToggleMinimize}
+        title="Nhấp vào khung để thu nhỏ thanh phát nhạc"
+        className="bg-gradient-to-b from-anna-surface to-anna-card border border-anna-border/80 hover:border-anna-accent/50 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center relative overflow-hidden cursor-pointer transition-all duration-300 group"
+      >
         
         {/* Glowing Ambient Backdrop */}
         <div className="absolute -top-24 -left-24 w-64 h-64 bg-anna-accent/20 rounded-full blur-3xl pointer-events-none transition-all duration-700"></div>
         <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-anna-pink/15 rounded-full blur-3xl pointer-events-none"></div>
 
         {/* Status Header */}
-        <div className="w-full flex items-center justify-between mb-4 z-10">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="w-full flex items-center justify-between mb-4 z-10"
+        >
           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-anna-bg/60 border border-anna-border/60 text-xs font-semibold text-anna-text">
             {isPlaying ? (
               <>
@@ -225,25 +232,11 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
                 <span>24/7 Lofi</span>
               </div>
             )}
-            {onToggleMinimize && (
-              <button
-                onClick={onToggleMinimize}
-                title="Thu nhỏ thanh phát nhạc xuống đáy màn hình"
-                className="p-1.5 rounded-full bg-anna-bg/80 hover:bg-anna-hover border border-anna-border/60 text-anna-muted hover:text-white transition flex items-center gap-1 text-xs px-2.5"
-              >
-                <Minimize2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-[11px] font-medium">Thu nhỏ</span>
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Vinyl Disc / Thumbnail (Click to shrink/minimize) */}
-        <div
-          onClick={onToggleMinimize}
-          title="Nhấp vào đĩa than để thu nhỏ xuống thanh điều khiển bên dưới"
-          className="relative my-4 group cursor-pointer transform hover:scale-105 active:scale-95 transition-all duration-300"
-        >
+        {/* Vinyl Disc / Thumbnail */}
+        <div className="relative my-4">
           <div
             className={`w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-[#0a0a0a] border-4 border-[#222] shadow-2xl flex items-center justify-center p-3 relative transition-transform duration-500 group-hover:border-anna-accent/60 ${
               isPlaying ? 'vinyl-spinning' : 'vinyl-paused'
@@ -259,14 +252,6 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
               className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover shadow-inner ring-4 ring-[#111]"
             />
             <div className="absolute w-6 h-6 rounded-full bg-anna-surface border-2 border-anna-border shadow-inner"></div>
-          </div>
-
-          {/* Hover Overlay Hint */}
-          <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-1 backdrop-blur-[1px]">
-            <Minimize2 className="w-7 h-7 text-white drop-shadow-md" />
-            <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 px-2 py-0.5 rounded-full border border-white/20">
-              Thu nhỏ
-            </span>
           </div>
         </div>
 

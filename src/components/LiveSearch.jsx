@@ -29,8 +29,11 @@ function detectUrlType(text) {
   if (trimmed.includes('spotify.com/track/')) {
     return { type: 'spotify_track', label: 'Spotify Track', isPlaylist: false };
   }
-  if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
-    return { type: 'youtube_video', label: 'YouTube Video', isPlaylist: false };
+  if (trimmed.includes('soundcloud.com/') && (trimmed.includes('/sets/') || trimmed.includes('/sets'))) {
+    return { type: 'soundcloud_playlist', label: 'SoundCloud Playlist', isPlaylist: true };
+  }
+  if (trimmed.includes('soundcloud.com/')) {
+    return { type: 'soundcloud_track', label: 'SoundCloud Track', isPlaylist: false };
   }
   return { type: 'direct_url', label: 'Liên kết âm nhạc', isPlaylist: false };
 }
@@ -179,7 +182,7 @@ export default function LiveSearch({ onOrderSong, player }) {
       )}
 
       {/* Main Container */}
-      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-5 flex-1 min-h-[420px] max-h-[560px] overflow-y-auto flex flex-col gap-6 relative">
+      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-5 pb-8 flex-1 min-h-[420px] max-h-[600px] overflow-y-auto flex flex-col gap-6 relative">
         
         {/* Loading Overlay */}
         {loading && (

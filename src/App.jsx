@@ -339,8 +339,8 @@ export default function App() {
         <main
           className={`flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 ${
             isPlayerMinimized
-              ? 'grid grid-cols-1 gap-6 pb-28'
-              : 'grid grid-cols-1 lg:grid-cols-12 gap-6'
+              ? 'grid grid-cols-1 gap-6 pb-40 sm:pb-44'
+              : 'grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12'
           } animate-in fade-in duration-300`}
         >
           {/* Left Column: Hero Player Deck (5 Cols) when Expanded */}

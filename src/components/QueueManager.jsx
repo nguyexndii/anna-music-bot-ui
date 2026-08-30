@@ -58,14 +58,25 @@ export default function QueueManager({ queue, onAction }) {
     }
   };
 
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [showBatchModal, setShowBatchModal] = useState(false);
+
   // Delete selected tracks
   const handleDeleteSelected = () => {
     if (selectedIndices.size === 0) return;
-    const count = selectedIndices.size;
-    if (confirm(`Bạn có chắc chắn muốn xóa ${count} bài hát đã chọn khỏi hàng chờ?`)) {
-      onAction('removeBatch', Array.from(selectedIndices));
-      setSelectedIndices(new Set());
-    }
+    setShowBatchModal(true);
+  };
+
+  const confirmBatchDelete = () => {
+    onAction('removeBatch', Array.from(selectedIndices));
+    setSelectedIndices(new Set());
+    setShowBatchModal(false);
+  };
+
+  const confirmClearAll = () => {
+    onAction('clear');
+    setSelectedIndices(new Set());
+    setShowClearModal(false);
   };
 
   // Tính tổng thời lượng hàng chờ
@@ -88,7 +99,79 @@ export default function QueueManager({ queue, onAction }) {
   const isAllSelected = songs.length > 0 && selectedIndices.size === songs.length;
 
   return (
-    <div className="flex-1 flex flex-col gap-4">
+    <div className="flex-1 flex flex-col gap-4 relative">
+      {/* Custom Modal Xác Nhận Xóa Hết */}
+      {showClearModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-anna-surface border border-anna-border p-5 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white">Xóa Hàng Chờ</h4>
+                <p className="text-xs text-anna-muted mt-0.5">Xác nhận dọn sạch danh sách</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-anna-text leading-relaxed">
+              Bạn có chắc chắn muốn xóa toàn bộ <b className="text-white">{songs.length}</b> bài hát trong hàng chờ?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-anna-border/50">
+              <button
+                onClick={() => setShowClearModal(false)}
+                className="px-4 py-2 rounded-xl bg-anna-card hover:bg-anna-hover border border-anna-border text-xs font-semibold text-anna-muted hover:text-white transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmClearAll}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition shadow-lg shadow-rose-600/30 active:scale-95"
+              >
+                Xác Nhận Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Modal Xác Nhận Xóa Bài Đã Chọn */}
+      {showBatchModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-anna-surface border border-anna-border p-5 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white">Xóa Bài Hát Đã Chọn</h4>
+                <p className="text-xs text-anna-muted mt-0.5">Xác nhận xóa {selectedIndices.size} bài</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-anna-text leading-relaxed">
+              Bạn có chắc chắn muốn xóa <b className="text-white">{selectedIndices.size}</b> bài hát đã chọn khỏi hàng chờ?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-anna-border/50">
+              <button
+                onClick={() => setShowBatchModal(false)}
+                className="px-4 py-2 rounded-xl bg-anna-card hover:bg-anna-hover border border-anna-border text-xs font-semibold text-anna-muted hover:text-white transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmBatchDelete}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition shadow-lg shadow-rose-600/30 active:scale-95"
+              >
+                Xóa {selectedIndices.size} bài
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Bar */}
       <div className="flex items-center justify-between bg-anna-surface px-4 py-2.5 rounded-xl border border-anna-border">
         <div className="flex items-center gap-3">
@@ -111,7 +194,7 @@ export default function QueueManager({ queue, onAction }) {
           <div className="flex items-center gap-1.5">
             <ListOrdered className="w-4 h-4 text-anna-accent" aria-hidden="true" />
             <span className="text-xs font-bold text-white">
-              Hàng Chờ ({songs.length}/200 bài)
+              Hàng Chờ ({songs.length} bài)
             </span>
           </div>
 
@@ -135,11 +218,7 @@ export default function QueueManager({ queue, onAction }) {
             </button>
           ) : songs.length > 0 ? (
             <button
-              onClick={() => {
-                if (confirm('Bạn có chắc chắn muốn xóa toàn bộ bài hát trong hàng chờ?')) {
-                  onAction('stop');
-                }
-              }}
+              onClick={() => setShowClearModal(true)}
               aria-label="Xóa toàn bộ bài hát trong hàng chờ"
               className="text-xs text-anna-red hover:underline font-semibold flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-anna-red focus-visible:outline-none rounded-lg px-2 py-1 transition"
             >
