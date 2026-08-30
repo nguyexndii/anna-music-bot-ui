@@ -326,9 +326,10 @@ export default function App() {
             </button>
           </form>
         </div>
-      ) : !user.isInVoice ? (
-        /* Màn hình No Voice Session khi user chưa vào kênh Voice (Giống FlaviBot) */
+      ) : (!user.isInVoice || (!user.isSameVoice && user.botVoice)) ? (
+        /* Màn hình No Voice Session khi user chưa vào kênh Voice hoặc khác kênh với Bot */
         <NoVoiceSession
+          user={user}
           guildName={user.guildName}
           onRefresh={handleRefreshVoice}
           isRefreshing={isRefreshingVoice}
