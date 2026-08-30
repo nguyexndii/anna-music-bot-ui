@@ -182,7 +182,7 @@ export default function LiveSearch({ onOrderSong, player }) {
       )}
 
       {/* Main Container */}
-      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-5 pb-8 flex-1 min-h-[420px] max-h-[600px] overflow-y-auto flex flex-col gap-6 relative">
+      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-5 pb-16 flex-1 min-h-[380px] max-h-[calc(100vh-290px)] overflow-y-auto flex flex-col gap-6 relative">
         
         {/* Loading Overlay */}
         {loading && (
