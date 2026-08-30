@@ -1,24 +1,30 @@
-import React from 'react';
-import { Sliders, Radio, Sparkles, Lock, ShieldCheck, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sliders, Radio, Sparkles, ShieldCheck, User, Mic2, FlaskConical } from 'lucide-react';
 
-export default function SettingsTab({ player, onAction, user, onRequireAdmin }) {
+export default function SettingsTab({ player, onAction, user }) {
   const isAdmin = Boolean(user?.isAdmin);
+  
+  // Local User Preferences
+  const [autoScrollLyrics, setAutoScrollLyrics] = useState(() => {
+    const saved = localStorage.getItem('anna_karaoke_autoscroll');
+    return saved !== null ? saved === 'true' : true;
+  });
 
-  const handleToggle = (action) => {
-    if (!isAdmin) {
-      onRequireAdmin?.();
-    } else {
-      onAction(action);
-    }
+  const toggleAutoScroll = () => {
+    const next = !autoScrollLyrics;
+    setAutoScrollLyrics(next);
+    localStorage.setItem('anna_karaoke_autoscroll', String(next));
+    window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
   };
 
   return (
-    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-6 flex-1 flex flex-col gap-5">
-      {/* Header with Admin Status Badge */}
-      <div className="flex items-center justify-between pb-2 border-b border-anna-border/50">
+    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-6 flex-1 flex flex-col gap-6 animate-in fade-in">
+      
+      {/* Header with Role Badge */}
+      <div className="flex items-center justify-between pb-3 border-b border-anna-border/50">
         <h3 className="text-sm font-bold text-white flex items-center gap-2">
           <Sliders className="w-4 h-4 text-anna-accent" />
-          <span>Cài Đặt Phát Nhạc Server</span>
+          <span>Cài Đặt</span>
         </h3>
 
         {isAdmin ? (
@@ -27,81 +33,116 @@ export default function SettingsTab({ player, onAction, user, onRequireAdmin }) 
             <span>Quản Trị Viên</span>
           </span>
         ) : (
-          <span className="text-[10px] px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold flex items-center gap-1 shadow-sm">
-            <Lock className="w-3 h-3" />
-            <span>Chỉ Xem (Cần Admin)</span>
+          <span className="text-[10px] px-2.5 py-1 rounded-full bg-anna-card border border-anna-border text-anna-muted font-bold flex items-center gap-1">
+            <User className="w-3 h-3" />
+            <span>Thành Viên</span>
           </span>
         )}
       </div>
 
-      {!isAdmin && (
-        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-200/90">
-          <Info className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-          <span>
-            Bạn đang đăng nhập với quyền <b>Thành viên</b>. Chỉ Quản trị viên máy chủ mới có thể lưu thay đổi các cài đặt này.
-          </span>
+      {/* SECTION 1: Cài Đặt Cá Nhân (Dành cho TẤT CẢ mọi người) */}
+      <div className="flex flex-col gap-3">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-anna-muted flex items-center gap-1.5">
+          <User className="w-3.5 h-3.5 text-anna-accent" />
+          <span>Tùy Chọn Cá Nhân (Chỉ áp dụng trên thiết bị này)</span>
+        </h4>
+
+        {/* Karaoke Auto-Scroll Toggle */}
+        <div className="flex items-center justify-between p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+          <div className="pr-4">
+            <div className="flex items-center gap-2">
+              <Mic2 className="w-4 h-4 text-anna-accent" />
+              <p className="text-xs font-bold text-white">Tự động cuộn theo bài hát (Karaoke Sync)</p>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold flex items-center gap-0.5">
+                <FlaskConical className="w-2.5 h-2.5" />
+                <span>Thử nghiệm</span>
+              </span>
+            </div>
+            <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
+              Tự động cuộn và làm nổi bật theo từng câu hát khi bài hát đang phát. Tắt nếu bạn muốn tự do lướt đọc toàn bộ lời bài hát từ đầu đến cuối mà không bị giật màn hình.
+            </p>
+          </div>
+
+          <button
+            onClick={toggleAutoScroll}
+            title={autoScrollLyrics ? "Tắt tự động cuộn" : "Bật tự động cuộn"}
+            className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none ${
+              autoScrollLyrics ? 'bg-anna-accent shadow-lg shadow-anna-accent/20' : 'bg-anna-border'
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 ${
+                autoScrollLyrics ? 'translate-x-6' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* SECTION 2: Cài Đặt Server (CHỈ HIỂN THỊ KHI LÀ QUẢN TRỊ VIÊN) */}
+      {isAdmin && (
+        <div className="flex flex-col gap-3 pt-3 border-t border-anna-border/50 animate-in fade-in">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-anna-green flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Cài Đặt Phát Nhạc Server (Dành cho Quản Trị Viên)</span>
+          </h4>
+
+          {/* 24/7 Lofi Mode */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+            <div className="pr-4">
+              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <Radio className="w-3.5 h-3.5 text-anna-pink" />
+                <span>Chế độ Treo Lofi 24/7</span>
+              </p>
+              <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
+                Tự động phát Lofi thư giãn khi không có người nghe hoặc hết bài hát trong hàng chờ. Bot sẽ duy trì liên tục trong phòng Voice.
+              </p>
+            </div>
+
+            <button
+              onClick={() => onAction('toggle247')}
+              title={player?.mode247 ? "Tắt chế độ 24/7" : "Bật chế độ 24/7"}
+              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-pink focus-visible:outline-none ${
+                player?.mode247 ? 'bg-anna-pink shadow-lg shadow-anna-pink/20' : 'bg-anna-border'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 ${
+                  player?.mode247 ? 'translate-x-6' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Autoplay Similar Songs */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+            <div className="pr-4">
+              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-anna-green" />
+                <span>Tự Động Phát Bài Tương Tự (Autoplay)</span>
+              </p>
+              <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
+                Tự động tìm và phát các bài hát tương tự phù hợp khi hết hàng chờ trong phòng Voice.
+              </p>
+            </div>
+
+            <button
+              onClick={() => onAction('toggleAutoplay')}
+              title={player?.autoplay !== false ? "Tắt Autoplay" : "Bật Autoplay"}
+              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-green focus-visible:outline-none ${
+                player?.autoplay !== false ? 'bg-anna-green shadow-lg shadow-anna-green/20' : 'bg-anna-border'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 ${
+                  player?.autoplay !== false ? 'translate-x-6' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* 24/7 Lofi Mode */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
-        <div className="pr-4">
-          <p className="text-xs font-bold text-white flex items-center gap-1.5">
-            <Radio className="w-3.5 h-3.5 text-anna-pink" />
-            <span>Chế độ Treo Lofi 24/7</span>
-            {!isAdmin && <Lock className="w-3 h-3 text-amber-400" title="Chỉ Quản trị viên mới được bật/tắt" />}
-          </p>
-          <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
-            Tự động phát Lofi thư giãn khi không có người nghe hoặc hết bài hát trong hàng chờ. Bot sẽ không bao giờ rời phòng Voice.
-          </p>
-        </div>
-
-        <button
-          onClick={() => handleToggle('toggle247')}
-          title={isAdmin ? (player?.mode247 ? "Tắt chế độ 24/7" : "Bật chế độ 24/7") : "Yêu cầu quyền Quản trị viên (Admin)"}
-          className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-pink focus-visible:outline-none ${
-            player?.mode247 ? 'bg-anna-pink shadow-lg shadow-anna-pink/20' : 'bg-anna-border'
-          }`}
-        >
-          <div
-            className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 flex items-center justify-center ${
-              player?.mode247 ? 'translate-x-6' : 'translate-x-0.5'
-            }`}
-          >
-            {!isAdmin && <Lock className="w-2.5 h-2.5 text-gray-700" />}
-          </div>
-        </button>
-      </div>
-
-      {/* Autoplay DJ AI */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
-        <div className="pr-4">
-          <p className="text-xs font-bold text-white flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-anna-green" />
-            <span>DJ AI Tự Động Gợi Ý (Autoplay)</span>
-            {!isAdmin && <Lock className="w-3 h-3 text-amber-400" title="Chỉ Quản trị viên mới được bật/tắt" />}
-          </p>
-          <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
-            Sử dụng Google Gemini AI và YouTube Mix để tự động chọn bài hát tương tự phù hợp khi còn người trong phòng Voice.
-          </p>
-        </div>
-
-        <button
-          onClick={() => handleToggle('toggleAutoplay')}
-          title={isAdmin ? (player?.autoplay ? "Tắt Autoplay" : "Bật Autoplay") : "Yêu cầu quyền Quản trị viên (Admin)"}
-          className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-green focus-visible:outline-none ${
-            player?.autoplay !== false ? 'bg-anna-green shadow-lg shadow-anna-green/20' : 'bg-anna-border'
-          }`}
-        >
-          <div
-            className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 flex items-center justify-center ${
-              player?.autoplay !== false ? 'translate-x-6' : 'translate-x-0.5'
-            }`}
-          >
-            {!isAdmin && <Lock className="w-2.5 h-2.5 text-gray-700" />}
-          </div>
-        </button>
-      </div>
     </div>
   );
 }

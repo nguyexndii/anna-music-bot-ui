@@ -430,6 +430,7 @@ export default function App() {
                 guildName={guild?.name}
                 token={token}
                 player={player}
+                user={user}
                 onAction={handlePlayerAction}
                 onRequireAdmin={() => setIsPermissionModalOpen(true)}
               />
