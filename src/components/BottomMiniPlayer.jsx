@@ -151,22 +151,29 @@ export default function BottomMiniPlayer({
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1016]/95 backdrop-blur-xl border-t border-anna-border/80 px-3 sm:px-6 py-2.5 shadow-2xl transition-all animate-in slide-in-from-bottom duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-6">
         
-        {/* Left: Track Info & Disc Thumbnail */}
+        {/* Left: Track Info & Mini Vinyl Disc (Click to expand) */}
         <div className="flex items-center gap-3 min-w-0 w-1/4 sm:w-1/3">
           <div
             onClick={onToggleMinimize}
-            className="relative cursor-pointer group flex-shrink-0"
-            title="Nhấp để mở rộng Đĩa than"
+            className="relative cursor-pointer group flex-shrink-0 transform hover:scale-110 active:scale-95 transition duration-300"
+            title="Nhấp vào đĩa than để phóng to"
           >
-            <img
-              src={current?.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100'}
-              alt={current?.title || 'Ảnh bìa'}
-              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover ring-1 ring-white/10 shadow-md ${
-                isPlaying ? 'animate-spin-slow' : ''
-              }`}
-            />
-            <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-              <Maximize2 className="w-4 h-4 text-white" />
+            {/* Mini Vinyl Disc Shell */}
+            <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#0a0a0a] border-2 border-[#262626] shadow-xl p-1 flex items-center justify-center relative overflow-hidden group-hover:border-anna-accent/80 transition-all ${
+              isPlaying ? 'vinyl-spinning' : 'vinyl-paused'
+            }`}>
+              <div className="absolute inset-1 rounded-full border border-white/10 pointer-events-none"></div>
+              <img
+                src={current?.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100'}
+                alt={current?.title || 'Ảnh bìa'}
+                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shadow-inner ring-1 ring-black"
+              />
+              <div className="absolute w-2 h-2 rounded-full bg-anna-surface border border-anna-border"></div>
+            </div>
+
+            {/* Hover Expand Overlay */}
+            <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center backdrop-blur-[1px]">
+              <Maximize2 className="w-4 h-4 text-white drop-shadow" />
             </div>
           </div>
 

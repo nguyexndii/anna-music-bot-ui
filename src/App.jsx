@@ -357,14 +357,14 @@ export default function App() {
           )}
 
           {/* Right/Full Column: Tabs (7 Cols or 12 Cols when minimized) */}
-          <div className={`${isPlayerMinimized ? 'col-span-12' : 'lg:col-span-7'} flex flex-col gap-4`}>
-            {/* Tab Navigation Buttons */}
-            <div className="flex items-center gap-2 bg-anna-surface p-1.5 rounded-2xl border border-anna-border/80 shadow-md overflow-x-auto">
+          <div className={`${isPlayerMinimized ? 'col-span-12 max-w-5xl mx-auto w-full' : 'lg:col-span-7'} flex flex-col gap-4 transition-all duration-300`}>
+            {/* Tab Navigation Buttons (Sleek Glassmorphic Segmented Control) */}
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-anna-surface/90 backdrop-blur-md p-1.5 rounded-2xl border border-anna-border/80 shadow-xl overflow-x-auto">
               <button
                 onClick={() => setActiveTab('search')}
-                className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 ${
+                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'search'
-                    ? 'bg-anna-accent text-white shadow-sm shadow-anna-accent/20'
+                    ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
                 }`}
               >
@@ -374,24 +374,26 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('queue')}
-                className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 ${
+                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'queue'
-                    ? 'bg-anna-accent text-white shadow-sm shadow-anna-accent/20'
+                    ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
                 }`}
               >
                 <ListMusic className="w-4 h-4" />
                 <span>Hàng Chờ</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-anna-border text-white">
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
+                  activeTab === 'queue' ? 'bg-white/20 text-white' : 'bg-anna-border text-anna-muted'
+                }`}>
                   {player?.queue?.length || 0}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('lyrics')}
-                className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 ${
+                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'lyrics'
-                    ? 'bg-anna-accent text-white shadow-sm shadow-anna-accent/20'
+                    ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
                 }`}
               >
@@ -401,13 +403,15 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 ${
+                title="Cài đặt máy chủ & Cá nhân"
+                className={`py-2.5 px-3.5 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${
                   activeTab === 'settings'
-                    ? 'bg-anna-accent text-white shadow-sm shadow-anna-accent/20'
+                    ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
                 }`}
               >
                 <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Cài Đặt</span>
               </button>
             </div>
 

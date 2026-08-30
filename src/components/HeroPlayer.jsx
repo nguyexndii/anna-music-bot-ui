@@ -238,10 +238,14 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
           </div>
         </div>
 
-        {/* Vinyl Disc / Thumbnail */}
-        <div className="relative my-4 group">
+        {/* Vinyl Disc / Thumbnail (Click to shrink/minimize) */}
+        <div
+          onClick={onToggleMinimize}
+          title="Nhấp vào đĩa than để thu nhỏ xuống thanh điều khiển bên dưới"
+          className="relative my-4 group cursor-pointer transform hover:scale-105 active:scale-95 transition-all duration-300"
+        >
           <div
-            className={`w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-[#0a0a0a] border-4 border-[#222] shadow-2xl flex items-center justify-center p-3 relative transition-transform duration-500 ${
+            className={`w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-[#0a0a0a] border-4 border-[#222] shadow-2xl flex items-center justify-center p-3 relative transition-transform duration-500 group-hover:border-anna-accent/60 ${
               isPlaying ? 'vinyl-spinning' : 'vinyl-paused'
             }`}
           >
@@ -255,6 +259,14 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
               className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover shadow-inner ring-4 ring-[#111]"
             />
             <div className="absolute w-6 h-6 rounded-full bg-anna-surface border-2 border-anna-border shadow-inner"></div>
+          </div>
+
+          {/* Hover Overlay Hint */}
+          <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-1 backdrop-blur-[1px]">
+            <Minimize2 className="w-7 h-7 text-white drop-shadow-md" />
+            <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 px-2 py-0.5 rounded-full border border-white/20">
+              Thu nhỏ
+            </span>
           </div>
         </div>
 
