@@ -5,13 +5,12 @@ import LiveSearch from './components/LiveSearch';
 import QueueManager from './components/QueueManager';
 import SyncedLyrics from './components/SyncedLyrics';
 import SettingsTab from './components/SettingsTab';
-import HistoryTab from './components/HistoryTab';
 import PermissionModal from './components/PermissionModal';
 import ConnectingStepper from './components/ConnectingStepper';
 import NoVoiceSession from './components/NoVoiceSession';
 import BottomMiniPlayer from './components/BottomMiniPlayer';
 import Toast from './components/Toast';
-import { Search, ListMusic, Mic2, Settings, KeyRound, AlertCircle, Compass, History } from 'lucide-react';
+import { Search, ListMusic, Mic2, Settings, KeyRound, AlertCircle, Compass } from 'lucide-react';
 import { API_BASE } from './config';
 
 export default function App() {
@@ -372,12 +371,12 @@ export default function App() {
           )}
 
           {/* Right/Full Column: Tabs (7 Cols or 12 Cols when minimized) */}
-          <div className={`${isPlayerMinimized ? 'col-span-12 max-w-5xl mx-auto w-full' : 'lg:col-span-7'} flex flex-col gap-4 transition-all duration-300`}>
+          <div className={`${isPlayerMinimized ? 'col-span-12 max-w-5xl mx-auto w-full' : 'lg:col-span-7'} flex flex-col gap-3.5 transition-all duration-300`}>
             {/* Tab Navigation Buttons (Sleek Glassmorphic Segmented Control) */}
-            <div className="flex items-center gap-1.5 sm:gap-2 bg-anna-surface/90 backdrop-blur-md p-1.5 rounded-2xl border border-anna-border/80 shadow-xl overflow-x-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-anna-surface/90 backdrop-blur-md p-1.5 rounded-2xl border border-anna-border/80 shadow-xl overflow-x-auto h-[48px] flex-shrink-0">
               <button
                 onClick={() => setActiveTab('search')}
-                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
+                className={`flex-1 py-2 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'search'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -389,7 +388,7 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('queue')}
-                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
+                className={`flex-1 py-2 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'queue'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -406,7 +405,7 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('lyrics')}
-                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
+                className={`flex-1 py-2 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'lyrics'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -417,22 +416,9 @@ export default function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('history')}
-                title="Lịch sử nghe nhạc gần đây"
-                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
-                  activeTab === 'history'
-                    ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
-                    : 'text-anna-muted hover:text-white hover:bg-anna-card'
-                }`}
-              >
-                <History className="w-4 h-4" />
-                <span>Lịch Sử</span>
-              </button>
-
-              <button
                 onClick={() => setActiveTab('settings')}
                 title="Cài đặt máy chủ & Cá nhân"
-                className={`py-2.5 px-3.5 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${
+                className={`py-2 px-3.5 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${
                   activeTab === 'settings'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -443,34 +429,33 @@ export default function App() {
               </button>
             </div>
 
-            {/* Active Tab Body (Giữ nguyên DOM để không mất nội dung tìm kiếm & không load lại Lyric) */}
-            <div className={activeTab === 'search' ? 'contents' : 'hidden'}>
-              <LiveSearch onOrderSong={handleOrderSong} player={player} />
-            </div>
-            <div className={activeTab === 'queue' ? 'contents' : 'hidden'}>
-              <QueueManager queue={player?.queue} onAction={handlePlayerAction} />
-            </div>
-            <div className={activeTab === 'lyrics' ? 'contents' : 'hidden'}>
-              <SyncedLyrics
-                player={player}
-                onAction={handlePlayerAction}
-                isLyricsEnabled={player?.lyricsSync !== false}
-                onToggleLyrics={() => handlePlayerAction('toggleLyrics')}
-              />
-            </div>
-            <div className={activeTab === 'history' ? 'contents' : 'hidden'}>
-              <HistoryTab player={player} onOrderSong={handleOrderSong} />
-            </div>
-            <div className={activeTab === 'settings' ? 'contents' : 'hidden'}>
-              <SettingsTab
-                guildId={guildId}
-                guildName={guild?.name}
-                token={token}
-                player={player}
-                user={user}
-                onAction={handlePlayerAction}
-                onRequireAdmin={() => setIsPermissionModalOpen(true)}
-              />
+            {/* Active Tab Body (Kích thước cố định đồng nhất trên mọi tab, cân xứng tuyệt đối với HeroPlayer) */}
+            <div className={`w-full ${isPlayerMinimized ? 'h-[calc(100vh-210px)] min-h-[500px]' : 'h-[558px] min-h-[558px] max-h-[558px]'}`}>
+              <div className={activeTab === 'search' ? 'w-full h-full' : 'hidden'}>
+                <LiveSearch onOrderSong={handleOrderSong} player={player} />
+              </div>
+              <div className={activeTab === 'queue' ? 'w-full h-full' : 'hidden'}>
+                <QueueManager queue={player?.queue} onAction={handlePlayerAction} />
+              </div>
+              <div className={activeTab === 'lyrics' ? 'w-full h-full' : 'hidden'}>
+                <SyncedLyrics
+                  player={player}
+                  onAction={handlePlayerAction}
+                  isLyricsEnabled={player?.lyricsSync !== false}
+                  onToggleLyrics={() => handlePlayerAction('toggleLyrics')}
+                />
+              </div>
+              <div className={activeTab === 'settings' ? 'w-full h-full' : 'hidden'}>
+                <SettingsTab
+                  guildId={guildId}
+                  guildName={guild?.name}
+                  token={token}
+                  player={player}
+                  user={user}
+                  onAction={handlePlayerAction}
+                  onRequireAdmin={() => setIsPermissionModalOpen(true)}
+                />
+              </div>
             </div>
           </div>
         </main>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Search,
   X,
@@ -10,7 +10,9 @@ import {
   Heart,
   Clock,
   Disc3,
-  ListPlus
+  ListPlus,
+  History,
+  ChevronRight
 } from 'lucide-react';
 import { API_BASE } from '../config';
 
@@ -59,10 +61,33 @@ function getTrackThumb(track) {
   return 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120';
 }
 
+function formatRelativeTime(dateString) {
+  if (!dateString) return 'Gần đây';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Gần đây';
+
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSeconds < 60) return 'Vừa xong';
+  if (diffMinutes < 60) return `${diffMinutes} phút trước`;
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  if (diffDays === 1) return 'Hôm qua';
+  if (diffDays < 7) return `${diffDays} ngày trước`;
+
+  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+}
+
 export default function LiveSearch({ onOrderSong, player }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState('');
   const debounceRef = useRef(null);
 
   const detected = detectUrlType(query);
@@ -134,10 +159,20 @@ export default function LiveSearch({ onOrderSong, player }) {
 
   const hasAnyData = favorites.length > 0 || history.length > 0 || topTracks.length > 0 || recentPlaylists.length > 0;
 
+  const filteredHistory = useMemo(() => {
+    if (!historyFilter.trim()) return history;
+    const q = historyFilter.toLowerCase().trim();
+    return history.filter(
+      (t) =>
+        (t.title && t.title.toLowerCase().includes(q)) ||
+        (t.artist && t.artist.toLowerCase().includes(q))
+    );
+  }, [history, historyFilter]);
+
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in">
+    <div className="w-full h-full flex flex-col gap-3.5 animate-in fade-in">
       {/* Search Bar */}
-      <div className="relative flex items-center">
+      <div className="relative flex items-center flex-shrink-0">
         <Search className="w-5 h-5 absolute left-4 text-anna-muted" />
         <input
           type="text"
@@ -145,7 +180,7 @@ export default function LiveSearch({ onOrderSong, player }) {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Tìm tên bài hát, ca sĩ, hoặc dán link YouTube / Spotify / Playlist..."
-          className="w-full bg-anna-surface border border-anna-border focus:border-anna-accent rounded-2xl pl-12 pr-12 py-3.5 text-sm text-white placeholder-anna-muted focus:outline-none focus:ring-2 focus:ring-anna-accent/30 transition shadow-inner"
+          className="w-full bg-anna-surface border border-anna-border focus:border-anna-accent rounded-2xl pl-12 pr-12 py-3 text-sm text-white placeholder-anna-muted focus:outline-none focus:ring-2 focus:ring-anna-accent/30 transition shadow-inner"
         />
         {query && (
           <button
@@ -160,7 +195,7 @@ export default function LiveSearch({ onOrderSong, player }) {
 
       {/* Instant Playlist Detection Banner */}
       {detected?.isPlaylist && (
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-anna-accent/25 via-purple-600/20 to-pink-500/20 border border-anna-accent/40 shadow-xl flex items-center justify-between gap-3 animate-in fade-in">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-anna-accent/25 via-purple-600/20 to-pink-500/20 border border-anna-accent/40 shadow-xl flex items-center justify-between gap-3 animate-in fade-in flex-shrink-0">
           <div className="flex items-center gap-3.5 min-w-0">
             {/* Playlist Artwork Thumbnail */}
             <div className="w-12 h-12 rounded-xl overflow-hidden relative flex-shrink-0 bg-anna-card border border-white/10 shadow-lg group">
@@ -204,7 +239,7 @@ export default function LiveSearch({ onOrderSong, player }) {
       )}
 
       {/* Main Container */}
-      <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-5 pb-8 flex-1 min-h-[250px] max-h-[calc(100vh-320px)] overflow-y-auto flex flex-col gap-6 relative">
+      <div className="w-full h-full bg-anna-surface border border-anna-border/80 rounded-3xl p-5 pb-8 overflow-y-auto flex flex-col gap-6 relative">
         
         {/* Loading Overlay */}
         {loading && (
@@ -218,52 +253,45 @@ export default function LiveSearch({ onOrderSong, player }) {
           </div>
         )}
 
-        {/* VIEW 1: Live Search Results */}
-        {!loading && query && !detected?.isPlaylist && results.length > 0 && (
-          <div className="flex flex-col gap-2.5 animate-in fade-in">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1 flex items-center gap-1.5">
-              <Search className="w-3.5 h-3.5 text-anna-accent" />
-              <span>Kết quả tìm kiếm cho "{query}"</span>
+        {/* VIEW 1: Kết quả tìm kiếm trực tiếp */}
+        {query && !detected?.isPlaylist && results.length > 0 && (
+          <div className="flex flex-col gap-2 animate-in fade-in">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-anna-muted mb-1 flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-anna-accent" />
+              <span>Kết quả tìm kiếm phù hợp</span>
             </h3>
 
             {results.map((track, idx) => (
               <div
                 key={idx}
                 onClick={() => handleOrderTrack(track)}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-anna-card border border-anna-border/70 hover:border-anna-accent/50 hover:bg-anna-hover transition cursor-pointer group shadow-sm"
+                className="group flex items-center justify-between p-3 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-accent/60 hover:bg-anna-hover transition cursor-pointer shadow-sm"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-11 h-11 rounded-lg overflow-hidden relative flex-shrink-0 bg-anna-surface border border-anna-border/50">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-11 h-11 rounded-xl overflow-hidden relative bg-anna-surface border border-anna-border/60 flex-shrink-0">
                     <img
                       src={getTrackThumb(track)}
                       alt={track.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                       <Play className="w-4 h-4 fill-white text-white" />
                     </div>
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-white group-hover:text-anna-accent transition truncate max-w-sm sm:max-w-md">
+                    <h4 className="text-xs font-bold text-white group-hover:text-anna-accent transition truncate">
                       {track.title}
                     </h4>
                     <p className="text-[11px] text-anna-muted truncate mt-0.5">
-                      {track.artist || 'YouTube Music'}
+                      {track.artist || 'YouTube Music'} • {track.duration || '3:30'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 flex-shrink-0 pl-2">
-                  <span className="text-[11px] font-mono text-anna-muted">
-                    {track.duration || '3:30'}
-                  </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOrderTrack(track);
-                    }}
-                    title="Thêm vào hàng chờ"
-                    className="w-7 h-7 rounded-lg bg-anna-accent/10 hover:bg-anna-accent text-anna-accent hover:text-white flex items-center justify-center transition"
+                    title="Thêm vào danh sách phát"
+                    className="p-2 rounded-xl bg-anna-surface group-hover:bg-anna-accent text-anna-muted group-hover:text-white border border-anna-border group-hover:border-transparent transition shadow-sm"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -347,7 +375,13 @@ export default function LiveSearch({ onOrderSong, player }) {
                       Nghe Gần Đây (Recently Played)
                     </h3>
                   </div>
-                  <span className="text-[11px] text-anna-muted">Lịch sử phòng nhạc</span>
+                  <button
+                    onClick={() => setShowHistoryModal(true)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 hover:underline font-semibold flex items-center gap-1 transition active:scale-95"
+                  >
+                    <span>Lịch sử phòng nhạc</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
@@ -396,65 +430,62 @@ export default function LiveSearch({ onOrderSong, player }) {
                       Playlist Đã Thêm Gần Đây
                     </h3>
                   </div>
-                  <span className="text-[11px] text-anna-muted">1 chạm phát lại</span>
+                  <span className="text-[11px] text-anna-muted">Lưu tự động</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {recentPlaylists.map((pl, idx) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                  {recentPlaylists.slice(0, 6).map((pl, idx) => (
                     <div
                       key={idx}
                       onClick={() => handleAddPlaylistUrl(pl.url)}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-anna-card border border-purple-500/30 hover:border-purple-400 hover:bg-anna-hover transition cursor-pointer group shadow-sm"
+                      className="group relative flex flex-col cursor-pointer transition hover:-translate-y-1"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-11 h-11 rounded-xl overflow-hidden relative bg-purple-500/10 border border-purple-500/20 flex-shrink-0">
-                          {pl.thumbnail ? (
-                            <img src={pl.thumbnail} alt={pl.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-purple-400">
-                              <Disc3 className="w-5 h-5" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                            <Play className="w-4 h-4 fill-white text-white" />
+                      <div className="aspect-square w-full rounded-2xl overflow-hidden relative bg-anna-card border border-purple-500/30 shadow-md">
+                        {pl.thumbnail ? (
+                          <img
+                            src={pl.thumbnail}
+                            alt={pl.title || 'Playlist'}
+                            className="w-full h-full object-cover transition duration-300 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-tr from-purple-800 to-indigo-900 flex items-center justify-center">
+                            <Disc3 className="w-8 h-8 text-purple-300" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-500/40 transform scale-75 group-hover:scale-100 transition">
+                            <ListPlus className="w-5 h-5 ml-0.5" />
                           </div>
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-bold text-white group-hover:text-purple-400 transition truncate">
-                            {pl.title}
-                          </h4>
-                          <p className="text-[11px] text-anna-muted truncate mt-0.5">
-                            {pl.trackCount ? `${pl.trackCount} bài hát` : 'Danh sách phát'} • {pl.addedBy || 'Server'}
-                          </p>
-                        </div>
                       </div>
-
-                      <button
-                        title="Phát lại toàn bộ Playlist này"
-                        className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-white flex items-center justify-center transition flex-shrink-0"
-                      >
-                        <ListPlus className="w-4 h-4" />
-                      </button>
+                      <div className="mt-2 min-w-0">
+                        <h4 className="text-xs font-bold text-white group-hover:text-purple-400 transition truncate leading-tight">
+                          {pl.title || 'Playlist'}
+                        </h4>
+                        <p className="text-[11px] text-anna-muted truncate mt-0.5">
+                          {pl.trackCount ? `${pl.trackCount} bài hát` : 'Playlist'}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* SECTION 4: 🔥 TOP BÀI HÁT MÁY CHỦ */}
+            {/* SECTION 4: 🏆 TOP BÀI HÁT ĐƯỢC NGHE NHIỀU NHẤT */}
             {topTracks.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Flame className="w-4 h-4 text-amber-400" />
                     <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-                      Bảng Xếp Hạng Máy Chủ (Top Hits)
+                      Top Bài Hát Nghe Nhiều Nhất
                     </h3>
                   </div>
-                  <span className="text-[11px] text-amber-400 font-semibold">Được nghe nhiều nhất</span>
+                  <span className="text-[11px] text-anna-muted">Thống kê máy chủ</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {topTracks.map((track, idx) => (
                     <div
                       key={idx}
@@ -522,6 +553,120 @@ export default function LiveSearch({ onOrderSong, player }) {
         )}
 
       </div>
+
+      {/* FULL MODAL: LỊCH SỬ PHÒNG NHẠC (ALL RECENTLY PLAYED) */}
+      {showHistoryModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in"
+          onClick={() => setShowHistoryModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] rounded-3xl bg-anna-surface border border-anna-border p-5 sm:p-6 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-anna-border/50">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                  <History className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>Lịch Sử Phòng Nhạc</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-anna-card border border-anna-border text-anna-muted font-mono font-bold">
+                      {history.length} bài
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-anna-muted">Toàn bộ các bài hát đã phát gần đây trong máy chủ</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="p-2 rounded-xl bg-anna-card hover:bg-anna-hover text-anna-muted hover:text-white border border-anna-border transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Search Filter inside Modal */}
+            {history.length > 5 && (
+              <div className="relative flex items-center">
+                <Search className="w-4 h-4 absolute left-3.5 text-anna-muted" />
+                <input
+                  type="text"
+                  value={historyFilter}
+                  onChange={(e) => setHistoryFilter(e.target.value)}
+                  placeholder="Lọc bài hát trong lịch sử..."
+                  className="w-full bg-anna-card border border-anna-border text-white placeholder-anna-muted text-xs rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-cyan-400 transition"
+                />
+              </div>
+            )}
+
+            {/* History List */}
+            <div className="flex-1 overflow-y-auto max-h-[55vh] flex flex-col gap-2 pr-1">
+              {filteredHistory.length === 0 ? (
+                <div className="py-12 text-center text-anna-muted">
+                  <p className="text-xs font-semibold text-white">
+                    {historyFilter ? 'Không tìm thấy bài hát phù hợp' : 'Chưa có lịch sử nghe nhạc'}
+                  </p>
+                </div>
+              ) : (
+                filteredHistory.map((track, idx) => (
+                  <div
+                    key={idx}
+                    className="group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-anna-card/60 hover:bg-anna-card border border-anna-border/50 hover:border-cyan-500/40 transition"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                      <span className="w-5 text-center text-[11px] font-mono font-bold text-anna-muted/70 flex-shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-anna-surface border border-anna-border/60 relative">
+                        <img
+                          src={getTrackThumb(track)}
+                          alt={track.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4
+                          onClick={() => {
+                            handleOrderTrack(track);
+                            setShowHistoryModal(false);
+                          }}
+                          className="text-xs font-semibold text-white truncate hover:text-cyan-400 cursor-pointer transition"
+                        >
+                          {track.title}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-anna-muted">
+                          <span className="truncate max-w-[140px] sm:max-w-[220px]">
+                            {track.artist || 'YouTube Music'}
+                          </span>
+                          <span>•</span>
+                          <span className="text-[10px] text-anna-muted/80">
+                            {formatRelativeTime(track.playedAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        handleOrderTrack(track);
+                        setShowHistoryModal(false);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-black border border-cyan-500/30 hover:border-transparent text-xs font-bold transition flex items-center gap-1.5 active:scale-95 shadow-sm flex-shrink-0"
+                    >
+                      <Play className="w-3 h-3 fill-current" />
+                      <span>Phát Lại</span>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

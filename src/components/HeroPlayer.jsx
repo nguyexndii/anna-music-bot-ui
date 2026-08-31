@@ -194,12 +194,12 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col h-[620px] min-h-[620px] max-h-[620px]">
       {/* Player Card (Nhấp vào bất kỳ đâu trên khung để thu nhỏ) */}
       <div
         onClick={onToggleMinimize}
         title="Nhấp vào khung để thu nhỏ thanh phát nhạc"
-        className="bg-gradient-to-b from-anna-surface to-anna-card border border-anna-border/80 hover:border-anna-accent/50 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center relative overflow-hidden cursor-pointer transition-all duration-300 group"
+        className="h-full bg-gradient-to-b from-anna-surface to-anna-card border border-anna-border/80 hover:border-anna-accent/50 rounded-3xl p-6 shadow-2xl flex flex-col justify-between items-center text-center relative overflow-hidden cursor-pointer transition-all duration-300 group"
       >
         
         {/* Glowing Ambient Backdrop */}

@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   User,
   Mic2,
-  FlaskConical,
   ScrollText,
   Lock,
   Bell,
@@ -14,8 +13,7 @@ import {
   Music,
   Hash,
   Disc,
-  Check,
-  Save
+  Check
 } from 'lucide-react';
 import { API_BASE } from '../config';
 
@@ -36,6 +34,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
     mode247: false,
     autoplay: true,
     crossfadeDuration: 0,
+    updateVoiceStatus: true,
     announceSongs: true,
     djOnly: false,
     djRoleId: null,
@@ -104,12 +103,12 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
   };
 
   return (
-    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl p-4 sm:p-6 pb-8 flex-1 min-h-[300px] max-h-[calc(100vh-320px)] overflow-y-auto flex flex-col gap-6 animate-in fade-in">
+    <div className="w-full h-full bg-anna-surface border border-anna-border/80 rounded-3xl p-4 sm:p-6 pb-8 overflow-y-auto flex flex-col gap-5 animate-in fade-in">
       {/* Header with Role Badge */}
-      <div className="flex items-center justify-between pb-3 border-b border-anna-border/50">
+      <div className="flex items-center justify-between pb-3 border-b border-anna-border/50 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Sliders className="w-4 h-4 text-anna-accent" />
-          <h3 className="text-sm font-bold text-white">Bảng Cài Đặt</h3>
+          <h3 className="text-sm font-bold text-white">Cài Đặt</h3>
           {saveSuccessMessage && (
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-anna-green/20 text-anna-green font-bold animate-in fade-in">
               ✓ {saveSuccessMessage}
@@ -130,26 +129,22 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
         )}
       </div>
 
-      {/* SECTION 1: Cài Đặt Cá Nhân (Dành cho TẤT CẢ mọi người) */}
+      {/* SECTION 1: Cài Đặt Cá Nhân */}
       <div className="flex flex-col gap-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-anna-muted flex items-center gap-1.5">
           <User className="w-3.5 h-3.5 text-anna-accent" />
-          <span>Tùy Chọn Cá Nhân (Thiết bị này)</span>
+          <span>Tùy Chọn Cá Nhân</span>
         </h4>
 
         {/* Karaoke Auto-Scroll Toggle */}
-        <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+        <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
           <div className="pr-4">
             <div className="flex items-center gap-2">
               <Mic2 className="w-4 h-4 text-anna-accent" />
-              <p className="text-xs font-bold text-white">Tự động cuộn theo bài hát (Karaoke Sync)</p>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold flex items-center gap-0.5">
-                <FlaskConical className="w-2.5 h-2.5" />
-                <span>Thử nghiệm</span>
-              </span>
+              <p className="text-xs font-bold text-white">Tự động cuộn lời bài hát (Karaoke Sync)</p>
             </div>
             <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
-              Tự động cuộn và làm nổi bật theo từng câu hát khi bài hát đang phát. Tắt nếu bạn muốn tự do lướt xem toàn bộ lời bài hát mà không bị giật màn hình.
+              Tự động cuộn và làm nổi bật theo từng câu hát khi bài hát đang phát.
             </p>
           </div>
 
@@ -169,23 +164,23 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
         </div>
       </div>
 
-      {/* SECTION 2: Cài Đặt Server (CHỈ HIỂN THỊ KHI LÀ QUẢN TRỊ VIÊN) */}
+      {/* SECTION 2: Cài Đặt Server (Chỉ hiển thị cho Quản Trị Viên) */}
       {isAdmin && (
-        <div className="flex flex-col gap-4 pt-3 border-t border-anna-border/50 animate-in fade-in">
+        <div className="flex flex-col gap-3.5 pt-3 border-t border-anna-border/50 animate-in fade-in">
           <h4 className="text-xs font-bold uppercase tracking-wider text-anna-green flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Cài Đặt Máy Chủ (Dành cho Quản Trị Viên)</span>
+            <span>Cài Đặt Máy Chủ</span>
           </h4>
 
-          {/* 1. Log Channel Selection */}
-          <div className="p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
+          {/* 1. Log Channel */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
                 <ScrollText className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Kênh Nhật Ký Hoạt Động (Log Channel)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
-                Gửi toàn bộ nhật ký (sửa/xóa tin nhắn, lệnh nhạc, web player, voice...) vào kênh Discord được chọn.
+                Ghi lại toàn bộ nhật ký hoạt động của bot vào kênh Discord được chỉ định.
               </p>
             </div>
 
@@ -196,7 +191,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 disabled={isSaving}
                 className="flex-1 bg-anna-surface border border-anna-border text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-anna-accent font-medium transition cursor-pointer"
               >
-                <option value="">🚫 Tắt kênh nhật ký (Không gửi vào Discord)</option>
+                <option value="">🚫 Tắt kênh nhật ký</option>
                 {textChannels.map((ch) => (
                   <option key={ch.id} value={ch.id}>
                     # {ch.name}
@@ -216,15 +211,15 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             </div>
           </div>
 
-          {/* 2. Lock Text Command Channel */}
-          <div className="p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
+          {/* 2. Lock Command Channel */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Hash className="w-3.5 h-3.5 text-anna-cyan" />
-                <span>Khóa Kênh Nhận Lệnh Chat (Music Channel)</span>
+                <span>Kênh Nhận Lệnh (Music Channel)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
-                Chỉ cho phép gõ lệnh bot tại kênh chỉ định (Tránh làm loãng các kênh trò chuyện khác).
+                Giới hạn chỉ cho phép sử dụng lệnh bot tại kênh chat được chỉ định.
               </p>
             </div>
 
@@ -235,7 +230,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 disabled={isSaving}
                 className="flex-1 bg-anna-surface border border-anna-border text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-anna-accent font-medium transition cursor-pointer"
               >
-                <option value="">🌐 Cho phép dùng lệnh ở MỌI kênh</option>
+                <option value="">🌐 Cho phép dùng lệnh ở mọi kênh</option>
                 {textChannels.map((ch) => (
                   <option key={ch.id} value={ch.id}>
                     # {ch.name}
@@ -256,14 +251,14 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           </div>
 
           {/* 3. Lock Voice Channel */}
-          <div className="p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-amber-400" />
                 <span>Khóa Phòng Voice Cố Định</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
-                Cố định bot chỉ hoạt động tại một phòng Voice cụ thể, không tự chuyển sang phòng khác.
+                Cố định bot chỉ tham gia và phát nhạc tại phòng Voice được chọn.
               </p>
             </div>
 
@@ -274,7 +269,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 disabled={isSaving}
                 className="flex-1 bg-anna-surface border border-anna-border text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-anna-accent font-medium transition cursor-pointer"
               >
-                <option value="">🔊 Cho phép bot vào MỌI phòng Voice</option>
+                <option value="">🔊 Cho phép bot vào mọi phòng Voice</option>
                 {voiceChannels.map((vc) => (
                   <option key={vc.id} value={vc.id}>
                     🔊 {vc.name}
@@ -294,15 +289,15 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             </div>
           </div>
 
-          {/* 4. 24/7 Lofi Mode */}
-          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+          {/* 4. 24/7 Mode */}
+          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Radio className="w-3.5 h-3.5 text-anna-pink" />
-                <span>Chế độ Treo Lofi 24/7</span>
+                <span>Chế Độ 24/7 (Luôn Trực Tuyến)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
-                Tự động phát Lofi thư giãn khi không có người nghe hoặc hết bài hát. Bot sẽ duy trì liên tục trong phòng Voice.
+                Duy trì kết nối liên tục trong phòng Voice và phát nhạc nền khi hàng chờ trống.
               </p>
             </div>
 
@@ -325,15 +320,15 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             </button>
           </div>
 
-          {/* 5. Autoplay Similar Songs */}
-          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+          {/* 5. Autoplay */}
+          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-anna-green" />
                 <span>Tự Động Phát Bài Tương Tự (Autoplay)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
-                Tự động tìm và phát các bài hát tương tự phù hợp khi hết hàng chờ trong phòng Voice.
+                Tự động tìm kiếm và nối tiếp các bài hát tương tự khi kết thúc hàng chờ.
               </p>
             </div>
 
@@ -356,19 +351,19 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             </button>
           </div>
 
-          {/* 6. Crossfade Duration */}
-          <div className="p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
+          {/* 6. Crossfade */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Disc className="w-3.5 h-3.5 text-anna-accent" />
-                <span>Hòa Âm Chuyển Bài (Crossfade / Fade-in)</span>
+                <span>Hòa Âm Chuyển Bài (Fade-in)</span>
               </p>
               <span className="text-xs font-mono font-bold text-anna-accent bg-anna-accent/10 px-2 py-0.5 rounded-md">
                 {serverSettings.crossfadeDuration > 0 ? `${serverSettings.crossfadeDuration} giây` : 'Tắt (0s)'}
               </span>
             </div>
             <p className="text-[11px] text-anna-muted leading-relaxed">
-              Tạo hiệu ứng tăng dần âm lượng (Fade-in) khi bắt đầu bài mới, giúp chuyển bài êm ái không bị ngắt quãng đột ngột.
+              Tạo hiệu ứng tăng dần âm lượng khi bắt đầu bài hát mới để chuyển bài mượt mà hơn.
             </p>
 
             <div className="flex items-center gap-3 pt-2 border-t border-anna-border/40">
@@ -387,15 +382,42 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             </div>
           </div>
 
-          {/* 7. Announce Songs (Now Playing Messages) */}
-          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+          {/* 7. Voice Channel Status */}
+          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
+            <div className="pr-4">
+              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Trạng Thái Kênh Voice (Voice Status)</span>
+              </p>
+              <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
+                Hiển thị tên bài hát đang phát trên thanh trạng thái của phòng Voice.
+              </p>
+            </div>
+
+            <button
+              onClick={() => updateSetting('updateVoiceStatus', serverSettings.updateVoiceStatus === false)}
+              title={serverSettings.updateVoiceStatus !== false ? 'Tắt trạng thái voice' : 'Bật trạng thái voice'}
+              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none ${
+                serverSettings.updateVoiceStatus !== false ? 'bg-cyan-500 shadow-lg shadow-cyan-500/20' : 'bg-anna-border'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 ${
+                  serverSettings.updateVoiceStatus !== false ? 'translate-x-6' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* 8. Announce Songs */}
+          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Bell className="w-3.5 h-3.5 text-yellow-400" />
-                <span>Thông Báo Khi Đổi Bài Hát</span>
+                <span>Thông Báo Bài Hát Mới</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
-                Tự động gửi tin nhắn kèm nút điều khiển mỗi khi chuyển sang bài hát mới trong kênh chat. Tắt nếu bạn muốn hoàn toàn im lặng.
+                Gửi tin nhắn thông báo kèm nút điều khiển mỗi khi chuyển sang bài hát tiếp theo.
               </p>
             </div>
 
@@ -414,16 +436,16 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             </button>
           </div>
 
-          {/* 8. DJ Only Mode & DJ Role */}
-          <div className="p-3.5 sm:p-4 rounded-xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
+          {/* 9. DJ Mode */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-white flex items-center gap-1.5">
                   <Music className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Chế Độ DJ (Chỉ DJ Mới Được Phát / Dừng Nhạc)</span>
+                  <span>Chế Độ DJ (DJ Only)</span>
                 </p>
                 <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
-                  Khi bật, chỉ những người có vai trò DJ hoặc Admin mới có quyền điều khiển và order nhạc.
+                  Chỉ cho phép Quản trị viên và thành viên có vai trò DJ điều khiển nhạc.
                 </p>
               </div>
 
@@ -450,7 +472,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                   disabled={isSaving}
                   className="flex-1 bg-anna-surface border border-anna-border text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400 font-medium transition cursor-pointer"
                 >
-                  <option value="">🏷️ Chọn một vai trò Discord làm DJ...</option>
+                  <option value="">🏷️ Chọn vai trò Discord...</option>
                   {roles.map((r) => (
                     <option key={r.id} value={r.id}>
                       @{r.name}

@@ -109,7 +109,7 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
   };
 
   return (
-    <div className="bg-anna-surface border border-anna-border/80 rounded-2xl flex-1 min-h-[350px] max-h-[calc(100vh-270px)] flex flex-col shadow-2xl overflow-hidden">
+    <div className="w-full h-full bg-anna-surface border border-anna-border/80 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
       {/* Compact Track & Control Header (Chỉ 1 hàng gọn gàng, tối ưu không gian cho lời bài hát) */}
       <div className="px-4 sm:px-6 py-3 border-b border-anna-border/60 bg-anna-card/60 backdrop-blur-md flex items-center justify-between gap-3 flex-shrink-0 z-10">
         <div className="flex items-center gap-2.5 min-w-0">
