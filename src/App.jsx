@@ -276,87 +276,92 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col selection:bg-anna-accent selection:text-white">
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-anna-bg text-anna-text font-sans antialiased selection:bg-anna-accent selection:text-white">
       {/* Top Navbar */}
-      <Navbar
-        guild={guild || (user ? { name: user.guildName } : null)}
-        user={user}
-        activeWebUsers={activeWebUsers}
-      />
-
-      {/* Main Routing Views */}
-      {isVerifying ? (
-        <ConnectingStepper step={3} statusText="Đang kết nối và đồng bộ Voice session..." />
-      ) : !user ? (
-        /* Màn hình nhập mã PIN khi vào link trần https://anna-music-bot-ui.pages.dev/ hoặc khi mã hết hạn */
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-          <div className="w-16 h-16 rounded-3xl bg-anna-surface border border-anna-border flex items-center justify-center mb-4 shadow-xl">
-            <KeyRound className="w-8 h-8 text-anna-accent" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">Nhập Mã PIN Kết Nối</h2>
-          <p className="text-xs sm:text-sm text-anna-muted max-w-md leading-relaxed mb-4">
-            Vui lòng gõ lệnh <code className="text-anna-accent font-mono font-bold">.web</code> trong Discord để nhận mã PIN 6 số (hoặc bấm nút <span className="text-white font-semibold">"Mở Web Player"</span> để vào thẳng).
-          </p>
-
-          {authError && (
-            <div className="w-full max-w-sm mb-5 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-center gap-2 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>{authError}</span>
-            </div>
-          )}
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              let val = e.target.tokenInput.value.trim();
-              if (val.includes('token=')) {
-                try {
-                  const parsed = new URL(val);
-                  val = parsed.searchParams.get('token') || val;
-                } catch {
-                  const match = val.match(/token=([a-zA-Z0-9._-]+)/);
-                  if (match) val = match[1];
-                }
-              }
-              if (val) {
-                verifyToken(val, true);
-              }
-            }}
-            className="w-full max-w-sm flex items-center gap-2 bg-anna-surface border border-anna-border focus-within:border-anna-accent rounded-2xl p-1.5 shadow-2xl transition"
-          >
-            <input
-              name="tokenInput"
-              type="text"
-              placeholder="Nhập 6 số PIN (VD: 992075)..."
-              maxLength={30}
-              className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-anna-muted focus:outline-none text-center font-mono tracking-wider"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="px-5 py-2 bg-anna-accent hover:bg-anna-accentHover text-white text-xs font-bold rounded-xl transition shadow-md shadow-anna-accent/25 active:scale-95"
-            >
-              Kết Nối
-            </button>
-          </form>
-        </div>
-      ) : (!user.isInVoice || (!user.isSameVoice && user.botVoice)) ? (
-        /* Màn hình No Voice Session khi user chưa vào kênh Voice hoặc khác kênh với Bot */
-        <NoVoiceSession
+      <div className="flex-shrink-0 z-40">
+        <Navbar
+          guild={guild || (user ? { name: user.guildName } : null)}
           user={user}
-          guildName={user.guildName}
-          onRefresh={handleRefreshVoice}
-          isRefreshing={isRefreshingVoice}
+          activeWebUsers={activeWebUsers}
         />
-      ) : (
-        /* Giao diện Dashboard phát nhạc đầy đủ */
-        <main
-          className={`flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6 ${
-            isPlayerMinimized
-              ? 'grid grid-cols-1 gap-4 pb-36 sm:pb-40'
-              : 'grid grid-cols-1 lg:grid-cols-12 gap-6 pb-16'
-          } animate-in fade-in duration-300`}
-        >
+      </div>
+
+      {/* Main Scrollable Viewport (Độc lập, cuộn tự nhiên và dừng chính xác trên thanh Bottom Player) */}
+      <div className="flex-1 min-h-0 overflow-y-auto w-full">
+        {isVerifying ? (
+          <ConnectingStepper step={3} statusText="Đang kết nối và đồng bộ Voice session..." />
+        ) : !user ? (
+          /* Màn hình nhập mã PIN khi vào link trần https://anna-music-bot-ui.pages.dev/ hoặc khi mã hết hạn */
+          <div className="min-h-full flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+            <div className="w-16 h-16 rounded-3xl bg-anna-surface border border-anna-border flex items-center justify-center mb-4 shadow-xl">
+              <KeyRound className="w-8 h-8 text-anna-accent" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Nhập Mã PIN Kết Nối</h2>
+            <p className="text-xs sm:text-sm text-anna-muted max-w-md leading-relaxed mb-4">
+              Vui lòng gõ lệnh <code className="text-anna-accent font-mono font-bold">.web</code> trong Discord để nhận mã PIN 6 số (hoặc bấm nút <span className="text-white font-semibold">"Mở Web Player"</span> để vào thẳng).
+            </p>
+
+            {authError && (
+              <div className="w-full max-w-sm mb-5 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-center gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                let val = e.target.tokenInput.value.trim();
+                if (val.includes('token=')) {
+                  try {
+                    const parsed = new URL(val);
+                    val = parsed.searchParams.get('token') || val;
+                  } catch {
+                    const match = val.match(/token=([a-zA-Z0-9._-]+)/);
+                    if (match) val = match[1];
+                  }
+                }
+                if (val) {
+                  verifyToken(val, true);
+                }
+              }}
+              className="w-full max-w-sm flex items-center gap-2 bg-anna-surface border border-anna-border focus-within:border-anna-accent rounded-2xl p-1.5 shadow-2xl transition"
+            >
+              <input
+                name="tokenInput"
+                type="text"
+                placeholder="Nhập 6 số PIN (VD: 992075)..."
+                maxLength={30}
+                className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-anna-muted focus:outline-none text-center font-mono tracking-wider"
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="px-5 py-2 bg-anna-accent hover:bg-anna-accentHover text-white text-xs font-bold rounded-xl transition shadow-md shadow-anna-accent/25 active:scale-95"
+              >
+                Kết Nối
+              </button>
+            </form>
+          </div>
+        ) : (!user.isInVoice || (!user.isSameVoice && user.botVoice)) ? (
+          /* Màn hình No Voice Session khi user chưa vào kênh Voice hoặc khác kênh với Bot */
+          <div className="min-h-full flex items-center justify-center p-4">
+            <NoVoiceSession
+              user={user}
+              guildName={user.guildName}
+              onRefresh={handleRefreshVoice}
+              isRefreshing={isRefreshingVoice}
+            />
+          </div>
+        ) : (
+          /* Giao diện Dashboard phát nhạc đầy đủ */
+          <main
+            className={`max-w-7xl w-full mx-auto p-4 sm:p-6 pb-12 ${
+              isPlayerMinimized
+                ? 'grid grid-cols-1 gap-6'
+                : 'grid grid-cols-1 lg:grid-cols-12 gap-6'
+            } animate-in fade-in duration-300`}
+          >
           {/* Left Column: Hero Player Deck (5 Cols) when Expanded */}
           {!isPlayerMinimized && (
             <div className="lg:col-span-5">
@@ -460,6 +465,7 @@ export default function App() {
           </div>
         </main>
       )}
+      </div>
 
       {/* Bottom Mini Player when Minimized */}
       {isPlayerMinimized && user?.isInVoice && (
