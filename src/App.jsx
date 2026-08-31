@@ -53,14 +53,16 @@ export default function App() {
   }, []);
 
   // 1. Hàm xác thực Token / PIN
-  const verifyToken = useCallback((tokenToVerify) => {
+  const verifyToken = useCallback((tokenToVerify, isUserInitiated = false) => {
     if (!tokenToVerify) {
       setIsVerifying(false);
       return;
     }
 
     setIsVerifying(true);
-    setAuthError(null);
+    if (isUserInitiated) {
+      setAuthError(null);
+    }
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 7000);
@@ -77,28 +79,40 @@ export default function App() {
         setIsVerifying(false);
 
         if (res.ok && data.success && data.user) {
+          const sessionToken = data.token || tokenToVerify;
           setUser(data.user);
           setGuildId(data.user.guildId);
-          setToken(tokenToVerify);
-          localStorage.setItem('anna_web_token', tokenToVerify);
+          setToken(sessionToken);
+          localStorage.setItem('anna_web_token', sessionToken);
           localStorage.setItem('anna_guild_id', data.user.guildId);
           setAuthError(null);
         } else {
           setUser(null);
+          setToken(null);
           localStorage.removeItem('anna_web_token');
           localStorage.removeItem('anna_guild_id');
-          setAuthError(data.error || 'Mã PIN không đúng hoặc đã hết hạn (2 phút).');
+          // Chỉ hiện thông báo lỗi khi người dùng chủ động gõ PIN và bấm Kết Nối
+          if (isUserInitiated) {
+            setAuthError(data.error || 'Mã PIN không đúng hoặc đã hết hạn.');
+          } else {
+            setAuthError(null);
+          }
         }
       })
       .catch((err) => {
         clearTimeout(timeoutId);
         setIsVerifying(false);
         setUser(null);
+        setToken(null);
         localStorage.removeItem('anna_web_token');
         localStorage.removeItem('anna_guild_id');
-        setAuthError(err.name === 'AbortError' 
-          ? 'Kết nối đến bot quá thời gian. Vui lòng kiểm tra lại bot trên VPS!' 
-          : 'Không thể kết nối đến máy chủ bot. Vui lòng kiểm tra lại bot trên VPS!');
+        if (isUserInitiated) {
+          setAuthError(err.name === 'AbortError' 
+            ? 'Kết nối đến bot quá thời gian. Vui lòng kiểm tra lại bot trên VPS!' 
+            : 'Không thể kết nối đến máy chủ bot. Vui lòng kiểm tra lại bot trên VPS!');
+        } else {
+          setAuthError(null);
+        }
       });
   }, []);
 
@@ -115,12 +129,12 @@ export default function App() {
         setGuildId(guildFromUrl);
         localStorage.setItem('anna_guild_id', guildFromUrl);
       }
-      verifyToken(tokenFromUrl);
+      verifyToken(tokenFromUrl, true);
       window.history.replaceState({}, document.title, window.location.pathname);
     } else {
       const savedToken = localStorage.getItem('anna_web_token');
       if (savedToken) {
-        verifyToken(savedToken);
+        verifyToken(savedToken, false);
       } else {
         setIsVerifying(false);
       }
@@ -305,7 +319,7 @@ export default function App() {
                 }
               }
               if (val) {
-                verifyToken(val);
+                verifyToken(val, true);
               }
             }}
             className="w-full max-w-sm flex items-center gap-2 bg-anna-surface border border-anna-border focus-within:border-anna-accent rounded-2xl p-1.5 shadow-2xl transition"

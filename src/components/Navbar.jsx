@@ -36,8 +36,8 @@ export default function Navbar({ guild, user, activeWebUsers = [], onOpenAuthMod
               ANNA MUSIC
             </h1>
             <p className="text-xs text-anna-muted font-medium flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-anna-green animate-pulse" aria-hidden="true"></span>
-              {guild?.name || 'Đang kết nối Server Discord...'}
+              <span className={`w-2 h-2 rounded-full ${user ? 'bg-anna-green animate-pulse' : 'bg-anna-muted'}`} aria-hidden="true"></span>
+              {guild?.name || (user ? 'Đang kết nối Server...' : 'Anna Music Web Player')}
             </p>
           </div>
         </div>

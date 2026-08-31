@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Sliders, Radio, Sparkles, ShieldCheck, User, Mic2, FlaskConical } from 'lucide-react';
+import { Sliders, Radio, Sparkles, ShieldCheck, User, Mic2, FlaskConical, ScrollText, Check, ChevronDown } from 'lucide-react';
+import { API_BASE } from '../config';
 
-export default function SettingsTab({ player, onAction, user }) {
+export default function SettingsTab({ guildId, guildName, token, player, onAction, user }) {
   const isAdmin = Boolean(user?.isAdmin);
   
   // Local User Preferences
@@ -10,11 +11,47 @@ export default function SettingsTab({ player, onAction, user }) {
     return saved !== null ? saved === 'true' : true;
   });
 
+  // Server Settings State
+  const [serverSettings, setServerSettings] = useState(null);
+  const [textChannels, setTextChannels] = useState([]);
+  const [selectedLogChannel, setSelectedLogChannel] = useState('');
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+  const [isSavingLogChannel, setIsSavingLogChannel] = useState(false);
+
+  useEffect(() => {
+    if (!isAdmin || !guildId || !token) return;
+
+    setIsLoadingSettings(true);
+    fetch(`${API_BASE}/api/guilds/${guildId}/settings`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setIsLoadingSettings(false);
+        if (data.success) {
+          setServerSettings(data.settings);
+          setTextChannels(data.textChannels || []);
+          setSelectedLogChannel(data.settings?.logChannelId || '');
+        }
+      })
+      .catch(() => {
+        setIsLoadingSettings(false);
+      });
+  }, [isAdmin, guildId, token]);
+
   const toggleAutoScroll = () => {
     const next = !autoScrollLyrics;
     setAutoScrollLyrics(next);
     localStorage.setItem('anna_karaoke_autoscroll', String(next));
     window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
+  };
+
+  const handleSelectLogChannel = async (channelId) => {
+    const targetChannel = channelId || null;
+    setSelectedLogChannel(targetChannel || '');
+    setIsSavingLogChannel(true);
+    await onAction('setLogChannel', targetChannel);
+    setIsSavingLogChannel(false);
   };
 
   return (
@@ -84,8 +121,49 @@ export default function SettingsTab({ player, onAction, user }) {
         <div className="flex flex-col gap-3 pt-3 border-t border-anna-border/50 animate-in fade-in">
           <h4 className="text-xs font-bold uppercase tracking-wider text-anna-green flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Cài Đặt Phát Nhạc Server (Dành cho Quản Trị Viên)</span>
+            <span>Cài Đặt Máy Chủ (Dành cho Quản Trị Viên)</span>
           </h4>
+
+          {/* Log Channel Selection */}
+          <div className="p-4 rounded-xl bg-anna-card border border-anna-border/80 flex flex-col gap-3 transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <ScrollText className="w-3.5 h-3.5 text-anna-accent" />
+                  <span>Kênh Nhật Ký Hoạt Động (Log Channel)</span>
+                </p>
+                <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
+                  Gửi toàn bộ nhật ký (sửa tin nhắn, xóa tin nhắn, lệnh nhạc, web player, voice...) vào kênh Discord được chọn thay vì chỉ hiện trong console.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-anna-border/40">
+              <select
+                value={selectedLogChannel}
+                onChange={(e) => handleSelectLogChannel(e.target.value)}
+                disabled={isSavingLogChannel}
+                className="flex-1 bg-anna-surface border border-anna-border text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-anna-accent font-medium transition cursor-pointer"
+              >
+                <option value="">🚫 Tắt kênh nhật ký (Không gửi vào Discord)</option>
+                {textChannels.map((ch) => (
+                  <option key={ch.id} value={ch.id}>
+                    # {ch.name}
+                  </option>
+                ))}
+              </select>
+
+              {selectedLogChannel && (
+                <button
+                  onClick={() => handleSelectLogChannel('')}
+                  disabled={isSavingLogChannel}
+                  className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition flex items-center justify-center gap-1 active:scale-95"
+                >
+                  Tắt Log
+                </button>
+              )}
+            </div>
+          </div>
 
           {/* 24/7 Lofi Mode */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
