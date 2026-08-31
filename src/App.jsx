@@ -5,12 +5,13 @@ import LiveSearch from './components/LiveSearch';
 import QueueManager from './components/QueueManager';
 import SyncedLyrics from './components/SyncedLyrics';
 import SettingsTab from './components/SettingsTab';
+import HistoryTab from './components/HistoryTab';
 import PermissionModal from './components/PermissionModal';
 import ConnectingStepper from './components/ConnectingStepper';
 import NoVoiceSession from './components/NoVoiceSession';
 import BottomMiniPlayer from './components/BottomMiniPlayer';
 import Toast from './components/Toast';
-import { Search, ListMusic, Mic2, Settings, KeyRound, AlertCircle, Compass } from 'lucide-react';
+import { Search, ListMusic, Mic2, Settings, KeyRound, AlertCircle, Compass, History } from 'lucide-react';
 import { API_BASE } from './config';
 
 export default function App() {
@@ -416,6 +417,19 @@ export default function App() {
               </button>
 
               <button
+                onClick={() => setActiveTab('history')}
+                title="Lịch sử nghe nhạc gần đây"
+                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
+                  activeTab === 'history'
+                    ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
+                    : 'text-anna-muted hover:text-white hover:bg-anna-card'
+                }`}
+              >
+                <History className="w-4 h-4" />
+                <span>Lịch Sử</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('settings')}
                 title="Cài đặt máy chủ & Cá nhân"
                 className={`py-2.5 px-3.5 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${
@@ -443,6 +457,9 @@ export default function App() {
                 isLyricsEnabled={player?.lyricsSync !== false}
                 onToggleLyrics={() => handlePlayerAction('toggleLyrics')}
               />
+            </div>
+            <div className={activeTab === 'history' ? 'contents' : 'hidden'}>
+              <HistoryTab player={player} onOrderSong={handleOrderSong} />
             </div>
             <div className={activeTab === 'settings' ? 'contents' : 'hidden'}>
               <SettingsTab
