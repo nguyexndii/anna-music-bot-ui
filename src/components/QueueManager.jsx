@@ -99,7 +99,7 @@ export default function QueueManager({ queue, onAction }) {
   const isAllSelected = songs.length > 0 && selectedIndices.size === songs.length;
 
   return (
-    <div className="w-full h-full flex flex-col gap-3.5 relative">
+    <div className="flex flex-col gap-4 relative animate-in fade-in">
       {/* Custom Modal Xác Nhận Xóa Hết */}
       {showClearModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
@@ -230,7 +230,7 @@ export default function QueueManager({ queue, onAction }) {
       </div>
 
       {/* Queue List */}
-      <div className="w-full h-full bg-anna-surface border border-anna-border/80 rounded-3xl p-4 pb-6 overflow-y-auto flex flex-col gap-2">
+      <div className="bg-anna-surface border border-anna-border/80 rounded-3xl p-4 sm:p-5 pb-6 flex flex-col gap-2">
         {songs.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-anna-muted">
             <div className="w-12 h-12 rounded-2xl bg-anna-card border border-anna-border flex items-center justify-center mb-3 shadow-inner">

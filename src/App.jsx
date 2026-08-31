@@ -353,8 +353,8 @@ export default function App() {
         <main
           className={`flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6 ${
             isPlayerMinimized
-              ? 'grid grid-cols-1 gap-4 pb-24 sm:pb-28'
-              : 'grid grid-cols-1 lg:grid-cols-12 gap-6 pb-10'
+              ? 'grid grid-cols-1 gap-4 pb-36 sm:pb-40'
+              : 'grid grid-cols-1 lg:grid-cols-12 gap-6 pb-16'
           } animate-in fade-in duration-300`}
         >
           {/* Left Column: Hero Player Deck (5 Cols) when Expanded */}
@@ -371,12 +371,12 @@ export default function App() {
           )}
 
           {/* Right/Full Column: Tabs (7 Cols or 12 Cols when minimized) */}
-          <div className={`${isPlayerMinimized ? 'col-span-12 max-w-5xl mx-auto w-full' : 'lg:col-span-7'} flex flex-col gap-3.5 transition-all duration-300`}>
+          <div className={`${isPlayerMinimized ? 'col-span-12 max-w-5xl mx-auto w-full' : 'lg:col-span-7'} flex flex-col gap-4 transition-all duration-300`}>
             {/* Tab Navigation Buttons (Sleek Glassmorphic Segmented Control) */}
-            <div className="flex items-center gap-1.5 sm:gap-2 bg-anna-surface/90 backdrop-blur-md p-1.5 rounded-2xl border border-anna-border/80 shadow-xl overflow-x-auto h-[48px] flex-shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-anna-surface/90 backdrop-blur-md p-1.5 rounded-2xl border border-anna-border/80 shadow-xl overflow-x-auto">
               <button
                 onClick={() => setActiveTab('search')}
-                className={`flex-1 py-2 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
+                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'search'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -388,7 +388,7 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('queue')}
-                className={`flex-1 py-2 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
+                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'queue'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -405,7 +405,7 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('lyrics')}
-                className={`flex-1 py-2 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
+                className={`flex-1 py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap ${
                   activeTab === 'lyrics'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -418,7 +418,7 @@ export default function App() {
               <button
                 onClick={() => setActiveTab('settings')}
                 title="Cài đặt máy chủ & Cá nhân"
-                className={`py-2 px-3.5 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${
+                className={`py-2.5 px-3.5 sm:px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${
                   activeTab === 'settings'
                     ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 ring-1 ring-white/10'
                     : 'text-anna-muted hover:text-white hover:bg-anna-card'
@@ -429,15 +429,15 @@ export default function App() {
               </button>
             </div>
 
-            {/* Active Tab Body (Kích thước cố định đồng nhất trên mọi tab, cân xứng tuyệt đối với HeroPlayer) */}
-            <div className={`w-full ${isPlayerMinimized ? 'h-[calc(100vh-210px)] min-h-[500px]' : 'h-[558px] min-h-[558px] max-h-[558px]'}`}>
-              <div className={activeTab === 'search' ? 'w-full h-full' : 'hidden'}>
+            {/* Active Tab Body (Không ép cứng height, cuộn mượt mà tự nhiên không bị double scrollbars) */}
+            <div className="w-full">
+              <div className={activeTab === 'search' ? 'block' : 'hidden'}>
                 <LiveSearch onOrderSong={handleOrderSong} player={player} />
               </div>
-              <div className={activeTab === 'queue' ? 'w-full h-full' : 'hidden'}>
+              <div className={activeTab === 'queue' ? 'block' : 'hidden'}>
                 <QueueManager queue={player?.queue} onAction={handlePlayerAction} />
               </div>
-              <div className={activeTab === 'lyrics' ? 'w-full h-full' : 'hidden'}>
+              <div className={activeTab === 'lyrics' ? 'block' : 'hidden'}>
                 <SyncedLyrics
                   player={player}
                   onAction={handlePlayerAction}
@@ -445,7 +445,7 @@ export default function App() {
                   onToggleLyrics={() => handlePlayerAction('toggleLyrics')}
                 />
               </div>
-              <div className={activeTab === 'settings' ? 'w-full h-full' : 'hidden'}>
+              <div className={activeTab === 'settings' ? 'block' : 'hidden'}>
                 <SettingsTab
                   guildId={guildId}
                   guildName={guild?.name}

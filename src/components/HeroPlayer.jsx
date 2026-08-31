@@ -194,12 +194,12 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
 
   return (
-    <div className="flex flex-col h-[620px] min-h-[620px] max-h-[620px]">
+    <div className="flex flex-col gap-4">
       {/* Player Card (Nhấp vào bất kỳ đâu trên khung để thu nhỏ) */}
       <div
         onClick={onToggleMinimize}
         title="Nhấp vào khung để thu nhỏ thanh phát nhạc"
-        className="h-full bg-gradient-to-b from-anna-surface to-anna-card border border-anna-border/80 hover:border-anna-accent/50 rounded-3xl p-6 shadow-2xl flex flex-col justify-between items-center text-center relative overflow-hidden cursor-pointer transition-all duration-300 group"
+        className="bg-gradient-to-b from-anna-surface to-anna-card border border-anna-border/80 hover:border-anna-accent/50 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center relative overflow-hidden cursor-pointer transition-all duration-300 group"
       >
         
         {/* Glowing Ambient Backdrop */}
@@ -209,7 +209,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
         {/* Status Header */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-full flex items-center justify-between mb-4 z-10"
+          className="w-full flex items-center justify-between mb-3 z-10"
         >
           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-anna-bg/60 border border-anna-border/60 text-xs font-semibold text-anna-text">
             {isPlaying ? (
@@ -236,9 +236,9 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
         </div>
 
         {/* Vinyl Disc / Thumbnail */}
-        <div className="relative my-4">
+        <div className="relative my-3">
           <div
-            className={`w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-[#0a0a0a] border-4 border-[#222] shadow-2xl flex items-center justify-center p-3 relative transition-transform duration-500 group-hover:border-anna-accent/60 ${
+            className={`w-44 h-44 sm:w-52 sm:h-52 rounded-full bg-[#0a0a0a] border-4 border-[#222] shadow-2xl flex items-center justify-center p-3 relative transition-transform duration-500 group-hover:border-anna-accent/60 ${
               isPlaying ? 'vinyl-spinning' : 'vinyl-paused'
             }`}
           >
@@ -249,7 +249,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
             <img
               src={current?.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500'}
               alt={current?.title ? `Ảnh bìa ${current.title}` : 'Ảnh bìa bài hát'}
-              className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover shadow-inner ring-4 ring-[#111]"
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-inner ring-4 ring-[#111]"
             />
             <div className="absolute w-6 h-6 rounded-full bg-anna-surface border-2 border-anna-border shadow-inner"></div>
           </div>

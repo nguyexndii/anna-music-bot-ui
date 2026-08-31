@@ -109,7 +109,7 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
   };
 
   return (
-    <div className="w-full h-full bg-anna-surface border border-anna-border/80 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+    <div className="bg-anna-surface border border-anna-border/80 rounded-3xl min-h-[500px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in">
       {/* Compact Track & Control Header (Chỉ 1 hàng gọn gàng, tối ưu không gian cho lời bài hát) */}
       <div className="px-4 sm:px-6 py-3 border-b border-anna-border/60 bg-anna-card/60 backdrop-blur-md flex items-center justify-between gap-3 flex-shrink-0 z-10">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -142,7 +142,7 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
       </div>
 
       {/* Scrollable Lyrics Container (Rộng rãi, chữ to rõ ràng kiểu Apple Music / Spotify) */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 flex flex-col items-center text-center">
+      <div className="flex-1 overflow-y-auto max-h-[580px] px-4 sm:px-8 py-8 flex flex-col items-center text-center">
         {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-anna-accent gap-2">

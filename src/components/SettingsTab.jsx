@@ -12,8 +12,7 @@ import {
   Volume2,
   Music,
   Hash,
-  Disc,
-  Check
+  Disc
 } from 'lucide-react';
 import { API_BASE } from '../config';
 
@@ -103,9 +102,9 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
   };
 
   return (
-    <div className="w-full h-full bg-anna-surface border border-anna-border/80 rounded-3xl p-4 sm:p-6 pb-8 overflow-y-auto flex flex-col gap-5 animate-in fade-in">
+    <div className="bg-anna-surface border border-anna-border/80 rounded-3xl p-5 sm:p-6 pb-8 flex flex-col gap-5 animate-in fade-in">
       {/* Header with Role Badge */}
-      <div className="flex items-center justify-between pb-3 border-b border-anna-border/50 flex-shrink-0">
+      <div className="flex items-center justify-between pb-3 border-b border-anna-border/50">
         <div className="flex items-center gap-2">
           <Sliders className="w-4 h-4 text-anna-accent" />
           <h3 className="text-sm font-bold text-white">Cài Đặt</h3>
@@ -152,7 +151,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             onClick={toggleAutoScroll}
             title={autoScrollLyrics ? 'Tắt tự động cuộn' : 'Bật tự động cuộn'}
             className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none ${
-              autoScrollLyrics ? 'bg-anna-accent shadow-lg shadow-anna-accent/20' : 'bg-anna-border'
+              autoScrollLyrics ? 'bg-anna-accent shadow-lg shadow-anna-accent/25' : 'bg-anna-border'
             }`}
           >
             <div
@@ -215,7 +214,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-anna-cyan" />
+                <Hash className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Kênh Nhận Lệnh (Music Channel)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
@@ -254,7 +253,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                <Lock className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Khóa Phòng Voice Cố Định</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
@@ -293,7 +292,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-anna-pink" />
+                <Radio className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Chế Độ 24/7 (Luôn Trực Tuyến)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
@@ -308,8 +307,8 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 onAction('set247', next);
               }}
               title={serverSettings.mode247 ? 'Tắt chế độ 24/7' : 'Bật chế độ 24/7'}
-              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-pink focus-visible:outline-none ${
-                serverSettings.mode247 ? 'bg-anna-pink shadow-lg shadow-anna-pink/20' : 'bg-anna-border'
+              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none ${
+                serverSettings.mode247 ? 'bg-anna-accent shadow-lg shadow-anna-accent/25' : 'bg-anna-border'
               }`}
             >
               <div
@@ -324,7 +323,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-anna-green" />
+                <Sparkles className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Tự Động Phát Bài Tương Tự (Autoplay)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
@@ -339,8 +338,8 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 onAction('setAutoplay', next);
               }}
               title={serverSettings.autoplay !== false ? 'Tắt Autoplay' : 'Bật Autoplay'}
-              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-green focus-visible:outline-none ${
-                serverSettings.autoplay !== false ? 'bg-anna-green shadow-lg shadow-anna-green/20' : 'bg-anna-border'
+              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none ${
+                serverSettings.autoplay !== false ? 'bg-anna-accent shadow-lg shadow-anna-accent/25' : 'bg-anna-border'
               }`}
             >
               <div
@@ -386,7 +385,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
+                <Volume2 className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Trạng Thái Kênh Voice (Voice Status)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
@@ -397,8 +396,8 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             <button
               onClick={() => updateSetting('updateVoiceStatus', serverSettings.updateVoiceStatus === false)}
               title={serverSettings.updateVoiceStatus !== false ? 'Tắt trạng thái voice' : 'Bật trạng thái voice'}
-              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:outline-none ${
-                serverSettings.updateVoiceStatus !== false ? 'bg-cyan-500 shadow-lg shadow-cyan-500/20' : 'bg-anna-border'
+              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none ${
+                serverSettings.updateVoiceStatus !== false ? 'bg-anna-accent shadow-lg shadow-anna-accent/25' : 'bg-anna-border'
               }`}
             >
               <div
@@ -413,7 +412,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Bell className="w-3.5 h-3.5 text-yellow-400" />
+                <Bell className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Thông Báo Bài Hát Mới</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
@@ -424,8 +423,8 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             <button
               onClick={() => updateSetting('announceSongs', serverSettings.announceSongs === false)}
               title={serverSettings.announceSongs !== false ? 'Tắt thông báo bài hát' : 'Bật thông báo bài hát'}
-              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${
-                serverSettings.announceSongs !== false ? 'bg-yellow-500 shadow-lg shadow-yellow-500/20' : 'bg-anna-border'
+              className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-anna-accent focus-visible:outline-none ${
+                serverSettings.announceSongs !== false ? 'bg-anna-accent shadow-lg shadow-anna-accent/25' : 'bg-anna-border'
               }`}
             >
               <div
@@ -441,7 +440,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Music className="w-3.5 h-3.5 text-purple-400" />
+                  <Music className="w-3.5 h-3.5 text-anna-accent" />
                   <span>Chế Độ DJ (DJ Only)</span>
                 </p>
                 <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
@@ -452,7 +451,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
               <button
                 onClick={() => updateSetting('djOnly', !serverSettings.djOnly)}
                 className={`w-12 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 ${
-                  serverSettings.djOnly ? 'bg-purple-500 shadow-lg shadow-purple-500/20' : 'bg-anna-border'
+                  serverSettings.djOnly ? 'bg-anna-accent shadow-lg shadow-anna-accent/25' : 'bg-anna-border'
                 }`}
               >
                 <div
@@ -470,7 +469,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                   value={serverSettings.djRoleId || ''}
                   onChange={(e) => updateSetting('djRoleId', e.target.value || null)}
                   disabled={isSaving}
-                  className="flex-1 bg-anna-surface border border-anna-border text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400 font-medium transition cursor-pointer"
+                  className="flex-1 bg-anna-surface border border-anna-border text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-anna-accent font-medium transition cursor-pointer"
                 >
                   <option value="">🏷️ Chọn vai trò Discord...</option>
                   {roles.map((r) => (

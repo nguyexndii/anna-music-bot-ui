@@ -170,9 +170,9 @@ export default function LiveSearch({ onOrderSong, player }) {
   }, [history, historyFilter]);
 
   return (
-    <div className="w-full h-full flex flex-col gap-3.5 animate-in fade-in">
+    <div className="flex flex-col gap-4 animate-in fade-in">
       {/* Search Bar */}
-      <div className="relative flex items-center flex-shrink-0">
+      <div className="relative flex items-center">
         <Search className="w-5 h-5 absolute left-4 text-anna-muted" />
         <input
           type="text"
@@ -180,7 +180,7 @@ export default function LiveSearch({ onOrderSong, player }) {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Tìm tên bài hát, ca sĩ, hoặc dán link YouTube / Spotify / Playlist..."
-          className="w-full bg-anna-surface border border-anna-border focus:border-anna-accent rounded-2xl pl-12 pr-12 py-3 text-sm text-white placeholder-anna-muted focus:outline-none focus:ring-2 focus:ring-anna-accent/30 transition shadow-inner"
+          className="w-full bg-anna-surface border border-anna-border focus:border-anna-accent rounded-2xl pl-12 pr-12 py-3.5 text-sm text-white placeholder-anna-muted focus:outline-none focus:ring-2 focus:ring-anna-accent/30 transition shadow-inner"
         />
         {query && (
           <button
@@ -195,7 +195,7 @@ export default function LiveSearch({ onOrderSong, player }) {
 
       {/* Instant Playlist Detection Banner */}
       {detected?.isPlaylist && (
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-anna-accent/25 via-purple-600/20 to-pink-500/20 border border-anna-accent/40 shadow-xl flex items-center justify-between gap-3 animate-in fade-in flex-shrink-0">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-anna-accent/25 via-purple-600/20 to-pink-500/20 border border-anna-accent/40 shadow-xl flex items-center justify-between gap-3 animate-in fade-in">
           <div className="flex items-center gap-3.5 min-w-0">
             {/* Playlist Artwork Thumbnail */}
             <div className="w-12 h-12 rounded-xl overflow-hidden relative flex-shrink-0 bg-anna-card border border-white/10 shadow-lg group">
@@ -239,7 +239,7 @@ export default function LiveSearch({ onOrderSong, player }) {
       )}
 
       {/* Main Container */}
-      <div className="w-full h-full bg-anna-surface border border-anna-border/80 rounded-3xl p-5 pb-8 overflow-y-auto flex flex-col gap-6 relative">
+      <div className="bg-anna-surface border border-anna-border/80 rounded-3xl p-5 sm:p-6 pb-8 flex flex-col gap-6 relative">
         
         {/* Loading Overlay */}
         {loading && (
