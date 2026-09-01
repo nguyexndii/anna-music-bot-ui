@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -535,7 +535,7 @@ button { cursor: pointer; }
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 .section-label span {
   font-family: "DM Mono", monospace;

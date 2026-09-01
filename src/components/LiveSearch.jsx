@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Search,
   X,
@@ -295,7 +295,7 @@ export default function LiveSearch({ onOrderSong, player }) {
 
         {/* 2. Default Discover Landing when Query is Empty */}
         {!query.trim() && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
             
             {/* Recently Played */}
             {history.length > 0 && (
@@ -304,26 +304,26 @@ export default function LiveSearch({ onOrderSong, player }) {
                   <span>NGHE GẦN ĐÂY</span>
                   <span style={{ fontSize: 9 }}>TỰ ĐỘNG LƯU</span>
                 </div>
-                <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 6 }}>
+                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 8, paddingTop: 4 }}>
                   {history.slice(0, 8).map((item, idx) => (
                     <div
                       key={idx}
                       onClick={() => handleOrderTrack(item)}
                       style={{
-                        width: 128, flexShrink: 0, cursor: 'pointer', padding: 8,
-                        borderRadius: 12, background: 'var(--paper)', border: '1px solid var(--border)',
+                        width: 140, flexShrink: 0, cursor: 'pointer', padding: 10,
+                        borderRadius: 14, background: 'var(--paper)', border: '1px solid var(--border)',
                         transition: 'border-color .18s, transform .15s',
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--yellow)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; }}
                     >
-                      <div style={{ width: '100%', aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: '#202328', position: 'relative' }}>
+                      <div style={{ width: '100%', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#202328', position: 'relative', marginBottom: 8 }}>
                         <img src={getTrackThumb(item)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <p title={item.title} style={{ margin: '8px 0 2px', fontSize: 12, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p title={item.title} style={{ margin: '0 0 3px', fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {item.title}
                       </p>
-                      <p title={item.artist} style={{ margin: 0, fontSize: 10, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p title={item.artist} style={{ margin: 0, fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {item.artist || 'YouTube'}
                       </p>
                     </div>
@@ -331,6 +331,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                 </div>
               </div>
             )}
+
 
             {/* Playlists Gần Đây (Shows first track's thumbnail!) */}
             {recentPlaylists.length > 0 && (
