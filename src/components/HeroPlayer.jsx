@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, Radio, Lock, Heart } from 'lucide-react';
 
 function formatTime(ms) {
@@ -17,7 +17,21 @@ function parseDurationToMs(str) {
   return parts[0] * 1000;
 }
 
+function getSourceLabel(track) {
+  if (!track) return 'YOUTUBE MUSIC';
+  const u = (track.url || '').toLowerCase();
+  const s = (track.source || '').toLowerCase();
+  if (s === 'soundcloud' || u.includes('soundcloud.com')) return 'SOUNDCLOUD';
+  if (s === 'spotify' || u.includes('spotify.com')) return 'SPOTIFY';
+  if (s === 'youtube' || u.includes('youtube.com') || u.includes('youtu.be')) return 'YOUTUBE';
+  if (track.album && track.album !== 'Unknown' && !track.album.toLowerCase().includes('unknown')) {
+    return track.album.toUpperCase();
+  }
+  return 'YOUTUBE MUSIC';
+}
+
 export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
+
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current   = player?.current;
   const isFav     = player?.favorites?.some(f => f.title === current?.title || f.url === current?.url);
@@ -159,7 +173,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
         <div className="track-meta" style={{ marginTop: 8 }}>
           <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
             <p className="track-eyebrow">
-              {player?.mode247 ? '24/7 · LIÊN TỤC' : (current?.album || 'YOUTUBE MUSIC')}
+              {player?.mode247 ? '24/7 · LIÊN TỤC' : getSourceLabel(current)}
             </p>
             <h1 className="track-title" title={current?.title}>
               {current?.title || 'Chưa có bài hát'}
@@ -168,6 +182,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
               {current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music'}
             </p>
           </div>
+
           {current && (
             <button
               className={`fav-btn${isFav ? ' liked' : ''}${heartPopping ? ' heart-pop-anim' : ''}`}

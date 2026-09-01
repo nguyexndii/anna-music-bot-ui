@@ -247,20 +247,21 @@ button { cursor: pointer; }
 }
 
 /* Tonearm (Kim đĩa than) */
+/* Tonearm (Kim đĩa than) */
 .tonearm-assembly {
   position: absolute;
-  top: -8px;
-  right: 18px;
-  width: 55px;
-  height: 155px;
+  top: -6px;
+  right: 14px;
+  width: 48px;
+  height: 165px;
   z-index: 25;
   transform-origin: 24px 20px;
-  transform: rotate(-14deg);
+  transform: rotate(-24deg);
   transition: transform 0.8s cubic-bezier(0.34, 1.4, 0.64, 1);
   pointer-events: none;
 }
 .tonearm-assembly.on-record {
-  transform: rotate(20deg);
+  transform: rotate(14deg);
 }
 .tonearm-base {
   position: absolute;
@@ -286,27 +287,26 @@ button { cursor: pointer; }
 }
 .tonearm-rod {
   position: absolute;
-  top: 24px;
-  left: 22px;
-  width: 3.5px;
-  height: 104px;
-  background: linear-gradient(to right, #e2e4e8, #73777e);
+  top: 25px;
+  left: 22.5px;
+  width: 3px;
+  height: 110px;
+  background: linear-gradient(to right, #ffffff, #888d96);
   border-radius: 2px;
-  box-shadow: 2px 3px 6px rgba(0,0,0,0.45);
-  transform-origin: top center;
-  transform: rotate(-4deg);
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.5);
 }
 .tonearm-cartridge {
   position: absolute;
-  top: 118px;
-  left: 14px;
-  width: 13px;
+  top: 130px;
+  left: 17px;
+  width: 14px;
   height: 22px;
   background: #1c1e21;
   border: 1.5px solid var(--yellow);
   border-radius: 2px 2px 5px 5px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-  transform: rotate(14deg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+  transform-origin: top center;
+  transform: rotate(6deg);
 }
 
 .spinning { animation: vinylSpin 11s linear infinite; }

@@ -47,7 +47,18 @@ function getPlaylistPreviewImage(url) {
   return null;
 }
 
+function getSourceLabel(track) {
+  if (!track) return 'YouTube Music';
+  const u = (track.url || '').toLowerCase();
+  const s = (track.source || '').toLowerCase();
+  if (s === 'soundcloud' || u.includes('soundcloud.com')) return 'SoundCloud';
+  if (s === 'spotify' || u.includes('spotify.com')) return 'Spotify';
+  if (s === 'youtube' || u.includes('youtube.com') || u.includes('youtu.be')) return 'YouTube Music';
+  return track.artist || 'YouTube Music';
+}
+
 function getTrackThumb(track) {
+
   if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
     return track.thumbnail;
   }
@@ -269,7 +280,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                           )}
                         </div>
                         <span className="song-sub" title={song.artist}>
-                          {song.artist && song.artist !== 'Unknown' ? song.artist : 'YouTube Music'}
+                          {song.artist && song.artist !== 'Unknown' ? song.artist : getSourceLabel(song)}
                           {song.itemCount ? ` • ${song.itemCount} bài` : ''}
                         </span>
                       </div>
@@ -324,13 +335,14 @@ export default function LiveSearch({ onOrderSong, player }) {
                         {item.title}
                       </p>
                       <p title={item.artist} style={{ margin: 0, fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.artist || 'YouTube'}
+                        {item.artist && item.artist !== 'Unknown' ? item.artist : getSourceLabel(item)}
                       </p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
 
 
             {/* Playlists Gần Đây (Shows first track's thumbnail!) */}

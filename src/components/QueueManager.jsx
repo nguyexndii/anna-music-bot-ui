@@ -17,7 +17,18 @@ import {
   Sparkles
 } from 'lucide-react';
 
+function getSourceLabel(track) {
+  if (!track) return 'YouTube Music';
+  const u = (track.url || '').toLowerCase();
+  const s = (track.source || '').toLowerCase();
+  if (s === 'soundcloud' || u.includes('soundcloud.com')) return 'SoundCloud';
+  if (s === 'spotify' || u.includes('spotify.com')) return 'Spotify';
+  if (s === 'youtube' || u.includes('youtube.com') || u.includes('youtu.be')) return 'YouTube Music';
+  return track.artist || 'YouTube Music';
+}
+
 export default function QueueManager({ queue, onAction }) {
+
   const songs = queue || [];
   const [selectedIndices, setSelectedIndices] = useState(new Set());
   const [draggedIndex, setDraggedIndex] = useState(null);
@@ -427,16 +438,17 @@ export default function QueueManager({ queue, onAction }) {
                       {song.title}
                     </p>
                     <p
-                      title={`${song.artist || 'YouTube'} • ${song.duration || ''} • Yêu cầu bởi: ${song.requestedBy || 'User'}`}
+                      title={`${song.artist || getSourceLabel(song)} • ${song.duration || ''} • Yêu cầu bởi: ${song.requestedBy || 'User'}`}
                       style={{
                         margin: '2px 0 0', fontSize: 11, color: 'var(--muted)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                       }}
                     >
-                      <span>{song.artist || 'YouTube Music'}</span>
+                      <span>{song.artist && song.artist !== 'Unknown' ? song.artist : getSourceLabel(song)}</span>
                       {song.duration ? ` • ${song.duration}` : ''}
                       {song.requestedBy ? ` • 👤 ${song.requestedBy}` : ''}
                     </p>
+
                   </div>
 
                   {/* Right Actions: Quick Play + Dropdown More Menu */}

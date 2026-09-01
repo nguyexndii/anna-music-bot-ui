@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Loader2, SlidersHorizontal, Coffee, Sparkles } from 'lucide-react';
+import { Loader2, SlidersHorizontal, Sparkles, AlignLeft, Disc3 } from 'lucide-react';
 import { API_BASE } from '../config';
 
 // Module-level cache to prevent re-fetching when user switches tabs
@@ -37,8 +37,8 @@ export default function SyncedLyrics({ player, onAction }) {
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
   const [autoScroll, setAutoScroll] = useState(true);
   const [manualOffsetMs, setManualOffsetMs] = useState(0);
-
   const [showSyncAdjust, setShowSyncAdjust] = useState(false);
+  const [viewMode, setViewMode] = useState('synced'); // 'synced' or 'plain'
 
   const activeLineRef = useRef(null);
   const containerRef  = useRef(null);
@@ -102,7 +102,7 @@ export default function SyncedLyrics({ player, onAction }) {
       });
   }, [current?.title, current?.artist, current?.duration, current?.durationMs, isLofiTrack]);
 
-  // Sync active line (calculated with playback duration + manual offset)
+  // Sync active line (manualOffsetMs > 0: advance forward; manualOffsetMs < 0: retreat backward)
   useEffect(() => {
     if (!lyricsData?.syncedLyrics?.length) return;
     const base = current?.playbackDurationMs ?? (current?.startTime ? Math.max(0, Date.now() - current.startTime) : 0);
@@ -110,7 +110,7 @@ export default function SyncedLyrics({ player, onAction }) {
     const paused = player?.isPaused || !player?.isPlaying;
 
     const tick = () => {
-      const elapsed = (paused ? base : Math.max(0, base + (Date.now() - t0))) - manualOffsetMs;
+      const elapsed = (paused ? base : Math.max(0, base + (Date.now() - t0))) + manualOffsetMs;
       let found = -1;
       for (let i = 0; i < lyricsData.syncedLyrics.length; i++) {
         const lt = lyricsData.syncedLyrics[i].time ?? lyricsData.syncedLyrics[i].timeMs ?? 0;
@@ -126,9 +126,9 @@ export default function SyncedLyrics({ player, onAction }) {
 
   // Auto-scroll — smoothly center active line (even for last lines)
   useEffect(() => {
-    if (!autoScroll || !activeLineRef.current || !containerRef.current) return;
+    if (!autoScroll || viewMode === 'plain' || !activeLineRef.current || !containerRef.current) return;
     activeLineRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }, [activeLineIdx, autoScroll]);
+  }, [activeLineIdx, autoScroll, viewMode]);
 
   // Lofi / 24/7 special view
   if (isLofiTrack || lyricsData?.isLofi) {
@@ -151,6 +151,8 @@ export default function SyncedLyrics({ player, onAction }) {
     );
   }
 
+  const hasSynced = Boolean(lyricsData?.syncedLyrics?.length > 0);
+  const showSynced = hasSynced && viewMode === 'synced';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
@@ -182,8 +184,26 @@ export default function SyncedLyrics({ player, onAction }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          {/* Sync Offset Adjuster Toggle */}
-          {lyricsData?.syncedLyrics?.length > 0 && (
+          {/* View Mode Toggle (Synced vs Plain text) */}
+          {hasSynced && (
+            <button
+              onClick={() => setViewMode(m => m === 'plain' ? 'synced' : 'plain')}
+              style={{
+                border: `1px solid ${viewMode === 'plain' ? 'var(--yellow)' : 'var(--border)'}`,
+                background: viewMode === 'plain' ? 'rgba(232,201,119,.12)' : 'transparent',
+                color: viewMode === 'plain' ? 'var(--yellow)' : 'var(--muted)',
+                borderRadius: 8, padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 4,
+                cursor: 'pointer', fontSize: 10, fontFamily: '"DM Mono", monospace'
+              }}
+              title={viewMode === 'plain' ? 'Chuyển sang xem lời chạy theo nhạc' : 'Chuyển sang đọc toàn bộ lời bài hát'}
+            >
+              <AlignLeft size={11} />
+              <span>{viewMode === 'plain' ? 'LỜI THƯỜNG' : 'ĐỒNG BỘ'}</span>
+            </button>
+          )}
+
+          {/* Sync Offset Adjuster Toggle (Only in synced view) */}
+          {showSynced && (
             <button
               onClick={() => setShowSyncAdjust(p => !p)}
               style={{
@@ -201,7 +221,7 @@ export default function SyncedLyrics({ player, onAction }) {
           )}
 
           {/* Auto Scroll Toggle */}
-          {lyricsData?.syncedLyrics?.length > 0 && (
+          {showSynced && (
             <button
               onClick={() => setAutoScroll(p => !p)}
               style={{
@@ -213,11 +233,11 @@ export default function SyncedLyrics({ player, onAction }) {
                 cursor: 'pointer',
               }}
             >
-              {autoScroll ? 'TỰ CUỘN' : 'TỰ CUỘN: TẮT'}
+              {autoScroll ? 'TỰ CUỘN' : 'TẮT CUỘN'}
             </button>
           )}
 
-          {lyricsData?.lyrics && !lyricsData?.syncedLyrics?.length && (
+          {lyricsData?.lyrics && !hasSynced && (
             <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)', letterSpacing: '0.1em' }}>
               LỜI THƯỜNG
             </span>
@@ -226,7 +246,7 @@ export default function SyncedLyrics({ player, onAction }) {
       </div>
 
       {/* ── Sync Calibration Bar with Multi-tier Offset Controls ── */}
-      {showSyncAdjust && (
+      {showSyncAdjust && showSynced && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap',
           padding: '8px 12px', marginBottom: 12, borderRadius: 12,
@@ -236,18 +256,21 @@ export default function SyncedLyrics({ player, onAction }) {
           <button
             onClick={() => setManualOffsetMs(p => p - 10000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+            title="Lùi lời bài hát lại 10 giây"
           >
             -10s
           </button>
           <button
             onClick={() => setManualOffsetMs(p => p - 2000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+            title="Lùi lời bài hát lại 2 giây"
           >
             -2s
           </button>
           <button
             onClick={() => setManualOffsetMs(p => p - 500)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+            title="Lùi lời bài hát lại 0.5 giây"
           >
             -0.5s
           </button>
@@ -260,24 +283,28 @@ export default function SyncedLyrics({ player, onAction }) {
           <button
             onClick={() => setManualOffsetMs(p => p + 500)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+            title="Nhảy lời bài hát sớm hơn 0.5 giây"
           >
             +0.5s
           </button>
           <button
             onClick={() => setManualOffsetMs(p => p + 2000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+            title="Nhảy lời bài hát sớm hơn 2 giây"
           >
             +2s
           </button>
           <button
             onClick={() => setManualOffsetMs(p => p + 10000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+            title="Nhảy lời bài hát sớm hơn 10 giây"
           >
             +10s
           </button>
           <button
             onClick={() => setManualOffsetMs(p => p + 20000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--yellow)', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}
+            title="Nhảy lời bài hát sớm hơn 20 giây"
           >
             +20s
           </button>
@@ -314,9 +341,9 @@ export default function SyncedLyrics({ player, onAction }) {
               ))}
             </div>
             <div>
-              <p style={{ fontWeight: 500, color: 'var(--ink)', fontSize: 15, margin: '0 0 6px' }}>Không có lời bài hát đồng bộ</p>
+              <p style={{ fontWeight: 500, color: 'var(--ink)', fontSize: 15, margin: '0 0 6px' }}>Không có lời bài hát</p>
               <p style={{ color: 'var(--muted)', fontSize: 12, margin: 0, maxWidth: 300, lineHeight: 1.6 }}>
-                {current ? 'Bản nhạc này chưa có dữ liệu mốc giây (Beat / Nhạc không lời / Remix).' : 'Phát một bài hát để xem lời nhé!'}
+                {current ? 'Bản nhạc này chưa có dữ liệu lời bài hát (Beat / Remix / Nhạc không lời).' : 'Phát một bài hát để xem lời nhé!'}
               </p>
             </div>
           </div>
@@ -324,7 +351,7 @@ export default function SyncedLyrics({ player, onAction }) {
 
         {!loading && lyricsData && (
           <div style={{ paddingTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            {lyricsData.syncedLyrics?.length > 0 ? (
+            {showSynced ? (
               lyricsData.syncedLyrics.map((line, i) => {
                 const isActive = i === activeLineIdx;
                 const timeMs = line.time ?? line.timeMs ?? 0;
@@ -332,24 +359,23 @@ export default function SyncedLyrics({ player, onAction }) {
                   <p
                     key={i}
                     ref={isActive ? activeLineRef : null}
-                    onClick={() => { if (timeMs >= 0 && onAction) onAction('seek', Math.floor((timeMs + manualOffsetMs) / 1000)); }}
+                    onClick={() => { if (timeMs >= 0 && onAction) onAction('seek', Math.floor((timeMs - manualOffsetMs) / 1000)); }}
                     title={timeMs > 0 ? `Nhảy tới ${formatLyricTime(timeMs)}` : undefined}
                     style={{
-                      margin: isActive ? '8px 0' : '4px 0',
-                      padding: isActive ? '12px 24px' : '8px 18px',
-                      borderRadius: isActive ? 18 : 12,
-                      fontSize: isActive ? 19 : 14.5,
-                      fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#ffffff' : 'rgba(238, 233, 224, 0.4)',
-                      lineHeight: 1.5,
+                      margin: '5px 0',
+                      padding: '10px 20px',
+                      borderRadius: 16,
+                      fontSize: 17,
+                      fontWeight: isActive ? 700 : 500,
+                      color: isActive ? '#ffffff' : 'rgba(238, 233, 224, 0.36)',
+                      lineHeight: 1.55,
                       cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                      transform: isActive ? 'scale(1.02)' : 'none',
+                      transition: 'color 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
                       background: isActive ? 'rgba(232, 201, 119, 0.12)' : 'transparent',
                       border: isActive ? '1px solid rgba(232, 201, 119, 0.3)' : '1px solid transparent',
                       boxShadow: isActive ? '0 6px 20px rgba(0,0,0,0.35), inset 0 0 10px rgba(232,201,119,0.06)' : 'none',
-                      textShadow: isActive ? '0 0 12px rgba(232, 201, 119, 0.35)' : 'none',
-                      maxWidth: '92%',
+                      textShadow: isActive ? '0 0 14px rgba(232, 201, 119, 0.35)' : 'none',
+                      maxWidth: '96%',
                       textAlign: 'center',
                       userSelect: 'none',
                     }}
@@ -359,10 +385,11 @@ export default function SyncedLyrics({ player, onAction }) {
                 );
               })
             ) : (
-              <div style={{ whiteSpace: 'pre-line', fontSize: 14, lineHeight: 2.2, color: 'var(--muted)', padding: '8px 16px', maxWidth: '90%', textAlign: 'center' }}>
+              <div style={{ whiteSpace: 'pre-line', fontSize: 15, lineHeight: 2.2, color: 'var(--ink)', padding: '8px 16px', maxWidth: '90%', textAlign: 'center', opacity: 0.85 }}>
                 {lyricsData.lyrics}
               </div>
             )}
+
           </div>
         )}
       </div>

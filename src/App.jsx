@@ -435,11 +435,59 @@ export default function App() {
       <section className="now-playing">
         <header className="now-topbar">
           <span className="now-eyebrow">ĐANG PHÁT</span>
-          {player?.current && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Online Users Avatar Stack */}
+            <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'row-reverse' }}>
+              {(() => {
+                const myUser = user ? [{ ...user, isMe: true }] : [];
+                const otherUsers = (activeWebUsers || []).filter(u => u.userId !== user?.id && u.id !== user?.id && u.username !== user?.username);
+                const allUsers = [...myUser, ...otherUsers];
+                const maxVisible = 3;
+                const visible = allUsers.slice(0, maxVisible);
+                const extra = allUsers.length - maxVisible;
+
+                return (
+                  <>
+                    {extra > 0 && (
+                      <div
+                        style={{
+                          width: 22, height: 22, borderRadius: '50%', background: '#2a2d32',
+                          border: '2px solid var(--paper)', display: 'grid', placeItems: 'center',
+                          fontSize: 8.5, fontFamily: '"DM Mono", monospace', fontWeight: 700, color: 'var(--yellow)',
+                          marginLeft: -7, zIndex: 1
+                        }}
+                        title={`+${extra} người khác đang online`}
+                      >
+                        +{extra > 9 ? '9+' : extra}
+                      </div>
+                    )}
+                    {visible.reverse().map((u, i) => (
+                      <img
+                        key={u.id || u.userId || i}
+                        src={u.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                        alt={u.displayName || u.username}
+                        title={`${u.displayName || u.username || 'Người dùng'}${u.isMe ? ' (Bạn)' : ''}`}
+                        style={{
+                          width: 22, height: 22, borderRadius: '50%',
+                          border: `2px solid ${u.isMe ? 'var(--yellow)' : 'var(--border)'}`,
+                          objectFit: 'cover',
+                          marginLeft: i > 0 ? -7 : 0,
+                          zIndex: maxVisible - i + 2,
+                          transition: 'transform 0.15s, z-index 0.15s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.zIndex = 20; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.zIndex = String(maxVisible - i + 2); }}
+                      />
+                    ))}
+                  </>
+                );
+              })()}
+            </div>
             <span className="now-eyebrow" style={{ color: 'var(--yellow)' }}>
-              {(activeWebUsers.length || 1)} ONLINE
+              {Math.max(1, activeWebUsers?.length || 1)} ONLINE
             </span>
-          )}
+          </div>
         </header>
         <HeroPlayer
           player={player}
