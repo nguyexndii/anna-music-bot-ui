@@ -1,224 +1,171 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Loader2, Music, Mic2, FlaskConical } from 'lucide-react';
-import { API_BASE } from '../config';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { Loader2, Music } from 'lucide-react';
 
-const lyricsCache = new Map();
-
-export default function SyncedLyrics({ guildId, currentTrack, player, onAction }) {
-  const current = currentTrack || player?.current;
-  const targetGuildId = guildId || player?.guildId || localStorage.getItem('anna_guild_id');
-
-  const cacheKey = targetGuildId && current?.title ? `${targetGuildId}:${current.title}` : null;
-  const [lyricsData, setLyricsData] = useState(() => (cacheKey ? lyricsCache.get(cacheKey) || null : null));
-  const [loading, setLoading] = useState(false);
+export default function SyncedLyrics({ player, onAction, isLyricsEnabled, onToggleLyrics }) {
+  const [lyricsData, setLyricsData] = useState(null);
+  const [loading, setLoading]       = useState(false);
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
-  const activeLineRef = useRef(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const activeLineRef   = useRef(null);
+  const containerRef    = useRef(null);
 
-  // Local auto-scroll preference (Bật/Tắt cuộn theo bài hát)
-  const [autoScroll, setAutoScroll] = useState(() => {
-    const saved = localStorage.getItem('anna_karaoke_autoscroll');
-    return saved !== null ? saved === 'true' : true;
-  });
+  const current = player?.current;
 
+  // Fetch lyrics when song changes
   useEffect(() => {
-    const handleStorage = (e) => {
-      setAutoScroll(e.detail);
-    };
-    window.addEventListener('anna_autoscroll_change', handleStorage);
-    return () => window.removeEventListener('anna_autoscroll_change', handleStorage);
-  }, []);
+    if (!current?.title) { setLyricsData(null); return; }
+    setLoading(true); setActiveLineIdx(-1);
+    const params = new URLSearchParams({ title: current.title });
+    if (current.artist && current.artist !== 'Unknown') params.set('artist', current.artist);
+    if (current.durationMs) params.set('duration', current.durationMs);
+    fetch(`/api/lyrics?${params}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setLyricsData(d?.success ? d : null); setLoading(false); })
+      .catch(() => { setLyricsData(null); setLoading(false); });
+  }, [current?.title]);
 
-  // Sync active lyric line with song playback progress
+  // Sync active line
   useEffect(() => {
-    if (!lyricsData?.syncedLyrics || lyricsData.syncedLyrics.length === 0) return;
-    
-    const baseDuration = current?.playbackDurationMs ?? (current?.startTime ? Math.max(0, Date.now() - current.startTime) : 0);
-    const baseLocalTime = Date.now();
-    const isPaused = player?.isPaused || !player?.isPlaying;
-
-    const checkActiveLine = () => {
-      const elapsedMs = isPaused ? baseDuration : Math.max(0, baseDuration + (Date.now() - baseLocalTime));
-      const lines = lyricsData.syncedLyrics;
-      
-      let foundIdx = -1;
-      for (let i = 0; i < lines.length; i++) {
-        const lineTime = lines[i].time ?? lines[i].timeMs ?? lines[i].startTimeMs ?? 0;
-        if (elapsedMs >= lineTime) {
-          foundIdx = i;
-        } else {
-          break;
-        }
+    if (!lyricsData?.syncedLyrics?.length) return;
+    const base = current?.playbackDurationMs ?? (current?.startTime ? Math.max(0, Date.now() - current.startTime) : 0);
+    const t0   = Date.now();
+    const paused = player?.isPaused || !player?.isPlaying;
+    const tick = () => {
+      const elapsed = paused ? base : Math.max(0, base + (Date.now() - t0));
+      let found = -1;
+      for (let i = 0; i < lyricsData.syncedLyrics.length; i++) {
+        const lt = lyricsData.syncedLyrics[i].time ?? lyricsData.syncedLyrics[i].timeMs ?? 0;
+        if (elapsed >= lt) found = i; else break;
       }
-
-      setActiveLineIdx(foundIdx);
+      setActiveLineIdx(found);
     };
-
-    checkActiveLine();
-    const interval = setInterval(checkActiveLine, 200);
-
-    return () => clearInterval(interval);
+    tick();
+    const iv = setInterval(tick, 200);
+    return () => clearInterval(iv);
   }, [current?.title, current?.startTime, current?.playbackDurationMs, player?.isPaused, player?.isPlaying, lyricsData?.syncedLyrics]);
 
-  // Auto-scroll to active line (CHỈ cuộn khi autoScroll === true)
+  // Auto-scroll — center active line, with bottom padding trick
   useEffect(() => {
-    if (autoScroll && activeLineRef.current) {
-      activeLineRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    if (!autoScroll || !activeLineRef.current || !containerRef.current) return;
+    activeLineRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [activeLineIdx, autoScroll]);
 
-  // Fetch lyrics when track changes
-  useEffect(() => {
-    if (!targetGuildId || !current?.title) {
-      setLyricsData(null);
-      return;
-    }
-
-    const key = `${targetGuildId}:${current.title}`;
-    if (lyricsCache.has(key)) {
-      setLyricsData(lyricsCache.get(key));
-      setLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-    setLoading(true);
-
-    fetch(`${API_BASE}/api/guilds/${targetGuildId}/lyrics`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted) {
-          setLoading(false);
-          if (data.success && (data.lyrics || data.syncedLyrics)) {
-            lyricsCache.set(key, data);
-            setLyricsData(data);
-          } else {
-            setLyricsData(null);
-          }
-        }
-      })
-      .catch(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [targetGuildId, current?.title]);
-
-  const toggleAutoScroll = () => {
-    const next = !autoScroll;
-    setAutoScroll(next);
-    localStorage.setItem('anna_karaoke_autoscroll', String(next));
-    window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
-  };
-
   return (
-    <div className="bg-anna-surface border border-anna-border/80 rounded-3xl min-h-[500px] flex flex-col shadow-2xl overflow-hidden animate-in fade-in">
-      {/* Compact Track & Control Header (Chỉ 1 hàng gọn gàng, tối ưu không gian cho lời bài hát) */}
-      <div className="px-4 sm:px-6 py-3 border-b border-anna-border/60 bg-anna-card/60 backdrop-blur-md flex items-center justify-between gap-3 flex-shrink-0 z-10">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-anna-accent/10 border border-anna-accent/20 text-anna-accent flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Mic2 className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-white truncate max-w-xs sm:max-w-md">
-              {current?.title || 'Chưa có bài hát đang phát'}
-            </h3>
-            <p className="text-[11px] text-anna-muted truncate">
-              {current?.artist && current.artist !== 'Unknown' ? current.artist : 'YouTube Music'}
-            </p>
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 20, flexShrink: 0,
+      }}>
+        <div>
+          <p style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, letterSpacing: '0.16em', color: 'var(--muted)', margin: '0 0 4px', textTransform: 'uppercase' }}>
+            {current?.title || 'Chưa có bài hát'}
+          </p>
+          <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>
+            {current?.artist && current.artist !== 'Unknown' ? current.artist : ''}
+          </p>
         </div>
-
-        {/* Status Badge & Toggle */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {lyricsData?.syncedLyrics && lyricsData.syncedLyrics.length > 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {lyricsData?.syncedLyrics?.length > 0 && (
             <button
-              onClick={toggleAutoScroll}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition active:scale-95 flex-shrink-0 ${
-                autoScroll
-                  ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 border border-anna-accent'
-                  : 'bg-anna-surface text-anna-muted hover:text-white border border-anna-border'
-              }`}
-              title="Bật/Tắt tự động cuộn và làm nổi bật theo câu hát"
+              onClick={() => setAutoScroll(p => !p)}
+              style={{
+                border: `1px solid ${autoScroll ? 'var(--yellow)' : 'var(--border)'}`,
+                background: autoScroll ? 'rgba(232,201,119,.08)' : 'transparent',
+                color: autoScroll ? 'var(--yellow)' : 'var(--muted)',
+                borderRadius: 8, padding: '4px 10px',
+                fontFamily: '"DM Mono", monospace', fontSize: 9, letterSpacing: '0.1em',
+                cursor: 'pointer',
+              }}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${autoScroll ? 'bg-white animate-pulse' : 'bg-anna-muted'}`}></span>
-              <span>Tự cuộn: {autoScroll ? 'BẬT' : 'TẮT'}</span>
+              {autoScroll ? 'TỰ CUỘN: BẬT' : 'TỰ CUỘN: TẮT'}
             </button>
-          ) : lyricsData?.lyrics ? (
-            <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-[11px] font-medium text-anna-muted">
-              📄 Lời thường (Chưa có mốc giây)
+          )}
+          {lyricsData?.lyrics && !lyricsData?.syncedLyrics?.length && (
+            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)', letterSpacing: '0.1em' }}>
+              LỜI THƯỜNG
             </span>
-          ) : null}
+          )}
         </div>
       </div>
 
-      {/* Scrollable Lyrics Container (Rộng rãi, chữ to rõ ràng kiểu Apple Music / Spotify) */}
-      <div className="flex-1 overflow-y-auto max-h-[580px] px-4 sm:px-8 py-8 flex flex-col items-center text-center">
-        {/* Loading State */}
+      {/* Scroll container — paddingBottom = 50% so last line can center */}
+      <div
+        ref={containerRef}
+        style={{
+          flex: 1, overflowY: 'auto', paddingBottom: '50%',
+          paddingRight: 4,
+        }}
+      >
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-anna-accent gap-2">
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <span className="text-xs text-anna-muted font-medium">Đang tìm lời bài hát...</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: 10, color: 'var(--muted)' }}>
+            <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
+            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10, letterSpacing: '0.12em' }}>ĐANG TÌM LỜI BÀI HÁT...</span>
           </div>
         )}
 
-        {/* Not Found State */}
         {!loading && !lyricsData && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center text-anna-muted py-20 gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-anna-card border border-anna-border flex items-center justify-center shadow-inner">
-              <Music className="w-7 h-7 text-anna-accent/80" />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: 14, textAlign: 'center' }}>
+            <div style={{ width: 40, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+              {[10, 16, 20, 16, 10].map((h, i) => (
+                <span key={i} style={{ width: 2, height: h, background: 'var(--border)', borderRadius: 2, display: 'block' }} />
+              ))}
             </div>
-            <div className="max-w-sm space-y-1">
-              <h4 className="text-sm font-bold text-white">Chưa có lời bài hát</h4>
-              <p className="text-xs text-anna-muted leading-relaxed">
-                {current
-                  ? 'Bản nhạc này có thể là nhạc không lời (Beat/Lofi/EDM) hoặc bản phối chưa có dữ liệu lời đồng bộ.'
-                  : 'Hãy phát một bài hát để xem lời bài hát đồng bộ nhé!'}
+            <div>
+              <p style={{ fontWeight: 500, color: 'var(--ink)', fontSize: 14, margin: '0 0 6px' }}>Không có lời bài hát</p>
+              <p style={{ color: 'var(--muted)', fontSize: 12, margin: 0, maxWidth: 260, lineHeight: 1.6 }}>
+                {current ? 'Bản nhạc này chưa có lời đồng bộ (Beat / Lofi / EDM).' : 'Phát một bài hát để xem lời nhé!'}
               </p>
             </div>
           </div>
         )}
 
-        {/* Lyrics Display */}
         {!loading && lyricsData && (
-          <div className="space-y-4 max-w-2xl leading-relaxed py-4 w-full">
-            {lyricsData.syncedLyrics && lyricsData.syncedLyrics.length > 0 ? (
-              lyricsData.syncedLyrics.map((line, idx) => {
-                const isActive = idx === activeLineIdx;
+          <div style={{ paddingTop: 8 }}>
+            {lyricsData.syncedLyrics?.length > 0 ? (
+              lyricsData.syncedLyrics.map((line, i) => {
+                const isActive = i === activeLineIdx;
                 const timeMs = line.time ?? line.timeMs ?? 0;
-
                 return (
                   <p
-                    key={idx}
+                    key={i}
                     ref={isActive ? activeLineRef : null}
-                    onClick={() => {
-                      if (!autoScroll) return;
-                      if (timeMs >= 0 && onAction) {
-                        onAction('seek', Math.floor(timeMs / 1000));
-                      }
+                    onClick={() => { if (timeMs >= 0 && onAction) onAction('seek', Math.floor(timeMs / 1000)); }}
+                    title={timeMs > 0 ? `Nhảy tới ${formatLyricTime(timeMs)}` : undefined}
+                    style={{
+                      margin: 0,
+                      padding: '9px 10px',
+                      borderRadius: 8,
+                      fontSize: isActive ? 18 : 15,
+                      fontWeight: isActive ? 500 : 400,
+                      color: isActive ? 'var(--ink)' : 'var(--muted)',
+                      lineHeight: 1.45,
+                      cursor: 'pointer',
+                      transition: 'all 0.25s cubic-bezier(0.2,0.8,0.2,1)',
+                      transform: isActive ? 'scale(1.01)' : 'none',
+                      transformOrigin: 'left center',
+                      background: isActive ? 'rgba(232,201,119,0.06)' : 'transparent',
+                      borderLeft: isActive ? '2px solid var(--yellow)' : '2px solid transparent',
                     }}
-                    title={autoScroll && timeMs > 0 ? `Nhấn để nhảy tới ${Math.floor(timeMs / 60000)}:${String(Math.floor((timeMs % 60000) / 1000)).padStart(2, '0')}` : ''}
-                    className={`transition-all duration-300 py-2 px-4 rounded-2xl font-sans ${
-                      autoScroll ? 'cursor-pointer select-none' : 'cursor-default select-text'
-                    } ${
-                      isActive && autoScroll
-                        ? 'text-white text-lg sm:text-xl font-bold bg-anna-accent/20 scale-[1.03] shadow-md shadow-anna-accent/15 border border-anna-accent/30'
-                        : 'text-white/40 hover:text-white/80 hover:bg-white/5 text-base sm:text-lg font-medium'
-                    }`}
                   >
                     {line.text}
                   </p>
                 );
               })
             ) : (
-              <div className="whitespace-pre-line text-sm sm:text-base leading-relaxed text-anna-text text-left sm:text-center px-4 font-sans max-w-xl mx-auto">
+              <div style={{ whiteSpace: 'pre-line', fontSize: 13, lineHeight: 2, color: 'var(--muted)', padding: '4px 10px' }}>
                 {lyricsData.lyrics}
               </div>
             )}
           </div>
         )}
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
+}
+
+function formatLyricTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 }

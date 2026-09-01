@@ -1,23 +1,25 @@
-import React from 'react';
-import { Check, AlertCircle } from 'lucide-react';
+﻿import React from 'react';
 
 export default function Toast({ toast }) {
   if (!toast) return null;
-
+  const isError = toast.type === 'error';
   return (
-    <div className="fixed bottom-24 right-4 sm:right-6 z-[100] transition-all duration-300 pointer-events-none animate-in slide-in-from-bottom-2 fade-in">
-      <div className="bg-anna-surface/95 border border-anna-border/90 backdrop-blur-xl px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs font-semibold text-white">
-        <div
-          className={`w-6 h-6 rounded-lg flex items-center justify-center ${
-            toast.type === 'error'
-              ? 'bg-anna-red/20 text-anna-red'
-              : 'bg-anna-green/20 text-anna-green'
-          }`}
-        >
-          {toast.type === 'error' ? <AlertCircle className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-        </div>
-        <span>{toast.message}</span>
-      </div>
+    <div style={{
+      position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 9999, pointerEvents: 'none',
+      background: isError ? '#2a1616' : 'var(--paper)',
+      border: `1px solid ${isError ? '#5c2020' : 'var(--border)'}`,
+      borderLeft: `3px solid ${isError ? 'var(--coral)' : 'var(--yellow)'}`,
+      color: 'var(--ink)',
+      borderRadius: 10, padding: '10px 18px',
+      fontFamily: '"DM Sans", sans-serif',
+      fontSize: 13,
+      boxShadow: '0 8px 24px rgba(0,0,0,.4)',
+      whiteSpace: 'nowrap',
+      animation: 'toastIn .2s cubic-bezier(0.2,0.8,0.2,1)',
+    }}>
+      {toast.message}
+      <style>{`@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }`}</style>
     </div>
   );
 }
