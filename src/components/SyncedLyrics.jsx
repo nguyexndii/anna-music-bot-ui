@@ -31,7 +31,7 @@ function saveOffset(title, offsetMs) {
   } catch (e) {}
 }
 
-export default function SyncedLyrics({ player, onAction }) {
+export default function SyncedLyrics({ player, onAction, isActive = true }) {
   const current = player?.current;
   const songKey = current?.title ? `${current.title}|${current.artist || ''}` : '';
 
@@ -62,7 +62,7 @@ export default function SyncedLyrics({ player, onAction }) {
   const activeLineRef = useRef(null);
   const containerRef  = useRef(null);
 
-  // When changing to a new song: scroll back to top immediately and restore offset!
+  // Khi qua bài mới: Cuộn ngay lập tức lên đầu trang (scrollTop = 0) và reset index
   useEffect(() => {
     setActiveLineIdx(-1);
     if (containerRef.current) {
@@ -70,14 +70,24 @@ export default function SyncedLyrics({ player, onAction }) {
     }
     const saved = getSavedOffset(current?.title);
     setManualOffsetMs(saved ?? 0);
-  }, [current?.title]);
+  }, [current?.title, current?.url]);
 
-  // When new lyrics data arrives or loading state changes, ensure container is at top
+  // Khi dữ liệu lời bài hát mới nạp xong: đảm bảo luôn ở đầu trang
   useEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && activeLineIdx <= 0) {
       containerRef.current.scrollTop = 0;
     }
   }, [lyricsData, current?.title]);
+
+  // Khi người dùng chuyển từ tab khác quay lại tab Lời Nhạc:
+  useEffect(() => {
+    if (!isActive || !containerRef.current) return;
+    if (activeLineIdx <= 0) {
+      containerRef.current.scrollTop = 0;
+    } else if (activeLineRef.current) {
+      activeLineRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }, [isActive]);
 
   // Fetch lyrics with caching
   useEffect(() => {
