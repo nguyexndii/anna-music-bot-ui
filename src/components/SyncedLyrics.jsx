@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, SlidersHorizontal, Coffee, Sparkles } from 'lucide-react';
 import { API_BASE } from '../config';
 
@@ -135,15 +135,8 @@ export default function SyncedLyrics({ player, onAction }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '40px 20px', textAlign: 'center' }}>
         <div style={{
-          width: 60, height: 60, borderRadius: 20, background: 'rgba(232,201,119,0.1)',
-          border: '1px solid rgba(232,201,119,0.25)', display: 'grid', placeItems: 'center',
-          color: 'var(--yellow)', marginBottom: 16
-        }}>
-          <Coffee size={28} />
-        </div>
-        <div style={{
           fontFamily: '"DM Mono", monospace', fontSize: 10, letterSpacing: '0.16em',
-          color: 'var(--yellow)', background: 'rgba(232,201,119,0.1)', padding: '4px 12px',
+          color: 'var(--yellow)', background: 'rgba(232,201,119,0.1)', padding: '5px 14px',
           borderRadius: 999, border: '1px solid rgba(232,201,119,0.3)', marginBottom: 14
         }}>
           LOFI 24/7 · PHÁT TỰ ĐỘNG
@@ -157,6 +150,7 @@ export default function SyncedLyrics({ player, onAction }) {
       </div>
     );
   }
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
