@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, Radio, Infinity, Lock, Heart } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, Radio, Lock, Heart } from 'lucide-react';
 
 function formatTime(ms) {
   if (!ms || isNaN(ms) || ms < 0) return '0:00';
@@ -7,6 +7,7 @@ function formatTime(ms) {
   const m = Math.floor(s / 60);
   return `${m}:${(s % 60).toString().padStart(2, '0')}`;
 }
+
 function parseDurationToMs(str) {
   if (!str || str.toLowerCase().includes('live')) return 0;
   const parts = str.split(':').map(Number);
@@ -105,30 +106,50 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
 
-      {/* Vinyl Record */}
-      <div
-        className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
-        aria-label={current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát'}
-      >
-        <div className="vinyl-grooves" />
-        <div className="vinyl-art">
-          {current?.thumbnail ? (
-            <img src={current.thumbnail} alt={`Bìa album: ${current.title}`} />
-          ) : (
-            <div className="vinyl-art-fallback">
-              <span>{current?.title?.[0] || '♪'}</span>
-            </div>
-          )}
+      {/* ── Vinyl Player Deck (with Needle / Tonearm & Spindle Hole) ── */}
+      <div className="vinyl-deck">
+        
+        {/* Tonearm (Needle) */}
+        <div
+          className={`tonearm-assembly ${isPlaying ? 'on-record' : ''}`}
+          title={isPlaying ? 'Kim đĩa than đang quét bài hát' : 'Kim đĩa than đang dừng'}
+          aria-hidden="true"
+        >
+          <div className="tonearm-base" />
+          <div className="tonearm-pivot" />
+          <div className="tonearm-rod" />
+          <div className="tonearm-cartridge" />
+        </div>
+
+        {/* Vinyl Disc */}
+        <div
+          className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
+          aria-label={current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát'}
+        >
+          <div className="vinyl-grooves" />
+          <div className="vinyl-art">
+            {current?.thumbnail ? (
+              <img src={current.thumbnail} alt={`Bìa album: ${current.title}`} />
+            ) : (
+              <div className="vinyl-art-fallback">
+                <span>{current?.title?.[0] || '♪'}</span>
+              </div>
+            )}
+          </div>
+          {/* Center Spindle Hole */}
+          <div className="vinyl-spindle-hole">
+            <div className="spindle-dot" />
+          </div>
         </div>
       </div>
 
-      {/* Track Meta */}
+      {/* ── Track Meta ────────────────────────────────────── */}
       <div className="track-meta">
         <div style={{ minWidth: 0 }}>
           <p className="track-eyebrow">
             {player?.mode247 ? '24/7 · LIÊN TỤC' : (current?.album || 'YOUTUBE MUSIC')}
           </p>
-          <h1 className="track-title">
+          <h1 className="track-title" title={current?.title}>
             {current?.title || 'Chưa có bài hát'}
           </h1>
           <p className="track-artist">
@@ -147,7 +168,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
         )}
       </div>
 
-      {/* Progress */}
+      {/* ── Progress Bar ──────────────────────────────────── */}
       <div className="progress-wrap">
         <div
           ref={progressBarRef}
@@ -188,7 +209,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
         </div>
       </div>
 
-      {/* Controls */}
+      {/* ── Controls Deck ─────────────────────────────────── */}
       <div className="player-controls">
         <button
           className={`ctrl-btn${player?.shuffle ? ' active' : ''}`}
@@ -222,10 +243,13 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
           {player?.loop === 'song' && (
             <span style={{ position: 'absolute', top: -4, right: -4, fontSize: 8, fontWeight: 700, background: 'var(--yellow)', color: '#1c1e21', borderRadius: '50%', width: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
           )}
+          {player?.loop === 'queue' && (
+            <span style={{ position: 'absolute', top: -4, right: -4, fontSize: 8, fontWeight: 700, background: 'var(--coral)', color: '#ffffff', borderRadius: '50%', width: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>∞</span>
+          )}
         </button>
       </div>
 
-      {/* Footer: Volume + 24/7 */}
+      {/* ── Footer: Volume + 24/7 ─────────────────────────── */}
       <div className="now-footer">
         <div className="volume-row">
           <button
@@ -274,7 +298,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
       {/* Voice channel info */}
       {player?.voiceChannel?.name && (
         <div style={{
-          marginTop: 16, padding: '10px 14px',
+          marginTop: 14, padding: '9px 12px',
           border: '1px solid var(--border)', borderRadius: 10,
           background: 'var(--paper)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',

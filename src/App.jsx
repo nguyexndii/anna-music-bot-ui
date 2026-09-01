@@ -20,12 +20,20 @@ const TABS = [
   { id: 'settings', label: 'Cài Đặt',  Icon: Settings   },
 ];
 
-// ─── Brand mark ─────────────────────────────────────────────────────────────
-function BrandMark() {
+// ─── Brand Logo Mark ────────────────────────────────────────────────────────
+function BrandMark({ onClick }) {
   return (
-    <div className="brand-mark" aria-label="Anna Music">
-      <span className="y">an</span><span className="c">na</span>
-    </div>
+    <button
+      onClick={onClick}
+      className="brand-logo-btn group"
+      title="Về trang Khám Phá"
+      aria-label="Về trang Khám Phá"
+    >
+      <img src="/logo.jpg" alt="Anna Logo" className="brand-logo-img" />
+      <div className="brand-mark-text">
+        <span className="y">an</span><span className="c">na</span>
+      </div>
+    </button>
   );
 }
 
@@ -56,13 +64,14 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
   return (
     <main className="auth-shell">
       <div className="auth-brand">
+        <img src="/logo.jpg" alt="Anna Music" style={{ width: 54, height: 54, borderRadius: 16, margin: '0 auto 12px', border: '1px solid var(--border)', objectFit: 'cover' }} />
         <div className="brand-name"><span className="y">an</span><b className="c">na</b></div>
         <div className="brand-subtitle">MUSIC WEB PLAYER</div>
       </div>
       <form className="auth-card" onSubmit={submit}>
         <div className="card-kicker">KẾT NỐI TÀI KHOẢN</div>
         <h1>Nhập mã PIN</h1>
-        <p className="card-copy">Dùng lệnh <code style={{color:'var(--yellow)'}}>/ web</code> trong Discord để nhận mã 6 số</p>
+        <p className="card-copy">Dùng lệnh <code style={{color:'var(--yellow)'}}>/web</code> trong Discord để nhận mã 6 số</p>
         <label className="pin-label" htmlFor="tokenInput">MÃ PIN</label>
         <input
           id="tokenInput"
@@ -95,6 +104,7 @@ function NoVoiceScreen({ user, onRefresh, isRefreshing, onLogout }) {
   return (
     <main className="auth-shell">
       <div className="auth-brand">
+        <img src="/logo.jpg" alt="Anna Music" style={{ width: 54, height: 54, borderRadius: 16, margin: '0 auto 12px', border: '1px solid var(--border)', objectFit: 'cover' }} />
         <div className="brand-name"><span className="y">an</span><b className="c">na</b></div>
         <div className="brand-subtitle">MUSIC WEB PLAYER</div>
       </div>
@@ -114,7 +124,9 @@ function NoVoiceScreen({ user, onRefresh, isRefreshing, onLogout }) {
           <button className="primary-button" onClick={onRefresh} disabled={isRefreshing}>
             {isRefreshing ? 'Đang kiểm tra...' : 'Thử Lại'}
           </button>
-          <button className="ghost-button" onClick={onLogout}>Đăng Xuất</button>
+          <button className="ghost-button" onClick={onLogout}>
+            Đổi Mã PIN
+          </button>
         </div>
         <p className="hint">Sau khi vào kênh Voice, nhấn Thử Lại để đồng bộ.</p>
       </section>
@@ -139,16 +151,23 @@ export default function App() {
   const [player, setPlayer]               = useState(null);
   const [activeWebUsers, setActiveWebUsers] = useState([]);
   const [activeTab, setActiveTab]         = useState('search');
-  const [prevTab, setPrevTab]             = useState(null);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
   const [authError, setAuthError]         = useState(null);
-  const [isVerifying, setIsVerifying]     = useState(Boolean(token));
+  const [isVerifying, setIsVerifying]     = useState(true);
   const [isRefreshingVoice, setIsRefreshingVoice] = useState(false);
-  const [toast, setToast]                 = useState(null);
+  const [toasts, setToasts]               = useState([]);
 
+  // Toast stack manager (supports quick repetitive clicks independently)
   const showToast = useCallback((message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    const id = Date.now() + Math.random().toString(36).substring(2, 6);
+    setToasts(prev => [...prev.slice(-3), { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 2800);
+  }, []);
+
+  const handleDismissToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
   const handleAuthExpired = useCallback((msg = 'Phiên làm việc đã hết hạn. Vui lòng kết nối lại!') => {
@@ -165,11 +184,12 @@ export default function App() {
     setAuthError(null);
   };
 
-  // 1. Verify token/PIN
+  // 1. Verify token/PIN with smooth min delay (800ms)
   const verifyToken = useCallback((tokenToVerify, isUserInitiated = false) => {
     if (!tokenToVerify) { setIsVerifying(false); return; }
     setIsVerifying(true);
     if (isUserInitiated) setAuthError(null);
+    const startTime = Date.now();
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 7000);
     fetch(`${API_BASE}/api/auth/verify`, {
@@ -181,23 +201,28 @@ export default function App() {
       .then(async res => {
         clearTimeout(tid);
         const data = await res.json().catch(() => ({}));
-        setIsVerifying(false);
-        if (res.ok && data.success && data.user) {
-          const sess = data.token || tokenToVerify;
-          setUser(data.user); setGuildId(data.user.guildId); setToken(sess);
-          localStorage.setItem('anna_web_token', sess);
-          localStorage.setItem('anna_guild_id', data.user.guildId);
-          setAuthError(null);
-        } else {
-          setUser(null); setToken(null);
-          localStorage.removeItem('anna_web_token');
-          localStorage.removeItem('anna_guild_id');
-          if (isUserInitiated) setAuthError(data.error || 'Mã PIN không đúng hoặc đã hết hạn.');
-          else setAuthError(null);
-        }
+        const elapsed = Date.now() - startTime;
+        const delay = Math.max(0, 700 - elapsed);
+        setTimeout(() => {
+          setIsVerifying(false);
+          if (res.ok && data.success && data.user) {
+            const sess = data.token || tokenToVerify;
+            setUser(data.user); setGuildId(data.user.guildId); setToken(sess);
+            localStorage.setItem('anna_web_token', sess);
+            localStorage.setItem('anna_guild_id', data.user.guildId);
+            setAuthError(null);
+          } else {
+            setUser(null); setToken(null);
+            localStorage.removeItem('anna_web_token');
+            localStorage.removeItem('anna_guild_id');
+            if (isUserInitiated) setAuthError(data.error || 'Mã PIN không đúng hoặc đã hết hạn.');
+            else setAuthError(null);
+          }
+        }, delay);
       })
       .catch(err => {
-        clearTimeout(tid); setIsVerifying(false);
+        clearTimeout(tid);
+        setIsVerifying(false);
         setUser(null); setToken(null);
         localStorage.removeItem('anna_web_token');
         localStorage.removeItem('anna_guild_id');
@@ -218,7 +243,11 @@ export default function App() {
       window.history.replaceState({}, document.title, window.location.pathname);
     } else {
       const saved = localStorage.getItem('anna_web_token');
-      if (saved) verifyToken(saved, false); else setIsVerifying(false);
+      if (saved) {
+        verifyToken(saved, false);
+      } else {
+        setTimeout(() => setIsVerifying(false), 500);
+      }
     }
   }, [verifyToken]);
 
@@ -282,7 +311,7 @@ export default function App() {
     if (!cg || !ct) return;
     const title = track?.title || track?.name || (track?.isPlaylist ? 'Danh sách phát' : 'bài hát');
     try {
-      showToast(`Đang thêm "${title}"...`);
+      showToast(`Đang thêm "${title}"...`, 'info');
       const res = await fetch(`${API_BASE}/api/guilds/${cg}/play`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ct}` },
@@ -326,10 +355,9 @@ export default function App() {
     } catch { showToast('Lỗi gửi lệnh điều khiển!', 'error'); }
   };
 
-  // Tab switching with transition key
+  // Tab switching
   const switchTab = (id) => {
     if (id === activeTab) return;
-    setPrevTab(activeTab);
     setActiveTab(id);
   };
 
@@ -359,7 +387,6 @@ export default function App() {
     );
   }
 
-  // Content panel label
   const activeTabDef = TABS.find(t => t.id === activeTab);
   const otherUsers = (activeWebUsers || []).filter(u => u.userId && user && String(u.userId) !== String(user.userId));
 
@@ -367,7 +394,7 @@ export default function App() {
     <div className="music-app">
       {/* ── Rail ─────────────────────────────────────── */}
       <aside className="rail">
-        <BrandMark />
+        <BrandMark onClick={() => switchTab('search')} />
         <nav className="rail-nav" aria-label="Điều hướng">
           {TABS.map(({ id, label, Icon }) => (
             <button
@@ -384,7 +411,6 @@ export default function App() {
         </nav>
 
         <div className="rail-bottom">
-          {/* Online users stack */}
           {otherUsers.slice(0, 3).map((u, i) => (
             <img
               key={u.userId || i}
@@ -435,7 +461,6 @@ export default function App() {
               <span className="live-dot" title="Đang phát" />
             )}
           </h2>
-          {/* Server name */}
           <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, letterSpacing: '0.14em', color: 'var(--muted)', textTransform: 'uppercase' }}>
             {guild?.name || user?.guildName || ''}
           </span>
@@ -484,7 +509,7 @@ export default function App() {
         onClose={() => setIsPermissionModalOpen(false)}
         user={user}
       />
-      <Toast toast={toast} />
+      <Toast toasts={toasts} onDismiss={handleDismissToast} />
     </div>
   );
 }

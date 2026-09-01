@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, Music } from 'lucide-react';
+import { API_BASE } from '../config';
 
 export default function SyncedLyrics({ player, onAction, isLyricsEnabled, onToggleLyrics }) {
   const [lyricsData, setLyricsData] = useState(null);
@@ -18,7 +19,7 @@ export default function SyncedLyrics({ player, onAction, isLyricsEnabled, onTogg
     const params = new URLSearchParams({ title: current.title });
     if (current.artist && current.artist !== 'Unknown') params.set('artist', current.artist);
     if (current.durationMs) params.set('duration', current.durationMs);
-    fetch(`/api/lyrics?${params}`)
+    fetch(`${API_BASE}/api/lyrics?${params}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { setLyricsData(d?.success ? d : null); setLoading(false); })
       .catch(() => { setLyricsData(null); setLoading(false); });
