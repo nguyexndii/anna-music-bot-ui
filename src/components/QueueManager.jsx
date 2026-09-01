@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   ListOrdered,
   Trash2,
@@ -195,9 +195,12 @@ export default function QueueManager({ queue, onAction }) {
     <div ref={listContainerRef} style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, minHeight: 0 }}>
       {/* ── Modal Xác Nhận Xóa Hết ──────────────────────── */}
       {showClearModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}>
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowClearModal(false); }}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+        >
           <div style={{ width: '100%', maxWidth: 360, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
-            <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Xóa toàn bộ hàng chờ?</h4>
+            <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap' }}>Xóa toàn bộ hàng chờ?</h4>
             <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>
               Bạn có chắc chắn muốn xóa tất cả <b style={{ color: 'var(--ink)' }}>{songs.length} bài hát</b> trong hàng chờ không?
             </p>
@@ -205,13 +208,13 @@ export default function QueueManager({ queue, onAction }) {
               <button
                 onClick={() => setShowClearModal(false)}
                 className="ghost-button"
-                style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12 }}
+                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}
               >
                 Hủy
               </button>
               <button
                 onClick={confirmClearAll}
-                style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer' }}
+                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 Xóa Hết
               </button>
@@ -222,9 +225,12 @@ export default function QueueManager({ queue, onAction }) {
 
       {/* ── Modal Xác Nhận Xóa Bài Đã Chọn ──────────────── */}
       {showBatchModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}>
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowBatchModal(false); }}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+        >
           <div style={{ width: '100%', maxWidth: 360, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
-            <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Xóa {selectedIndices.size} bài đã chọn?</h4>
+            <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap' }}>Xóa {selectedIndices.size} bài đã chọn?</h4>
             <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>
               Các bài hát được đánh dấu sẽ bị xóa khỏi hàng chờ.
             </p>
@@ -232,13 +238,13 @@ export default function QueueManager({ queue, onAction }) {
               <button
                 onClick={() => setShowBatchModal(false)}
                 className="ghost-button"
-                style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12 }}
+                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}
               >
                 Hủy
               </button>
               <button
                 onClick={confirmBatchDelete}
-                style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer' }}
+                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 Xác Nhận Xóa
               </button>
@@ -249,7 +255,10 @@ export default function QueueManager({ queue, onAction }) {
 
       {/* ── Modal Chuyển Vị Trí Nhanh (Jump Position) ───── */}
       {jumpModalData && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}>
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setJumpModalData(null); }}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+        >
           <div style={{ width: '100%', maxWidth: 380, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
@@ -290,13 +299,14 @@ export default function QueueManager({ queue, onAction }) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button type="button" onClick={() => setJumpModalData(null)} className="ghost-button" style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12 }}>Hủy</button>
-                <button type="submit" className="primary-button" style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12, width: 'auto' }}>Xác Nhận</button>
+                <button type="button" onClick={() => setJumpModalData(null)} className="ghost-button" style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12, width: 'auto', whiteSpace: 'nowrap' }}>Hủy</button>
+                <button type="submit" className="primary-button" style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12, width: 'auto', whiteSpace: 'nowrap' }}>Xác Nhận</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
 
       {/* ── Top Header Bar ──────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 12, background: 'var(--paper)', border: '1px solid var(--border)', flexShrink: 0 }}>

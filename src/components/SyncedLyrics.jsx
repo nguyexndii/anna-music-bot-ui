@@ -1,19 +1,39 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { Loader2, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Loader2, SlidersHorizontal, Coffee, Sparkles } from 'lucide-react';
 import { API_BASE } from '../config';
 
 // Module-level cache to prevent re-fetching when user switches tabs
 const lyricsCache = new Map();
 
+function parseDurationToMs(str) {
+  if (!str || str.toLowerCase().includes('live')) return 0;
+  const parts = str.split(':').map(Number);
+  if (parts.some(isNaN)) return 0;
+  if (parts.length === 3) return (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000;
+  if (parts.length === 2) return (parts[0] * 60 + parts[1]) * 1000;
+  return parts[0] * 1000;
+}
+
 export default function SyncedLyrics({ player, onAction }) {
   const current = player?.current;
   const songKey = current?.title ? `${current.title}|${current.artist || ''}` : '';
+
+  const isLofiTrack = Boolean(
+    player?.mode247 ||
+    current?.is247 ||
+    current?.requestedBy === 'Auto (24/7)' ||
+    current?.title?.toLowerCase()?.includes('lofi') ||
+    current?.title?.toLowerCase()?.includes('lo-fi') ||
+    current?.title?.toLowerCase()?.includes('chillhop') ||
+    current?.title?.toLowerCase()?.includes('coffee shop') ||
+    current?.title?.toLowerCase()?.includes('không lời')
+  );
 
   const [lyricsData, setLyricsData] = useState(() => {
     return songKey && lyricsCache.has(songKey) ? lyricsCache.get(songKey) : null;
   });
   const [loading, setLoading]       = useState(() => {
-    return songKey && !lyricsCache.has(songKey);
+    return !isLofiTrack && Boolean(songKey && !lyricsCache.has(songKey));
   });
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -23,8 +43,21 @@ export default function SyncedLyrics({ player, onAction }) {
   const activeLineRef = useRef(null);
   const containerRef  = useRef(null);
 
+  // When changing to a new song: scroll back to top immediately!
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, [current?.title]);
+
   // Fetch lyrics with caching
   useEffect(() => {
+    if (isLofiTrack) {
+      setLyricsData(null);
+      setLoading(false);
+      return;
+    }
+
     if (!current?.title) {
       setLyricsData(null);
       setLoading(false);
@@ -33,24 +66,33 @@ export default function SyncedLyrics({ player, onAction }) {
 
     const key = `${current.title}|${current.artist || ''}`;
     if (lyricsCache.has(key)) {
-      setLyricsData(lyricsCache.get(key));
+      const cached = lyricsCache.get(key);
+      setLyricsData(cached);
+      setManualOffsetMs(cached?.autoOffsetMs || 0);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     setActiveLineIdx(-1);
-    setManualOffsetMs(0);
 
+    const durMs = current.durationMs || parseDurationToMs(current.duration);
     const params = new URLSearchParams({ title: current.title });
     if (current.artist && current.artist !== 'Unknown') params.set('artist', current.artist);
-    if (current.durationMs) params.set('duration', current.durationMs);
+    if (durMs > 0) params.set('duration', durMs);
 
     fetch(`${API_BASE}/api/lyrics?${params}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         const result = d?.success ? d : null;
-        if (result) lyricsCache.set(key, result);
+        if (result) {
+          lyricsCache.set(key, result);
+          if (result.autoOffsetMs) {
+            setManualOffsetMs(result.autoOffsetMs);
+          } else {
+            setManualOffsetMs(0);
+          }
+        }
         setLyricsData(result);
         setLoading(false);
       })
@@ -58,7 +100,7 @@ export default function SyncedLyrics({ player, onAction }) {
         setLyricsData(null);
         setLoading(false);
       });
-  }, [current?.title, current?.artist, current?.durationMs]);
+  }, [current?.title, current?.artist, current?.duration, current?.durationMs, isLofiTrack]);
 
   // Sync active line (calculated with playback duration + manual offset)
   useEffect(() => {
@@ -68,7 +110,7 @@ export default function SyncedLyrics({ player, onAction }) {
     const paused = player?.isPaused || !player?.isPlaying;
 
     const tick = () => {
-      const elapsed = (paused ? base : Math.max(0, base + (Date.now() - t0))) + manualOffsetMs;
+      const elapsed = (paused ? base : Math.max(0, base + (Date.now() - t0))) - manualOffsetMs;
       let found = -1;
       for (let i = 0; i < lyricsData.syncedLyrics.length; i++) {
         const lt = lyricsData.syncedLyrics[i].time ?? lyricsData.syncedLyrics[i].timeMs ?? 0;
@@ -82,25 +124,53 @@ export default function SyncedLyrics({ player, onAction }) {
     return () => clearInterval(iv);
   }, [current?.title, current?.startTime, current?.playbackDurationMs, player?.isPaused, player?.isPlaying, lyricsData?.syncedLyrics, manualOffsetMs]);
 
-  // Auto-scroll — smoothly center active line
+  // Auto-scroll — smoothly center active line (even for last lines)
   useEffect(() => {
     if (!autoScroll || !activeLineRef.current || !containerRef.current) return;
     activeLineRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [activeLineIdx, autoScroll]);
+
+  // Lofi / 24/7 special view
+  if (isLofiTrack || lyricsData?.isLofi) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '40px 20px', textAlign: 'center' }}>
+        <div style={{
+          width: 60, height: 60, borderRadius: 20, background: 'rgba(232,201,119,0.1)',
+          border: '1px solid rgba(232,201,119,0.25)', display: 'grid', placeItems: 'center',
+          color: 'var(--yellow)', marginBottom: 16
+        }}>
+          <Coffee size={28} />
+        </div>
+        <div style={{
+          fontFamily: '"DM Mono", monospace', fontSize: 10, letterSpacing: '0.16em',
+          color: 'var(--yellow)', background: 'rgba(232,201,119,0.1)', padding: '4px 12px',
+          borderRadius: 999, border: '1px solid rgba(232,201,119,0.3)', marginBottom: 14
+        }}>
+          LOFI 24/7 · PHÁT TỰ ĐỘNG
+        </div>
+        <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 600, color: 'var(--ink)' }}>
+          Không gian âm nhạc Lofi Chill
+        </h3>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)', maxWidth: 320, lineHeight: 1.6 }}>
+          Bản nhạc thư giãn tự động không lời. Chúc bạn có những phút giây làm việc và học tập hiệu quả ☕
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* ── Lyrics Topbar Header ──────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 16, flexShrink: 0,
+        marginBottom: 14, flexShrink: 0,
       }}>
-        <div style={{ minWidth: 0, flex: 1, paddingRight: 12 }}>
+        <div style={{ minWidth: 0, flex: 1, paddingRight: 10 }}>
           <p
             title={current?.title}
             style={{
               fontFamily: '"DM Mono", monospace', fontSize: 9.5, letterSpacing: '0.14em',
-              color: 'var(--yellow)', margin: '0 0 3px', textTransform: 'uppercase',
+              color: 'var(--yellow)', margin: '0 0 2px', textTransform: 'uppercase',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
             }}
           >
@@ -109,7 +179,7 @@ export default function SyncedLyrics({ player, onAction }) {
           <p
             title={current?.artist}
             style={{
-              fontSize: 12, color: 'var(--muted)', margin: 0,
+              fontSize: 11.5, color: 'var(--muted)', margin: 0,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
             }}
           >
@@ -161,53 +231,78 @@ export default function SyncedLyrics({ player, onAction }) {
         </div>
       </div>
 
-      {/* ── Sync Calibration Bar (Optional) ───────────────── */}
+      {/* ── Sync Calibration Bar with Multi-tier Offset Controls ── */}
       {showSyncAdjust && (
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          padding: '8px 12px', marginBottom: 12, borderRadius: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap',
+          padding: '8px 12px', marginBottom: 12, borderRadius: 12,
           background: 'var(--paper)', border: '1px solid var(--border)', flexShrink: 0
         }}>
-          <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10, color: 'var(--muted)' }}>CHỈNH NHỊP LỜI:</span>
+          <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9.5, color: 'var(--muted)' }}>CHỈNH NHỊP:</span>
           <button
-            onClick={() => setManualOffsetMs(p => p - 1000)}
-            style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 11, cursor: 'pointer' }}
+            onClick={() => setManualOffsetMs(p => p - 10000)}
+            style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
           >
-            -1.0s
+            -10s
+          </button>
+          <button
+            onClick={() => setManualOffsetMs(p => p - 2000)}
+            style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+          >
+            -2s
           </button>
           <button
             onClick={() => setManualOffsetMs(p => p - 500)}
-            style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 11, cursor: 'pointer' }}
+            style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
           >
             -0.5s
           </button>
           <button
             onClick={() => setManualOffsetMs(0)}
-            style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--yellow)', background: 'transparent', color: 'var(--yellow)', fontSize: 10, fontFamily: '"DM Mono", monospace', cursor: 'pointer' }}
+            style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--yellow)', background: 'transparent', color: 'var(--yellow)', fontSize: 10, fontFamily: '"DM Mono", monospace', cursor: 'pointer', fontWeight: 700 }}
           >
             RESET
           </button>
           <button
             onClick={() => setManualOffsetMs(p => p + 500)}
-            style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 11, cursor: 'pointer' }}
+            style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
           >
             +0.5s
           </button>
           <button
-            onClick={() => setManualOffsetMs(p => p + 1000)}
-            style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 11, cursor: 'pointer' }}
+            onClick={() => setManualOffsetMs(p => p + 2000)}
+            style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
           >
-            +1.0s
+            +2s
+          </button>
+          <button
+            onClick={() => setManualOffsetMs(p => p + 10000)}
+            style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
+          >
+            +10s
+          </button>
+          <button
+            onClick={() => setManualOffsetMs(p => p + 20000)}
+            style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--yellow)', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}
+          >
+            +20s
           </button>
         </div>
       )}
 
-      {/* ── Scroll Container (Centered Lyrics) ─────────────── */}
+      {/* ── Scroll Container (Centered Lyrics with Top & Bottom Fade Mask) ── */}
       <div
         ref={containerRef}
         style={{
-          flex: 1, overflowY: 'auto', paddingBottom: '45%',
-          paddingRight: 6, textAlign: 'center', minHeight: 0
+          flex: 1,
+          overflowY: 'auto',
+          paddingTop: '20px',
+          paddingBottom: '55%',
+          paddingRight: 6,
+          textAlign: 'center',
+          minHeight: 0,
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 85%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 85%, transparent 100%)',
         }}
       >
         {loading && (
@@ -243,7 +338,7 @@ export default function SyncedLyrics({ player, onAction }) {
                   <p
                     key={i}
                     ref={isActive ? activeLineRef : null}
-                    onClick={() => { if (timeMs >= 0 && onAction) onAction('seek', Math.floor(timeMs / 1000)); }}
+                    onClick={() => { if (timeMs >= 0 && onAction) onAction('seek', Math.floor((timeMs + manualOffsetMs) / 1000)); }}
                     title={timeMs > 0 ? `Nhảy tới ${formatLyricTime(timeMs)}` : undefined}
                     style={{
                       margin: isActive ? '8px 0' : '4px 0',

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import HeroPlayer from './components/HeroPlayer';
 import LiveSearch from './components/LiveSearch';
 import QueueManager from './components/QueueManager';
@@ -466,25 +466,20 @@ export default function App() {
           </span>
         </header>
 
-        <div key={activeTab} className="tab-enter" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          {activeTab === 'search' && (
+        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+          <div className="tab-enter" style={{ height: '100%', display: activeTab === 'search' ? 'flex' : 'none', flexDirection: 'column' }}>
             <LiveSearch onOrderSong={handleOrderSong} player={player} />
-          )}
-          {activeTab === 'queue' && (
+          </div>
+          <div className="tab-enter" style={{ height: '100%', display: activeTab === 'queue' ? 'flex' : 'none', flexDirection: 'column' }}>
             <QueueManager queue={player?.queue} onAction={handlePlayerAction} />
-          )}
-          {activeTab === 'lyrics' && (
-            <SyncedLyrics
-              player={player}
-              onAction={handlePlayerAction}
-              isLyricsEnabled={player?.lyricsSync !== false}
-              onToggleLyrics={() => handlePlayerAction('toggleLyrics')}
-            />
-          )}
-          {activeTab === 'history' && (
+          </div>
+          <div className="tab-enter" style={{ height: '100%', display: activeTab === 'lyrics' ? 'flex' : 'none', flexDirection: 'column' }}>
+            <SyncedLyrics player={player} onAction={handlePlayerAction} />
+          </div>
+          <div className="tab-enter" style={{ height: '100%', display: activeTab === 'history' ? 'flex' : 'none', flexDirection: 'column' }}>
             <HistoryTab player={player} onOrderSong={handleOrderSong} />
-          )}
-          {activeTab === 'settings' && (
+          </div>
+          <div className="tab-enter" style={{ height: '100%', display: activeTab === 'settings' ? 'flex' : 'none', flexDirection: 'column' }}>
             <SettingsTab
               guildId={guildId}
               guildName={guild?.name}
@@ -494,8 +489,9 @@ export default function App() {
               onAction={handlePlayerAction}
               onRequireAdmin={() => setIsPermissionModalOpen(true)}
             />
-          )}
+          </div>
         </div>
+
 
         <footer className="panel-footer">
           <span>ANNA MUSIC</span>
