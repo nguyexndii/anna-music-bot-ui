@@ -13,16 +13,11 @@ export async function onRequest(context) {
 
   const url = new URL(context.request.url);
 
-  // API_BASE là full URL tunnel (https://xxx.trycloudflare.com)
-  // hoặc fallback về IP:port chuẩn của VPS
-  const apiBase = (context.env.API_BASE || '').replace(/\/$/, '');
-  const targetHost = context.env.API_HOST || '103.249.116.185:3000';
-
-  let targetUrl;
-  if (apiBase) {
+  // Luôn ưu tiên chuyển tiếp trực tiếp về VPS 103.249.116.185:3000
+  let targetUrl = `http://103.249.116.185:3000${url.pathname}${url.search}`;
+  if (context.env.API_BASE && !context.env.API_BASE.includes('trycloudflare.com')) {
+    const apiBase = context.env.API_BASE.replace(/\/$/, '');
     targetUrl = `${apiBase}${url.pathname}${url.search}`;
-  } else {
-    targetUrl = `http://${targetHost}${url.pathname}${url.search}`;
   }
 
   const requestHeaders = new Headers();
