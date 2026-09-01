@@ -14,6 +14,23 @@ function parseDurationToMs(str) {
   return parts[0] * 1000;
 }
 
+function getSavedOffset(title) {
+  if (!title) return null;
+  try {
+    const raw = localStorage.getItem(`lyrics_offset_${title}`);
+    return raw !== null ? Number(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveOffset(title, offsetMs) {
+  if (!title) return;
+  try {
+    localStorage.setItem(`lyrics_offset_${title}`, String(offsetMs));
+  } catch (e) {}
+}
+
 export default function SyncedLyrics({ player, onAction }) {
   const current = player?.current;
   const songKey = current?.title ? `${current.title}|${current.artist || ''}` : '';
@@ -36,19 +53,31 @@ export default function SyncedLyrics({ player, onAction }) {
   });
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
   const [autoScroll, setAutoScroll] = useState(true);
-  const [manualOffsetMs, setManualOffsetMs] = useState(0);
+  const [manualOffsetMs, setManualOffsetMs] = useState(() => {
+    return getSavedOffset(current?.title) ?? 0;
+  });
   const [showSyncAdjust, setShowSyncAdjust] = useState(false);
   const [viewMode, setViewMode] = useState('synced'); // 'synced' or 'plain'
 
   const activeLineRef = useRef(null);
   const containerRef  = useRef(null);
 
-  // When changing to a new song: scroll back to top immediately!
+  // When changing to a new song: scroll back to top immediately and restore offset!
+  useEffect(() => {
+    setActiveLineIdx(-1);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+    const saved = getSavedOffset(current?.title);
+    setManualOffsetMs(saved ?? 0);
+  }, [current?.title]);
+
+  // When new lyrics data arrives or loading state changes, ensure container is at top
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
-  }, [current?.title]);
+  }, [lyricsData, current?.title]);
 
   // Fetch lyrics with caching
   useEffect(() => {
@@ -65,10 +94,14 @@ export default function SyncedLyrics({ player, onAction }) {
     }
 
     const key = `${current.title}|${current.artist || ''}`;
+    const savedOffset = getSavedOffset(current.title);
+
     if (lyricsCache.has(key)) {
       const cached = lyricsCache.get(key);
       setLyricsData(cached);
-      setManualOffsetMs(cached?.autoOffsetMs || 0);
+      if (savedOffset === null) {
+        setManualOffsetMs(cached?.autoOffsetMs || 0);
+      }
       setLoading(false);
       return;
     }
@@ -87,10 +120,8 @@ export default function SyncedLyrics({ player, onAction }) {
         const result = d?.success ? d : null;
         if (result) {
           lyricsCache.set(key, result);
-          if (result.autoOffsetMs) {
+          if (savedOffset === null && result.autoOffsetMs) {
             setManualOffsetMs(result.autoOffsetMs);
-          } else {
-            setManualOffsetMs(0);
           }
         }
         setLyricsData(result);
@@ -124,11 +155,22 @@ export default function SyncedLyrics({ player, onAction }) {
     return () => clearInterval(iv);
   }, [current?.title, current?.startTime, current?.playbackDurationMs, player?.isPaused, player?.isPlaying, lyricsData?.syncedLyrics, manualOffsetMs]);
 
-  // Auto-scroll — smoothly center active line (even for last lines)
+  // Auto-scroll — smoothly center active line, or scroll to top if song just started
   useEffect(() => {
-    if (!autoScroll || viewMode === 'plain' || !activeLineRef.current || !containerRef.current) return;
-    activeLineRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (!autoScroll || viewMode === 'plain' || !containerRef.current) return;
+    if (activeLineIdx <= 0) {
+      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (activeLineRef.current) {
+      activeLineRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
   }, [activeLineIdx, autoScroll, viewMode]);
+
+  const updateOffset = (newOffset) => {
+    setManualOffsetMs(newOffset);
+    saveOffset(current?.title, newOffset);
+  };
 
   // Lofi / 24/7 special view
   if (isLofiTrack || lyricsData?.isLofi) {
@@ -238,8 +280,11 @@ export default function SyncedLyrics({ player, onAction }) {
           )}
 
           {lyricsData?.lyrics && !hasSynced && (
-            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)', letterSpacing: '0.1em' }}>
-              LỜI THƯỜNG
+            <span style={{
+              fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)', letterSpacing: '0.08em',
+              border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', background: 'var(--soft)'
+            }}>
+              LỜI THAM KHẢO
             </span>
           )}
         </div>
@@ -254,55 +299,55 @@ export default function SyncedLyrics({ player, onAction }) {
         }}>
           <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9.5, color: 'var(--muted)' }}>CHỈNH NHỊP:</span>
           <button
-            onClick={() => setManualOffsetMs(p => p - 10000)}
+            onClick={() => updateOffset(manualOffsetMs - 10000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
             title="Lùi lời bài hát lại 10 giây"
           >
             -10s
           </button>
           <button
-            onClick={() => setManualOffsetMs(p => p - 2000)}
+            onClick={() => updateOffset(manualOffsetMs - 2000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
             title="Lùi lời bài hát lại 2 giây"
           >
             -2s
           </button>
           <button
-            onClick={() => setManualOffsetMs(p => p - 500)}
+            onClick={() => updateOffset(manualOffsetMs - 500)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
             title="Lùi lời bài hát lại 0.5 giây"
           >
             -0.5s
           </button>
           <button
-            onClick={() => setManualOffsetMs(0)}
+            onClick={() => updateOffset(0)}
             style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--yellow)', background: 'transparent', color: 'var(--yellow)', fontSize: 10, fontFamily: '"DM Mono", monospace', cursor: 'pointer', fontWeight: 700 }}
           >
             RESET
           </button>
           <button
-            onClick={() => setManualOffsetMs(p => p + 500)}
+            onClick={() => updateOffset(manualOffsetMs + 500)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
             title="Nhảy lời bài hát sớm hơn 0.5 giây"
           >
             +0.5s
           </button>
           <button
-            onClick={() => setManualOffsetMs(p => p + 2000)}
+            onClick={() => updateOffset(manualOffsetMs + 2000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
             title="Nhảy lời bài hát sớm hơn 2 giây"
           >
             +2s
           </button>
           <button
-            onClick={() => setManualOffsetMs(p => p + 10000)}
+            onClick={() => updateOffset(manualOffsetMs + 10000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 10, cursor: 'pointer' }}
             title="Nhảy lời bài hát sớm hơn 10 giây"
           >
             +10s
           </button>
           <button
-            onClick={() => setManualOffsetMs(p => p + 20000)}
+            onClick={() => updateOffset(manualOffsetMs + 20000)}
             style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--yellow)', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}
             title="Nhảy lời bài hát sớm hơn 20 giây"
           >
@@ -385,11 +430,19 @@ export default function SyncedLyrics({ player, onAction }) {
                 );
               })
             ) : (
-              <div style={{ whiteSpace: 'pre-line', fontSize: 15, lineHeight: 2.2, color: 'var(--ink)', padding: '8px 16px', maxWidth: '90%', textAlign: 'center', opacity: 0.85 }}>
-                {lyricsData.lyrics}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                <div style={{
+                  fontFamily: '"DM Mono", monospace', fontSize: 9.5, letterSpacing: '0.12em',
+                  color: 'var(--muted)', background: 'rgba(255,255,255,0.04)', padding: '4px 14px',
+                  borderRadius: 999, border: '1px solid var(--border)', marginBottom: 16
+                }}>
+                  LỜI THAM KHẢO · CÓ THỂ KHÁC VỚI BẢN BẠN ĐANG PHÁT
+                </div>
+                <div style={{ whiteSpace: 'pre-line', fontSize: 15, lineHeight: 2.2, color: 'var(--ink)', padding: '8px 16px', maxWidth: '90%', textAlign: 'center', opacity: 0.85 }}>
+                  {lyricsData.lyrics}
+                </div>
               </div>
             )}
-
           </div>
         )}
       </div>

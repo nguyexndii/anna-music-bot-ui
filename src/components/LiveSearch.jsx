@@ -10,7 +10,10 @@ import {
   Clock,
   Disc3,
   ListPlus,
-  ListMusic
+  ListMusic,
+  Sparkles,
+  Globe,
+  SlidersHorizontal
 } from 'lucide-react';
 import { API_BASE } from '../config';
 
@@ -75,11 +78,17 @@ export default function LiveSearch({ onOrderSong, player }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchMode, setSearchMode] = useState(() => localStorage.getItem('anna_search_mode') || 'official');
   const debounceRef = useRef(null);
 
   const detected = useMemo(() => detectUrlType(query), [query]);
 
-  // Live Search Effect - lấy 18 kết quả
+  const handleModeChange = (mode) => {
+    setSearchMode(mode);
+    localStorage.setItem('anna_search_mode', mode);
+  };
+
+  // Live Search Effect - lấy 20 kết quả theo mode
   useEffect(() => {
     const trimmed = query.trim();
     if (!trimmed) {
@@ -99,7 +108,7 @@ export default function LiveSearch({ onOrderSong, player }) {
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(trimmed)}&limit=18`);
+        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(trimmed)}&limit=20&mode=${searchMode}`);
         const data = await res.json();
         setLoading(false);
         if (data.success && data.results) {
@@ -113,7 +122,7 @@ export default function LiveSearch({ onOrderSong, player }) {
     }, 280);
 
     return () => clearTimeout(debounceRef.current);
-  }, [query, detected?.isPlaylist]);
+  }, [query, searchMode, detected?.isPlaylist]);
 
   const handleOrderTrack = (track) => {
     onOrderSong(track);
@@ -164,6 +173,35 @@ export default function LiveSearch({ onOrderSong, player }) {
           placeholder="Tìm bài hát, ca sĩ, dán link YouTube / Spotify / Playlist..."
           autoFocus
         />
+
+        {/* Nút Nâng Cao Lồng Trong Ô Nhập */}
+        <button
+          onClick={() => handleModeChange(searchMode === 'all' ? 'official' : 'all')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '4px 9px',
+            borderRadius: 7,
+            border: searchMode === 'all' ? '1px solid rgba(232,201,119,0.5)' : '1px solid var(--border)',
+            background: searchMode === 'all' ? 'rgba(232,201,119,0.15)' : 'var(--soft)',
+            color: searchMode === 'all' ? 'var(--yellow)' : 'var(--muted)',
+            boxShadow: searchMode === 'all' ? '0 0 10px rgba(232,201,119,0.18)' : 'none',
+            fontSize: 9.5,
+            fontWeight: searchMode === 'all' ? 700 : 500,
+            fontFamily: '"DM Mono", monospace',
+            letterSpacing: '0.04em',
+            cursor: 'pointer',
+            flexShrink: 0,
+            transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
+            marginRight: 4
+          }}
+          title={searchMode === 'all' ? 'Đang bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...) — Nhấn để tắt' : 'Bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)'}
+        >
+          <SlidersHorizontal size={12} style={{ color: searchMode === 'all' ? 'var(--yellow)' : 'var(--muted)' }} />
+          <span>NÂNG CAO</span>
+        </button>
+
         {query ? (
           <button
             onClick={() => setQuery('')}

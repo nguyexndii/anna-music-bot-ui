@@ -396,18 +396,46 @@ export default function App() {
       <aside className="rail">
         <BrandMark onClick={() => switchTab('search')} />
         <nav className="rail-nav" aria-label="Điều hướng">
-          {TABS.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              className={`rail-btn${activeTab === id ? ' active' : ''}`}
-              onClick={() => switchTab(id)}
-              aria-label={label}
-              aria-pressed={activeTab === id}
-            >
-              <Icon size={20} strokeWidth={1.6} />
-              <span>{label}</span>
-            </button>
-          ))}
+          {TABS.map(({ id, label, Icon }) => {
+            const queueCount = id === 'queue' ? (player?.queue?.length || 0) : 0;
+            return (
+              <button
+                key={id}
+                className={`rail-btn${activeTab === id ? ' active' : ''}`}
+                onClick={() => switchTab(id)}
+                aria-label={label}
+                aria-pressed={activeTab === id}
+                style={{ position: 'relative' }}
+              >
+                <div style={{ position: 'relative', display: 'inline-flex' }}>
+                  <Icon size={20} strokeWidth={1.6} />
+                  {queueCount > 0 && (
+                    <span style={{
+                      position: 'absolute',
+                      top: -5,
+                      right: -8,
+                      background: 'var(--yellow)',
+                      color: '#111',
+                      fontSize: 9,
+                      fontWeight: 800,
+                      minWidth: 15,
+                      height: 15,
+                      borderRadius: 999,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0 3px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                      fontFamily: '"DM Mono", monospace'
+                    }}>
+                      {queueCount > 99 ? '99+' : queueCount}
+                    </span>
+                  )}
+                </div>
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </nav>
 
         <div className="rail-bottom">
