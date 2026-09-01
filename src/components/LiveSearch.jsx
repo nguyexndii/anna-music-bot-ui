@@ -169,8 +169,8 @@ export default function LiveSearch({ onOrderSong, player }) {
       {/* ── Playlist Detection Banner ─────────────────────── */}
       {detected?.isPlaylist && (
         <div style={{
-          margin: '-12px 0 20px',
-          padding: '14px 18px',
+          margin: '-10px 0 18px',
+          padding: '12px 16px',
           borderRadius: 14,
           background: 'rgba(232,201,119,0.06)',
           border: '1px solid rgba(232,201,119,0.25)',
@@ -258,7 +258,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                       </div>
                       <div className="song-info">
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span className="song-name">{song.title}</span>
+                          <span className="song-name" title={song.title}>{song.title}</span>
                           {isPlaylist && (
                             <span style={{
                               fontFamily: '"DM Mono", monospace', fontSize: 9, padding: '1px 6px', borderRadius: 4,
@@ -268,7 +268,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                             </span>
                           )}
                         </div>
-                        <span className="song-sub">
+                        <span className="song-sub" title={song.artist}>
                           {song.artist && song.artist !== 'Unknown' ? song.artist : 'YouTube Music'}
                           {song.itemCount ? ` • ${song.itemCount} bài` : ''}
                         </span>
@@ -295,7 +295,7 @@ export default function LiveSearch({ onOrderSong, player }) {
 
         {/* 2. Default Discover Landing when Query is Empty */}
         {!query.trim() && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             
             {/* Recently Played */}
             {history.length > 0 && (
@@ -320,10 +320,10 @@ export default function LiveSearch({ onOrderSong, player }) {
                       <div style={{ width: '100%', aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: '#202328', position: 'relative' }}>
                         <img src={getTrackThumb(item)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <p style={{ margin: '8px 0 2px', fontSize: 12, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p title={item.title} style={{ margin: '8px 0 2px', fontSize: 12, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {item.title}
                       </p>
-                      <p style={{ margin: 0, fontSize: 10, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p title={item.artist} style={{ margin: 0, fontSize: 10, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {item.artist || 'YouTube'}
                       </p>
                     </div>
@@ -332,7 +332,7 @@ export default function LiveSearch({ onOrderSong, player }) {
               </div>
             )}
 
-            {/* Playlists Gần Đây */}
+            {/* Playlists Gần Đây (Shows first track's thumbnail!) */}
             {recentPlaylists.length > 0 && (
               <div>
                 <div className="section-label">
@@ -340,31 +340,38 @@ export default function LiveSearch({ onOrderSong, player }) {
                   <span style={{ fontSize: 9 }}>NHẤN ĐỂ PHÁT CẢ BỘ</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-                  {recentPlaylists.slice(0, 6).map((pl, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handleAddPlaylistUrl(pl)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12,
-                        background: 'var(--paper)', border: '1px solid var(--border)', cursor: 'pointer',
-                        transition: 'border-color .18s',
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--yellow)'}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
-                    >
-                      <div style={{ width: 38, height: 38, borderRadius: 8, overflow: 'hidden', background: '#202328', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                        <ListMusic size={18} style={{ color: 'var(--yellow)' }} />
+                  {recentPlaylists.slice(0, 6).map((pl, idx) => {
+                    const thumb = pl.thumbnail || getPlaylistPreviewImage(pl.url) || pl.firstTrackThumb;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleAddPlaylistUrl(pl)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12,
+                          background: 'var(--paper)', border: '1px solid var(--border)', cursor: 'pointer',
+                          transition: 'border-color .18s',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--yellow)'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+                      >
+                        <div style={{ width: 44, height: 44, borderRadius: 9, overflow: 'hidden', background: '#202328', display: 'grid', placeItems: 'center', flexShrink: 0, border: '1px solid var(--border)' }}>
+                          {thumb ? (
+                            <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <ListMusic size={20} style={{ color: 'var(--yellow)' }} />
+                          )}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <p title={pl.title || pl.name} style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {pl.title || pl.name || 'Danh Sách Phát'}
+                          </p>
+                          <p style={{ margin: '2px 0 0', fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)' }}>
+                            {pl.trackCount || pl.itemCount ? `${pl.trackCount || pl.itemCount} BÀI` : 'PLAYLIST'}
+                          </p>
+                        </div>
                       </div>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {pl.title || pl.name || 'Danh Sách Phát'}
-                        </p>
-                        <p style={{ margin: '2px 0 0', fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)' }}>
-                          {pl.itemCount ? `${pl.itemCount} BÀI` : 'PLAYLIST'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -388,8 +395,8 @@ export default function LiveSearch({ onOrderSong, player }) {
                         <img src={getTrackThumb(fav)} alt="" />
                       </div>
                       <div className="song-info">
-                        <span className="song-name">{fav.title}</span>
-                        <span className="song-sub">{fav.artist || 'YouTube'}</span>
+                        <span className="song-name" title={fav.title}>{fav.title}</span>
+                        <span className="song-sub" title={fav.artist}>{fav.artist || 'YouTube'}</span>
                       </div>
                       <span className="song-dur">{fav.duration || ''}</span>
                     </button>
@@ -419,8 +426,8 @@ export default function LiveSearch({ onOrderSong, player }) {
                         </span>
                       </div>
                       <div className="song-info">
-                        <span className="song-name">{top.title}</span>
-                        <span className="song-sub">{top.playCount ? `Đã phát ${top.playCount} lần` : (top.artist || '')}</span>
+                        <span className="song-name" title={top.title}>{top.title}</span>
+                        <span className="song-sub" title={top.artist}>{top.playCount ? `Đã phát ${top.playCount} lần` : (top.artist || '')}</span>
                       </div>
                       <span className="song-dur">{top.duration || ''}</span>
                     </button>
