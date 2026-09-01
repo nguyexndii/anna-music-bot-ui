@@ -19,14 +19,13 @@ export default function SyncedLyrics({ player, onAction }) {
   const songKey = current?.title ? `${current.title}|${current.artist || ''}` : '';
 
   const isLofiTrack = Boolean(
-    player?.mode247 ||
-    current?.is247 ||
-    current?.requestedBy === 'Auto (24/7)' ||
+    (current?.requestedBy === 'Auto (24/7)' && !current?.artist) ||
     current?.title?.toLowerCase()?.includes('lofi') ||
     current?.title?.toLowerCase()?.includes('lo-fi') ||
     current?.title?.toLowerCase()?.includes('chillhop') ||
-    current?.title?.toLowerCase()?.includes('coffee shop') ||
-    current?.title?.toLowerCase()?.includes('không lời')
+    current?.title?.toLowerCase()?.includes('beats to relax') ||
+    current?.title?.toLowerCase()?.includes('không lời') ||
+    current?.title?.toLowerCase()?.includes('instrumental')
   );
 
   const [lyricsData, setLyricsData] = useState(() => {
@@ -38,6 +37,7 @@ export default function SyncedLyrics({ player, onAction }) {
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
   const [autoScroll, setAutoScroll] = useState(true);
   const [manualOffsetMs, setManualOffsetMs] = useState(0);
+
   const [showSyncAdjust, setShowSyncAdjust] = useState(false);
 
   const activeLineRef = useRef(null);
