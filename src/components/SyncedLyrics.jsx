@@ -130,19 +130,27 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
           </div>
         </div>
 
-        {/* Compact Quick Toggle */}
-        <button
-          onClick={toggleAutoScroll}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition active:scale-95 flex-shrink-0 ${
-            autoScroll
-              ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 border border-anna-accent'
-              : 'bg-anna-surface text-anna-muted hover:text-white border border-anna-border'
-          }`}
-          title="Bật/Tắt tự động cuộn và làm nổi bật theo câu hát"
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${autoScroll ? 'bg-white animate-pulse' : 'bg-anna-muted'}`}></span>
-          <span>Tự cuộn: {autoScroll ? 'BẬT' : 'TẮT'}</span>
-        </button>
+        {/* Status Badge & Toggle */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {lyricsData?.syncedLyrics && lyricsData.syncedLyrics.length > 0 ? (
+            <button
+              onClick={toggleAutoScroll}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition active:scale-95 flex-shrink-0 ${
+                autoScroll
+                  ? 'bg-anna-accent text-white shadow-md shadow-anna-accent/25 border border-anna-accent'
+                  : 'bg-anna-surface text-anna-muted hover:text-white border border-anna-border'
+              }`}
+              title="Bật/Tắt tự động cuộn và làm nổi bật theo câu hát"
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${autoScroll ? 'bg-white animate-pulse' : 'bg-anna-muted'}`}></span>
+              <span>Tự cuộn: {autoScroll ? 'BẬT' : 'TẮT'}</span>
+            </button>
+          ) : lyricsData?.lyrics ? (
+            <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-[11px] font-medium text-anna-muted">
+              📄 Lời thường (Chưa có mốc giây)
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {/* Scrollable Lyrics Container (Rộng rãi, chữ to rõ ràng kiểu Apple Music / Spotify) */}
@@ -158,12 +166,17 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
         {/* Not Found State */}
         {!loading && !lyricsData && (
           <div className="flex-1 flex flex-col items-center justify-center text-center text-anna-muted py-20 gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-anna-card border border-anna-border flex items-center justify-center shadow-inner">
-              <Music className="w-6 h-6 text-anna-muted opacity-60" />
+            <div className="w-14 h-14 rounded-2xl bg-anna-card border border-anna-border flex items-center justify-center shadow-inner">
+              <Music className="w-7 h-7 text-anna-accent/80" />
             </div>
-            <p className="text-xs font-medium max-w-xs leading-relaxed">
-              {current ? 'Không tìm thấy lời bài hát khớp cho ca khúc này.' : 'Hãy phát một bài hát để xem lời bài hát đồng bộ nhé!'}
-            </p>
+            <div className="max-w-sm space-y-1">
+              <h4 className="text-sm font-bold text-white">Chưa có lời bài hát</h4>
+              <p className="text-xs text-anna-muted leading-relaxed">
+                {current
+                  ? 'Bản nhạc này có thể là nhạc không lời (Beat/Lofi/EDM) hoặc bản phối chưa có dữ liệu lời đồng bộ.'
+                  : 'Hãy phát một bài hát để xem lời bài hát đồng bộ nhé!'}
+              </p>
+            </div>
           </div>
         )}
 
