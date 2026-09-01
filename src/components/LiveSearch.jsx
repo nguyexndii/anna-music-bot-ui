@@ -139,8 +139,17 @@ export default function LiveSearch({ onOrderSong, player }) {
     onOrderSong(track);
   };
 
-  const handleAddPlaylistUrl = (url) => {
-    onOrderSong({ url: url || query.trim(), isPlaylist: true });
+  const handleAddPlaylistUrl = (pl) => {
+    if (typeof pl === 'string') {
+      onOrderSong({ url: pl, title: 'Playlist', isPlaylist: true });
+    } else if (pl && typeof pl === 'object') {
+      onOrderSong({
+        url: pl.url || query.trim(),
+        title: pl.title || 'Playlist',
+        itemCount: pl.itemCount || pl.trackCount,
+        isPlaylist: true
+      });
+    }
     setQuery('');
   };
 
@@ -424,7 +433,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                   {recentPlaylists.slice(0, 8).map((pl, idx) => (
                     <div
                       key={idx}
-                      onClick={() => handleAddPlaylistUrl(pl.url)}
+                      onClick={() => handleAddPlaylistUrl(pl)}
                       className="group flex-shrink-0 w-32 sm:w-36 flex flex-col gap-2 p-2 rounded-2xl bg-anna-card/50 hover:bg-anna-card border border-anna-border/40 hover:border-anna-pink/50 transition cursor-pointer snap-start"
                     >
                       <div className="w-full aspect-square rounded-xl overflow-hidden relative bg-gradient-to-tr from-anna-accent/40 via-purple-600/40 to-pink-500/40 border border-white/10 flex items-center justify-center">

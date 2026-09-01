@@ -30,10 +30,14 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
 
   // Sync active lyric line with song playback progress
   useEffect(() => {
-    if (!current?.startTime || !lyricsData?.syncedLyrics || lyricsData.syncedLyrics.length === 0) return;
+    if (!lyricsData?.syncedLyrics || lyricsData.syncedLyrics.length === 0) return;
     
+    const baseDuration = current?.playbackDurationMs ?? (current?.startTime ? Math.max(0, Date.now() - current.startTime) : 0);
+    const baseLocalTime = Date.now();
+    const isPaused = player?.isPaused || !player?.isPlaying;
+
     const checkActiveLine = () => {
-      const elapsedMs = Math.max(0, Date.now() - current.startTime);
+      const elapsedMs = isPaused ? baseDuration : Math.max(0, baseDuration + (Date.now() - baseLocalTime));
       const lines = lyricsData.syncedLyrics;
       
       let foundIdx = -1;
@@ -50,10 +54,10 @@ export default function SyncedLyrics({ guildId, currentTrack, player, onAction }
     };
 
     checkActiveLine();
-    const interval = setInterval(checkActiveLine, 250);
+    const interval = setInterval(checkActiveLine, 200);
 
     return () => clearInterval(interval);
-  }, [current?.startTime, lyricsData?.syncedLyrics]);
+  }, [current?.title, current?.startTime, current?.playbackDurationMs, player?.isPaused, player?.isPlaying, lyricsData?.syncedLyrics]);
 
   // Auto-scroll to active line (CHỈ cuộn khi autoScroll === true)
   useEffect(() => {

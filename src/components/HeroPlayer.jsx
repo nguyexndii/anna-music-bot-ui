@@ -41,15 +41,17 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, onT
   const totalMs = parseDurationToMs(current?.duration);
 
 
-  // Sync with server startTime when not actively dragging
+  // Sync with server startTime / playbackDurationMs when not actively dragging
   useEffect(() => {
     if (isDragging) return;
-    if (current?.startTime) {
+    if (current?.playbackDurationMs !== undefined) {
+      setProgressMs(current.playbackDurationMs);
+    } else if (current?.startTime) {
       setProgressMs(Math.max(0, Date.now() - current.startTime));
     } else {
       setProgressMs(0);
     }
-  }, [current?.title, current?.startTime, isDragging]);
+  }, [current?.title, current?.startTime, current?.playbackDurationMs, isDragging]);
 
   // Local 1-second interval timer
   useEffect(() => {

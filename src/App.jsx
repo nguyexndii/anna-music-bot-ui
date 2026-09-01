@@ -226,8 +226,9 @@ export default function App() {
     const currentToken = token || localStorage.getItem('anna_web_token');
     if (!currentGuild || !currentToken) return;
 
+    const displayTitle = track?.title || track?.name || (track?.isPlaylist ? 'Danh sách phát' : 'bài hát');
     try {
-      showToast(`Đang thêm "${track.title}"...`);
+      showToast(`Đang thêm "${displayTitle}"...`);
       const res = await fetch(`${API_BASE}/api/guilds/${currentGuild}/play`, {
         method: 'POST',
         headers: {
@@ -244,7 +245,12 @@ export default function App() {
 
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
-        showToast(`Đã thêm vào hàng chờ!`);
+        if (data.isPlaylist || data.addedCount || track?.isPlaylist) {
+          const countText = data.addedCount || (data.tracks ? data.tracks.length : '');
+          showToast(`Đã thêm Playlist ${countText ? `(${countText} bài)` : ''} vào hàng chờ!`);
+        } else {
+          showToast(`Đã thêm "${data.track?.title || displayTitle}" vào hàng chờ!`);
+        }
         fetchState();
       } else {
         showToast(data.error || 'Lỗi thêm bài hát', 'error');
