@@ -1,11 +1,53 @@
-import React, { useState } from 'react';
-import { ListOrdered, Trash2, Music2, Clock, CheckSquare, Square, Play, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  ListOrdered,
+  Trash2,
+  Music2,
+  Clock,
+  CheckSquare,
+  Square,
+  Play,
+  ChevronUp,
+  ChevronDown,
+  GripVertical,
+  ArrowUpToLine,
+  ArrowUpDown,
+  X,
+  Sparkles
+} from 'lucide-react';
 
 export default function QueueManager({ queue, onAction }) {
   const songs = queue || [];
   const [selectedIndices, setSelectedIndices] = useState(new Set());
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [jumpModalData, setJumpModalData] = useState(null); // { song, index }
+  const [targetPosition, setTargetPosition] = useState('1');
+
+  const listContainerRef = useRef(null);
+  const autoScrollRafRef = useRef(null);
+
+  // Auto-scroll logic during drag
+  const stopAutoScroll = () => {
+    if (autoScrollRafRef.current) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
+    }
+  };
+
+  const startAutoScroll = (direction, speed) => {
+    stopAutoScroll();
+    const scrollStep = () => {
+      const scrollParent = listContainerRef.current?.closest('.overflow-y-auto') || window;
+      if (scrollParent === window) {
+        window.scrollBy({ top: direction * speed });
+      } else {
+        scrollParent.scrollBy({ top: direction * speed });
+      }
+      autoScrollRafRef.current = requestAnimationFrame(scrollStep);
+    };
+    autoScrollRafRef.current = requestAnimationFrame(scrollStep);
+  };
 
   // Drag and Drop handlers
   const handleDragStart = (e, index) => {
@@ -20,10 +62,26 @@ export default function QueueManager({ queue, onAction }) {
     if (dragOverIndex !== index) {
       setDragOverIndex(index);
     }
+
+    // Proximity auto-scrolling
+    const threshold = 120;
+    const viewportHeight = window.innerHeight;
+    const clientY = e.clientY;
+
+    if (clientY < threshold) {
+      const intensity = Math.max(2, Math.min(20, (threshold - clientY) / 4));
+      startAutoScroll(-1, intensity);
+    } else if (clientY > viewportHeight - threshold) {
+      const intensity = Math.max(2, Math.min(20, (clientY - (viewportHeight - threshold)) / 4));
+      startAutoScroll(1, intensity);
+    } else {
+      stopAutoScroll();
+    }
   };
 
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
+    stopAutoScroll();
     if (draggedIndex !== null && draggedIndex !== targetIndex) {
       onAction('move', { from: draggedIndex, to: targetIndex });
     }
@@ -32,8 +90,35 @@ export default function QueueManager({ queue, onAction }) {
   };
 
   const handleDragEnd = () => {
+    stopAutoScroll();
     setDraggedIndex(null);
     setDragOverIndex(null);
+  };
+
+  useEffect(() => {
+    return () => stopAutoScroll();
+  }, []);
+
+  // Quick action: Move to Top (Play Next)
+  const handleMoveToTop = (idx) => {
+    if (idx <= 0) return;
+    onAction('move', { from: idx, to: 0 });
+  };
+
+  // Open Jump Modal
+  const openJumpModal = (song, index) => {
+    setJumpModalData({ song, index });
+    setTargetPosition(String(index === 0 ? 2 : 1));
+  };
+
+  const handleConfirmJump = (e) => {
+    if (e) e.preventDefault();
+    if (!jumpModalData) return;
+    const targetIdx = parseInt(targetPosition, 10) - 1;
+    if (!isNaN(targetIdx) && targetIdx >= 0 && targetIdx < songs.length && targetIdx !== jumpModalData.index) {
+      onAction('move', { from: jumpModalData.index, to: targetIdx });
+    }
+    setJumpModalData(null);
   };
 
   // Toggle selection for a single track
@@ -99,10 +184,10 @@ export default function QueueManager({ queue, onAction }) {
   const isAllSelected = songs.length > 0 && selectedIndices.size === songs.length;
 
   return (
-    <div className="flex flex-col gap-4 relative animate-in fade-in">
+    <div ref={listContainerRef} className="flex flex-col gap-4 relative animate-in fade-in">
       {/* Custom Modal Xác Nhận Xóa Hết */}
       {showClearModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
           <div className="w-full max-w-sm rounded-2xl bg-anna-surface border border-anna-border p-5 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center flex-shrink-0">
@@ -138,7 +223,7 @@ export default function QueueManager({ queue, onAction }) {
 
       {/* Custom Modal Xác Nhận Xóa Bài Đã Chọn */}
       {showBatchModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
           <div className="w-full max-w-sm rounded-2xl bg-anna-surface border border-anna-border p-5 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center flex-shrink-0">
@@ -168,6 +253,123 @@ export default function QueueManager({ queue, onAction }) {
                 Xóa {selectedIndices.size} bài
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Chuyển Vị Trí Nhanh (Jump to Position) */}
+      {jumpModalData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-2xl bg-anna-surface border border-anna-border p-5 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-anna-accent/15 border border-anna-accent/30 text-anna-accent flex items-center justify-center flex-shrink-0">
+                  <ArrowUpDown className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-white truncate">Chuyển Vị Trí Bài Hát</h4>
+                  <p className="text-xs text-anna-muted">Đang ở vị trí <b className="text-anna-accent">#{jumpModalData.index + 1}</b></p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setJumpModalData(null)}
+                className="p-1 rounded-lg text-anna-muted hover:text-white hover:bg-white/10 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-anna-card/70 border border-anna-border/70 flex items-center gap-2.5">
+              <img
+                src={jumpModalData.song.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100'}
+                alt=""
+                className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-white truncate">{jumpModalData.song.title}</p>
+                <p className="text-[11px] text-anna-muted truncate mt-0.5">{jumpModalData.song.artist || 'YouTube'}</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmJump} className="flex flex-col gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-anna-muted mb-1.5">
+                  Nhập số thứ tự muốn chuyển đến (1 - {songs.length}):
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={songs.length}
+                  value={targetPosition}
+                  onChange={(e) => setTargetPosition(e.target.value)}
+                  className="w-full bg-anna-bg border border-anna-border focus:border-anna-accent rounded-xl px-3.5 py-2 text-sm text-white font-bold focus:outline-none text-center font-mono"
+                  autoFocus
+                />
+              </div>
+
+              {/* Quick Preset Chips */}
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTargetPosition('1')}
+                  className="px-2.5 py-1 rounded-lg bg-anna-accent/15 hover:bg-anna-accent/25 text-[11px] font-bold text-anna-accent border border-anna-accent/30 transition flex items-center gap-1"
+                >
+                  <ArrowUpToLine className="w-3 h-3" />
+                  <span>Đầu hàng chờ (#1)</span>
+                </button>
+                {songs.length >= 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setTargetPosition('2')}
+                    className="px-2.5 py-1 rounded-lg bg-anna-card hover:bg-anna-hover text-[11px] font-semibold text-white/80 border border-anna-border transition"
+                  >
+                    Vị trí #2
+                  </button>
+                )}
+                {songs.length >= 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setTargetPosition('5')}
+                    className="px-2.5 py-1 rounded-lg bg-anna-card hover:bg-anna-hover text-[11px] font-semibold text-white/80 border border-anna-border transition"
+                  >
+                    Vị trí #5
+                  </button>
+                )}
+                {songs.length >= 10 && (
+                  <button
+                    type="button"
+                    onClick={() => setTargetPosition('10')}
+                    className="px-2.5 py-1 rounded-lg bg-anna-card hover:bg-anna-hover text-[11px] font-semibold text-white/80 border border-anna-border transition"
+                  >
+                    Vị trí #10
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setTargetPosition(String(songs.length))}
+                  className="px-2.5 py-1 rounded-lg bg-anna-card hover:bg-anna-hover text-[11px] font-semibold text-anna-muted border border-anna-border transition"
+                >
+                  Cuối cùng (#{songs.length})
+                </button>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-anna-border/50 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setJumpModalData(null)}
+                  className="px-4 py-2 rounded-xl bg-anna-card hover:bg-anna-hover border border-anna-border text-xs font-semibold text-anna-muted hover:text-white transition"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-anna-accent hover:bg-anna-accentHover text-white text-xs font-bold transition shadow-lg shadow-anna-accent/25 active:scale-95"
+                >
+                  Xác Nhận Chuyển
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -267,11 +469,11 @@ export default function QueueManager({ queue, onAction }) {
                       : 'bg-anna-card hover:bg-anna-hover border-anna-border/60'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     {/* Drag Handle */}
                     <div
                       className="cursor-grab active:cursor-grabbing text-anna-muted group-hover:text-white p-0.5"
-                      title="Kéo thả để đổi thứ tự bài hát"
+                      title="Kéo thả để đổi thứ tự bài hát (tự động cuộn trang khi kéo sát mép)"
                     >
                       <GripVertical className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
                     </div>
@@ -292,51 +494,91 @@ export default function QueueManager({ queue, onAction }) {
                       )}
                     </button>
 
-                    <span className="w-4 text-center text-xs font-mono font-bold text-anna-muted">
+                    {/* Rank Badge with Quick Jump click */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openJumpModal(song, idx);
+                      }}
+                      title="Bấm để nhảy đến vị trí khác nhanh"
+                      className="w-5 h-5 rounded-md bg-white/5 hover:bg-anna-accent hover:text-white flex items-center justify-center text-[11px] font-mono font-bold text-anna-muted transition"
+                    >
                       {idx + 1}
-                    </span>
+                    </button>
+
                     <img
                       src={song.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100'}
                       alt={`Ảnh bìa ${song.title}`}
                       className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                     />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-white truncate">{song.title}</p>
                       <p className="text-[11px] text-anna-muted flex items-center gap-1.5 mt-0.5">
                         <span>{song.artist || 'YouTube'}</span>
                         <span>•</span>
                         <span className="font-mono">{song.duration}</span>
                         <span>•</span>
-                        <span className="text-[10px] text-anna-accent">
+                        <span className="text-[10px] text-anna-accent truncate">
                           👤 {song.requestedBy || 'User'}
                         </span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     {/* Play Now Button */}
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         onAction('playNow', idx);
                       }}
                       aria-label={`Phát ngay bài ${song.title}`}
-                      className="p-1.5 rounded-lg text-anna-muted hover:text-white hover:bg-anna-accent/30 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                      title="Phát ngay bài này"
+                      className="p-1.5 rounded-lg text-anna-muted hover:text-white hover:bg-anna-accent/40 transition opacity-80 sm:opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                      title="Phát ngay bài này (Bỏ qua bài hiện tại)"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
+                    </button>
+
+                    {/* Move to Top (Play Next) Button */}
+                    {idx > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveToTop(idx);
+                        }}
+                        className="p-1.5 rounded-lg text-anna-muted hover:text-anna-accent hover:bg-anna-accent/20 transition opacity-80 sm:opacity-0 group-hover:opacity-100"
+                        title="Đưa lên đầu hàng chờ (Phát kế tiếp)"
+                      >
+                        <ArrowUpToLine className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    {/* Jump to Position Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openJumpModal(song, idx);
+                      }}
+                      className="p-1.5 rounded-lg text-anna-muted hover:text-purple-300 hover:bg-purple-500/20 transition opacity-80 sm:opacity-0 group-hover:opacity-100"
+                      title="Chuyển đến vị trí bất kỳ (Ví dụ: nhảy từ #50 lên #2)"
+                    >
+                      <ArrowUpDown className="w-3.5 h-3.5" />
                     </button>
 
                     {/* Move Up */}
                     {idx > 0 && (
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAction('move', { from: idx, to: idx - 1 });
                         }}
-                        className="p-1 rounded-lg text-anna-muted hover:text-white hover:bg-white/10 transition opacity-0 group-hover:opacity-100"
-                        title="Đẩy lên trên"
+                        className="p-1 rounded-lg text-anna-muted hover:text-white hover:bg-white/10 transition opacity-0 group-hover:opacity-100 hidden sm:block"
+                        title="Đẩy lên 1 nấc"
                       >
                         <ChevronUp className="w-3.5 h-3.5" />
                       </button>
@@ -345,12 +587,13 @@ export default function QueueManager({ queue, onAction }) {
                     {/* Move Down */}
                     {idx < songs.length - 1 && (
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAction('move', { from: idx, to: idx + 1 });
                         }}
-                        className="p-1 rounded-lg text-anna-muted hover:text-white hover:bg-white/10 transition opacity-0 group-hover:opacity-100"
-                        title="Đẩy xuống dưới"
+                        className="p-1 rounded-lg text-anna-muted hover:text-white hover:bg-white/10 transition opacity-0 group-hover:opacity-100 hidden sm:block"
+                        title="Đẩy xuống 1 nấc"
                       >
                         <ChevronDown className="w-3.5 h-3.5" />
                       </button>
@@ -358,12 +601,13 @@ export default function QueueManager({ queue, onAction }) {
 
                     {/* Delete Single Track */}
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         onAction('remove', idx);
                       }}
                       aria-label={`Xóa bài ${song.title} khỏi hàng chờ`}
-                      className="p-1.5 rounded-lg text-anna-muted hover:text-anna-red hover:bg-anna-red/10 transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-anna-red focus-visible:outline-none"
+                      className="p-1.5 rounded-lg text-anna-muted hover:text-anna-red hover:bg-anna-red/10 transition opacity-80 sm:opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-anna-red focus-visible:outline-none"
                       title="Xóa khỏi hàng chờ"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

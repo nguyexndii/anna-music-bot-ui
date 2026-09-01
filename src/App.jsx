@@ -52,6 +52,14 @@ export default function App() {
     }, 3000);
   }, []);
 
+  const handleAuthExpired = useCallback((msg = 'Phiên làm việc đã hết hạn. Vui lòng kết nối lại!') => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('anna_web_token');
+    showToast(msg, 'error');
+    setAuthError(msg);
+  }, [showToast]);
+
   // 1. Hàm xác thực Token / PIN
   const verifyToken = useCallback((tokenToVerify, isUserInitiated = false) => {
     if (!tokenToVerify) {
@@ -153,6 +161,11 @@ export default function App() {
       body: JSON.stringify({ token: currentToken })
     })
       .then(async (res) => {
+        if (res.status === 401) {
+          setIsRefreshingVoice(false);
+          handleAuthExpired('Mã PIN hoặc Phiên kết nối đã hết hạn!');
+          return;
+        }
         const data = await res.json().catch(() => ({}));
         setIsRefreshingVoice(false);
 
@@ -185,8 +198,12 @@ export default function App() {
     fetch(`${API_BASE}/api/guilds/${currentGuild}/state`, {
       headers: currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {}
     })
-      .then(res => res.json())
-      .then(data => {
+      .then(async res => {
+        if (res.status === 401) {
+          handleAuthExpired();
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
         if (data.success) {
           if (data.guild) setGuild(data.guild);
           if (data.player) setPlayer(data.player);
@@ -194,7 +211,7 @@ export default function App() {
         }
       })
       .catch(() => {});
-  }, [guildId, token, user]);
+  }, [guildId, token, user, handleAuthExpired]);
 
   useEffect(() => {
     if (!user) return;
@@ -219,6 +236,11 @@ export default function App() {
         },
         body: JSON.stringify({ track, token: currentToken })
       });
+
+      if (res.status === 401) {
+        handleAuthExpired();
+        return;
+      }
 
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
@@ -256,6 +278,11 @@ export default function App() {
         },
         body: JSON.stringify({ action, value, token: currentToken })
       });
+
+      if (res.status === 401) {
+        handleAuthExpired();
+        return;
+      }
 
       const data = await res.json().catch(() => ({}));
 
@@ -298,7 +325,7 @@ export default function App() {
             </div>
             <h2 className="text-xl font-bold text-white mb-2">Nhập Mã PIN Kết Nối</h2>
             <p className="text-xs sm:text-sm text-anna-muted max-w-md leading-relaxed mb-4">
-              Vui lòng gõ lệnh <code className="text-anna-accent font-mono font-bold">.web</code> trong Discord để nhận mã PIN 6 số (hoặc bấm nút <span className="text-white font-semibold">"Mở Web Player"</span> để vào thẳng).
+              Vui lòng dùng lệnh <code className="text-anna-accent font-mono font-bold">/web</code> hoặc <code className="text-anna-accent font-mono font-bold">.web</code> trong Discord để nhận mã PIN 6 số (hoặc bấm nút <span className="text-white font-semibold">"Mở Web Player"</span> để vào thẳng).
             </p>
 
             {authError && (
@@ -322,6 +349,7 @@ export default function App() {
                   }
                 }
                 if (val) {
+                  localStorage.removeItem('anna_web_token');
                   verifyToken(val, true);
                 }
               }}

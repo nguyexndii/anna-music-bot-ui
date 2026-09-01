@@ -14,9 +14,9 @@ export async function onRequest(context) {
   const url = new URL(context.request.url);
 
   // API_BASE là full URL tunnel (https://xxx.trycloudflare.com)
-  // hoặc fallback về IP:port cũ nếu chưa cấu hình
+  // hoặc fallback về IP:port chuẩn của VPS
   const apiBase = (context.env.API_BASE || '').replace(/\/$/, '');
-  const targetHost = context.env.API_HOST || '103.249.116.165:3000';
+  const targetHost = context.env.API_HOST || '103.249.116.185:3000';
 
   let targetUrl;
   if (apiBase) {

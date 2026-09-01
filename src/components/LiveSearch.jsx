@@ -53,14 +53,16 @@ function getPlaylistPreviewImage(url) {
   return null;
 }
 
-// Helper lấy ảnh bìa YouTube
+// Helper lấy ảnh bìa YouTube / Track chuẩn xác
 function getTrackThumb(track) {
-  if (track?.thumbnail) return track.thumbnail;
   if (track?.url) {
     const match = track.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
     if (match && match[1]) {
       return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
     }
+  }
+  if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
+    return track.thumbnail;
   }
   return 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120';
 }
