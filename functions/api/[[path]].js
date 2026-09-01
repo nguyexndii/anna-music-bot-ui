@@ -13,12 +13,9 @@ export async function onRequest(context) {
 
   const url = new URL(context.request.url);
 
-  // Luôn ưu tiên chuyển tiếp trực tiếp về VPS 103.249.116.185:3000
-  let targetUrl = `http://103.249.116.185:3000${url.pathname}${url.search}`;
-  if (context.env.API_BASE && !context.env.API_BASE.includes('trycloudflare.com')) {
-    const apiBase = context.env.API_BASE.replace(/\/$/, '');
-    targetUrl = `${apiBase}${url.pathname}${url.search}`;
-  }
+  // Ưu tiên API_BASE từ biến môi trường Cloudflare Pages, fallback về tunnel đang chạy
+  const apiBase = (context.env.API_BASE || 'https://these-roses-bingo-franchise.trycloudflare.com').replace(/\/$/, '');
+  const targetUrl = `${apiBase}${url.pathname}${url.search}`;
 
   const requestHeaders = new Headers();
   for (const [key, value] of context.request.headers.entries()) {
