@@ -16,6 +16,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { API_BASE } from '../config';
+import FavoritesModal from './FavoritesModal';
 
 // Helper nhận diện URL & Playlist
 function detectUrlType(text) {
@@ -79,7 +80,7 @@ export default function LiveSearch({ onOrderSong, player }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(() => localStorage.getItem('anna_search_mode') || 'official');
-  const [showAllFavs, setShowAllFavs] = useState(false);
+  const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const debounceRef = useRef(null);
 
   const detected = useMemo(() => detectUrlType(query), [query]);
@@ -89,10 +90,10 @@ export default function LiveSearch({ onOrderSong, player }) {
     localStorage.setItem('anna_search_mode', mode);
   };
 
-  // Live Search Effect - lấy 20 kết quả theo mode
+  // Live Search Effect - lấy 20 kết quả theo mode với AbortController và debounce an toàn
   useEffect(() => {
     const trimmed = query.trim();
-    if (!trimmed) {
+    if (!trimmed || trimmed.length < 2) {
       setResults([]);
       setLoading(false);
       return;
@@ -107,9 +108,14 @@ export default function LiveSearch({ onOrderSong, player }) {
     setLoading(true);
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
+    const abortController = new AbortController();
+
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(trimmed)}&limit=20&mode=${searchMode}`);
+        const res = await fetch(
+          `${API_BASE}/api/search?q=${encodeURIComponent(trimmed)}&limit=20&mode=${searchMode}`,
+          { signal: abortController.signal }
+        );
         const data = await res.json();
         setLoading(false);
         if (data.success && data.results) {
@@ -118,11 +124,16 @@ export default function LiveSearch({ onOrderSong, player }) {
           setResults([]);
         }
       } catch (err) {
-        setLoading(false);
+        if (err.name !== 'AbortError') {
+          setLoading(false);
+        }
       }
-    }, 280);
+    }, 450);
 
-    return () => clearTimeout(debounceRef.current);
+    return () => {
+      clearTimeout(debounceRef.current);
+      abortController.abort();
+    };
   }, [query, searchMode, detected?.isPlaylist]);
 
   const handleOrderTrack = (track) => {
@@ -450,12 +461,35 @@ export default function LiveSearch({ onOrderSong, player }) {
             {/* Favorites */}
             {favorites.length > 0 && (
               <div>
-                <div className="section-label">
-                  <span>BÀI HÁT YÊU THÍCH ({favorites.length})</span>
-                  <Heart size={12} style={{ color: 'var(--coral)' }} />
+                <div className="section-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>BÀI HÁT YÊU THÍCH ({favorites.length})</span>
+                    <Heart size={12} style={{ color: 'var(--coral)' }} />
+                  </div>
+                  <button
+                    onClick={() => setIsFavoritesModalOpen(true)}
+                    style={{
+                      border: 0,
+                      background: 'transparent',
+                      color: 'var(--yellow)',
+                      fontSize: 10,
+                      fontFamily: '"DM Mono", monospace',
+                      cursor: 'pointer',
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
+                    title="Mở toàn bộ danh sách yêu thích"
+                  >
+                    <span>XEM TẤT CẢ</span>
+                    <span>↗</span>
+                  </button>
                 </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {(showAllFavs ? favorites : favorites.slice(0, 6)).map((fav, idx) => (
+                  {favorites.slice(0, 4).map((fav, idx) => (
                     <button
                       key={idx}
                       className="song-row"
@@ -473,20 +507,39 @@ export default function LiveSearch({ onOrderSong, player }) {
                     </button>
                   ))}
                 </div>
-                {favorites.length > 6 && (
+
+                {favorites.length > 4 && (
                   <button
-                    onClick={() => setShowAllFavs(v => !v)}
+                    onClick={() => setIsFavoritesModalOpen(true)}
                     style={{
-                      marginTop: 6, width: '100%', padding: '6px 0', borderRadius: 8,
-                      border: '1px solid var(--border)', background: 'transparent',
-                      color: 'var(--muted)', fontSize: 11, fontFamily: '"DM Mono", monospace',
-                      letterSpacing: '0.06em', cursor: 'pointer',
-                      transition: 'border-color .15s, color .15s',
+                      marginTop: 8,
+                      width: '100%',
+                      padding: '8px 0',
+                      borderRadius: 10,
+                      border: '1px solid var(--border)',
+                      background: 'var(--soft)',
+                      color: 'var(--yellow)',
+                      fontSize: 11,
+                      fontFamily: '"DM Mono", monospace',
+                      letterSpacing: '0.06em',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      transition: 'border-color .15s, background .15s'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--yellow)'; e.currentTarget.style.color = 'var(--yellow)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--muted)'; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--yellow)';
+                      e.currentTarget.style.background = 'rgba(232,201,119,0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.background = 'var(--soft)';
+                    }}
                   >
-                    {showAllFavs ? `THU GỌN ↑` : `XEM TẤT CẢ ${favorites.length} BÀI ↓`}
+                    <span>XEM TOÀN BỘ DANH SÁCH YÊU THÍCH ({favorites.length} BÀI)</span>
+                    <span>↗</span>
                   </button>
                 )}
               </div>
@@ -534,6 +587,14 @@ export default function LiveSearch({ onOrderSong, player }) {
         )}
 
       </div>
+
+      {/* ── Modal Danh Sách Yêu Thích ───────────────────── */}
+      <FavoritesModal
+        isOpen={isFavoritesModalOpen}
+        onClose={() => setIsFavoritesModalOpen(false)}
+        favorites={favorites}
+        onOrderSong={handleOrderTrack}
+      />
     </div>
   );
 }
