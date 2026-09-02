@@ -79,6 +79,7 @@ export default function LiveSearch({ onOrderSong, player }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(() => localStorage.getItem('anna_search_mode') || 'official');
+  const [showAllFavs, setShowAllFavs] = useState(false);
   const debounceRef = useRef(null);
 
   const detected = useMemo(() => detectUrlType(query), [query]);
@@ -351,7 +352,6 @@ export default function LiveSearch({ onOrderSong, player }) {
               <div>
                 <div className="section-label">
                   <span>NGHE GẦN ĐÂY</span>
-                  <span style={{ fontSize: 9 }}>TỰ ĐỘNG LƯU</span>
                 </div>
                 <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 8, paddingTop: 4 }}>
                   {history.slice(0, 8).map((item, idx) => (
@@ -397,20 +397,39 @@ export default function LiveSearch({ onOrderSong, player }) {
                       <div
                         key={idx}
                         onClick={() => handleAddPlaylistUrl(pl)}
+                        className="playlist-hover-card"
                         style={{
                           display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12,
                           background: 'var(--paper)', border: '1px solid var(--border)', cursor: 'pointer',
-                          transition: 'border-color .18s',
+                          transition: 'border-color .18s, background .18s, transform .15s',
+                          position: 'relative', overflow: 'hidden',
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--yellow)'}
-                        onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(232,201,119,0.6)';
+                          e.currentTarget.style.background = 'rgba(232,201,119,0.06)';
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                          e.currentTarget.querySelector('.pl-play-icon')?.style && (e.currentTarget.querySelector('.pl-play-icon').style.opacity = '1');
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--border)';
+                          e.currentTarget.style.background = 'var(--paper)';
+                          e.currentTarget.style.transform = 'none';
+                          e.currentTarget.querySelector('.pl-play-icon')?.style && (e.currentTarget.querySelector('.pl-play-icon').style.opacity = '0');
+                        }}
                       >
-                        <div style={{ width: 44, height: 44, borderRadius: 9, overflow: 'hidden', background: '#202328', display: 'grid', placeItems: 'center', flexShrink: 0, border: '1px solid var(--border)' }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 9, overflow: 'hidden', background: '#202328', display: 'grid', placeItems: 'center', flexShrink: 0, border: '1px solid var(--border)', position: 'relative' }}>
                           {thumb ? (
                             <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
                             <ListMusic size={20} style={{ color: 'var(--yellow)' }} />
                           )}
+                          <div className="pl-play-icon" style={{
+                            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)',
+                            display: 'grid', placeItems: 'center', opacity: 0,
+                            transition: 'opacity .18s',
+                          }}>
+                            <Play size={16} fill="var(--yellow)" style={{ color: 'var(--yellow)' }} />
+                          </div>
                         </div>
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <p title={pl.title || pl.name} style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -420,6 +439,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                             {pl.trackCount || pl.itemCount ? `${pl.trackCount || pl.itemCount} BÀI` : 'PLAYLIST'}
                           </p>
                         </div>
+                        <Play size={14} style={{ color: 'var(--yellow)', flexShrink: 0, opacity: 0.5 }} />
                       </div>
                     );
                   })}
@@ -435,7 +455,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                   <Heart size={12} style={{ color: 'var(--coral)' }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {favorites.slice(0, 6).map((fav, idx) => (
+                  {(showAllFavs ? favorites : favorites.slice(0, 6)).map((fav, idx) => (
                     <button
                       key={idx}
                       className="song-row"
@@ -453,6 +473,22 @@ export default function LiveSearch({ onOrderSong, player }) {
                     </button>
                   ))}
                 </div>
+                {favorites.length > 6 && (
+                  <button
+                    onClick={() => setShowAllFavs(v => !v)}
+                    style={{
+                      marginTop: 6, width: '100%', padding: '6px 0', borderRadius: 8,
+                      border: '1px solid var(--border)', background: 'transparent',
+                      color: 'var(--muted)', fontSize: 11, fontFamily: '"DM Mono", monospace',
+                      letterSpacing: '0.06em', cursor: 'pointer',
+                      transition: 'border-color .15s, color .15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--yellow)'; e.currentTarget.style.color = 'var(--yellow)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--muted)'; }}
+                  >
+                    {showAllFavs ? `THU GỌN ↑` : `XEM TẤT CẢ ${favorites.length} BÀI ↓`}
+                  </button>
+                )}
               </div>
             )}
 
@@ -471,10 +507,17 @@ export default function LiveSearch({ onOrderSong, player }) {
                       onClick={() => handleOrderTrack(top)}
                       title={`Phát ${top.title}`}
                     >
-                      <div className="song-thumb" style={{ background: '#25282d' }}>
-                        <span style={{ fontFamily: '"DM Mono", monospace', fontWeight: 700, color: idx < 3 ? 'var(--yellow)' : 'var(--muted)' }}>
-                          {idx + 1}
-                        </span>
+                      <div className="song-thumb" style={{ position: 'relative', overflow: 'hidden' }}>
+                        <img src={getTrackThumb(top)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {idx < 3 && (
+                          <span style={{
+                            position: 'absolute', bottom: 2, right: 3,
+                            fontFamily: '"DM Mono", monospace', fontWeight: 800,
+                            fontSize: 10, color: 'var(--yellow)',
+                            textShadow: '0 1px 4px rgba(0,0,0,0.9)',
+                            lineHeight: 1
+                          }}>#{idx + 1}</span>
+                        )}
                       </div>
                       <div className="song-info">
                         <span className="song-name" title={top.title}>{top.title}</span>

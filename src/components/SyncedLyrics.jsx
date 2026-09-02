@@ -143,15 +143,27 @@ export default function SyncedLyrics({ player, onAction, isActive = true }) {
       });
   }, [current?.title, current?.artist, current?.duration, current?.durationMs, isLofiTrack]);
 
-  // Sync active line (manualOffsetMs > 0: advance forward; manualOffsetMs < 0: retreat backward)
+  // Sync active line — compensates for server poll delay using serverTime
   useEffect(() => {
     if (!lyricsData?.syncedLyrics?.length) return;
-    const base = current?.playbackDurationMs ?? (current?.startTime ? Math.max(0, Date.now() - current.startTime) : 0);
-    const t0   = Date.now();
     const paused = player?.isPaused || !player?.isPlaying;
 
+    // If server gave us playbackDurationMs + serverTime, compensate for time elapsed since poll
+    let base;
+    if (typeof current?.playbackDurationMs === 'number' && typeof current?.serverTime === 'number') {
+      const networkCompensation = paused ? 0 : Math.max(0, Date.now() - current.serverTime);
+      base = current.playbackDurationMs + networkCompensation;
+    } else if (current?.startTime) {
+      base = Math.max(0, Date.now() - current.startTime);
+    } else {
+      base = 0;
+    }
+
+    const t0 = Date.now();
+    const baseAtT0 = base;
+
     const tick = () => {
-      const elapsed = (paused ? base : Math.max(0, base + (Date.now() - t0))) + manualOffsetMs;
+      const elapsed = (paused ? baseAtT0 : Math.max(0, baseAtT0 + (Date.now() - t0))) + manualOffsetMs;
       let found = -1;
       for (let i = 0; i < lyricsData.syncedLyrics.length; i++) {
         const lt = lyricsData.syncedLyrics[i].time ?? lyricsData.syncedLyrics[i].timeMs ?? 0;
@@ -163,7 +175,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true }) {
     tick();
     const iv = setInterval(tick, 150);
     return () => clearInterval(iv);
-  }, [current?.title, current?.startTime, current?.playbackDurationMs, player?.isPaused, player?.isPlaying, lyricsData?.syncedLyrics, manualOffsetMs]);
+  }, [current?.title, current?.startTime, current?.playbackDurationMs, current?.serverTime, player?.isPaused, player?.isPlaying, lyricsData?.syncedLyrics, manualOffsetMs]);
 
   // Auto-scroll — smoothly center active line, or scroll to top if song just started
   useEffect(() => {
