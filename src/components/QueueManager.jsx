@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+
 import {
   ListOrdered,
   Trash2,
@@ -204,11 +206,11 @@ export default function QueueManager({ queue, onAction }) {
 
   return (
     <div ref={listContainerRef} style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, minHeight: 0 }}>
-      {/* ── Modal Xác Nhận Xóa Hết ──────────────────────── */}
-      {showClearModal && (
+      {/* ── Portaled Modals (render at document root to bypass overflow clipping) ── */}
+      {showClearModal && ReactDOM.createPortal(
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setShowClearModal(false); }}
-          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
         >
           <div style={{ width: '100%', maxWidth: 360, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
             <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap' }}>Xóa toàn bộ hàng chờ?</h4>
@@ -216,29 +218,22 @@ export default function QueueManager({ queue, onAction }) {
               Bạn có chắc chắn muốn xóa tất cả <b style={{ color: 'var(--ink)' }}>{songs.length} bài hát</b> trong hàng chờ không?
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button
-                onClick={() => setShowClearModal(false)}
-                className="ghost-button"
-                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}
-              >
+              <button onClick={() => setShowClearModal(false)} className="ghost-button" style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}>
                 Hủy
               </button>
-              <button
-                onClick={confirmClearAll}
-                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-              >
+              <button onClick={confirmClearAll} style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 Xóa Hết
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* ── Modal Xác Nhận Xóa Bài Đã Chọn ──────────────── */}
-      {showBatchModal && (
+      {showBatchModal && ReactDOM.createPortal(
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setShowBatchModal(false); }}
-          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
         >
           <div style={{ width: '100%', maxWidth: 360, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
             <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap' }}>Xóa {selectedIndices.size} bài đã chọn?</h4>
@@ -246,29 +241,22 @@ export default function QueueManager({ queue, onAction }) {
               Các bài hát được đánh dấu sẽ bị xóa khỏi hàng chờ.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button
-                onClick={() => setShowBatchModal(false)}
-                className="ghost-button"
-                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}
-              >
+              <button onClick={() => setShowBatchModal(false)} className="ghost-button" style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}>
                 Hủy
               </button>
-              <button
-                onClick={confirmBatchDelete}
-                style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-              >
+              <button onClick={confirmBatchDelete} style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 Xác Nhận Xóa
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* ── Modal Chuyển Vị Trí Nhanh (Jump Position) ───── */}
-      {jumpModalData && (
+      {jumpModalData && ReactDOM.createPortal(
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setJumpModalData(null); }}
-          style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
         >
           <div style={{ width: '100%', maxWidth: 380, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -315,7 +303,8 @@ export default function QueueManager({ queue, onAction }) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
 
