@@ -38,7 +38,9 @@ export default function QueueManager({ queue, onAction }) {
   const [jumpModalData, setJumpModalData] = useState(null); // { song, index }
   const [targetPosition, setTargetPosition] = useState('1');
   const [activeMenuIdx, setActiveMenuIdx] = useState(null);
+  const [menuPlacement, setMenuPlacement] = useState('bottom'); // 'bottom' or 'top'
 
+  const lastClickedIndexRef = useRef(null);
   const listContainerRef = useRef(null);
   const autoScrollRafRef = useRef(null);
 
@@ -146,18 +148,54 @@ export default function QueueManager({ queue, onAction }) {
     setJumpModalData(null);
   };
 
-  // Multi-select helpers
-  const toggleSelect = (index) => {
-    const newSet = new Set(selectedIndices);
-    if (newSet.has(index)) {
-      newSet.delete(index);
-    } else {
-      newSet.add(index);
+  // Toggle menu thông minh (tự động mở lên trên nếu gần cuối màn hình)
+  const handleToggleMenu = (e, index) => {
+    e.stopPropagation();
+    if (activeMenuIdx === index) {
+      setActiveMenuIdx(null);
+      return;
     }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    // Menu cao ~175px, nếu khoảng trống phía dưới < 185px thì bung lên trên (dropup)
+    if (spaceBelow < 185) {
+      setMenuPlacement('top');
+    } else {
+      setMenuPlacement('bottom');
+    }
+    setActiveMenuIdx(index);
+  };
+
+  // Multi-select helpers (Hỗ trợ Shift + Click chọn dải nhiều bài cùng lúc)
+  const toggleSelect = (index, event) => {
+    const isShift = Boolean(event && event.shiftKey);
+    const newSet = new Set(selectedIndices);
+
+    if (isShift && lastClickedIndexRef.current !== null && lastClickedIndexRef.current !== index) {
+      // Bỏ bôi đen văn bản vô tình do giữ phím Shift
+      window.getSelection()?.removeAllRanges();
+
+      const start = Math.min(lastClickedIndexRef.current, index);
+      const end = Math.max(lastClickedIndexRef.current, index);
+
+      // Thêm toàn bộ các bài trong khoảng từ start đến end vào danh sách chọn
+      for (let i = start; i <= end; i++) {
+        newSet.add(i);
+      }
+    } else {
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      lastClickedIndexRef.current = index;
+    }
+
     setSelectedIndices(newSet);
   };
 
   const toggleSelectAll = () => {
+    lastClickedIndexRef.current = null;
     if (selectedIndices.size === songs.length) {
       setSelectedIndices(new Set());
     } else {
@@ -176,12 +214,14 @@ export default function QueueManager({ queue, onAction }) {
   const confirmBatchDelete = () => {
     onAction('removeBatch', Array.from(selectedIndices));
     setSelectedIndices(new Set());
+    lastClickedIndexRef.current = null;
     setShowBatchModal(false);
   };
 
   const confirmClearAll = () => {
     onAction('clear');
     setSelectedIndices(new Set());
+    lastClickedIndexRef.current = null;
     setShowClearModal(false);
   };
 
@@ -370,14 +410,15 @@ export default function QueueManager({ queue, onAction }) {
                   onDragOver={(e) => handleDragOver(e, idx)}
                   onDrop={(e) => handleDrop(e, idx)}
                   onDragEnd={handleDragEnd}
-                  onClick={() => toggleSelect(idx)}
+                  onClick={(e) => toggleSelect(idx, e)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
                     borderRadius: 10, background: isSelected ? 'rgba(232,201,119,0.08)' : 'var(--paper)',
                     border: `1px solid ${isSelected ? 'rgba(232,201,119,0.3)' : isDragOver ? 'var(--yellow)' : 'var(--border)'}`,
                     opacity: isDragging ? 0.4 : 1,
                     cursor: 'pointer', transition: 'border-color .15s, background .15s',
-                    position: 'relative'
+                    position: 'relative',
+                    userSelect: 'none'
                   }}
                 >
                   {/* Drag Grip */}
@@ -388,7 +429,7 @@ export default function QueueManager({ queue, onAction }) {
                   {/* Checkbox */}
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); toggleSelect(idx); }}
+                    onClick={(e) => { e.stopPropagation(); toggleSelect(idx, e); }}
                     style={{ border: 0, background: 'transparent', color: isSelected ? 'var(--yellow)' : 'var(--muted)', cursor: 'pointer', padding: 0 }}
                   >
                     {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
@@ -460,10 +501,7 @@ export default function QueueManager({ queue, onAction }) {
                     <div style={{ position: 'relative' }}>
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenuIdx(isMenuOpen ? null : idx);
-                        }}
+                        onClick={(e) => handleToggleMenu(e, idx)}
                         style={{
                           width: 30, height: 30, borderRadius: 8,
                           border: `1px solid ${isMenuOpen ? 'var(--yellow)' : 'var(--border)'}`,
@@ -476,14 +514,26 @@ export default function QueueManager({ queue, onAction }) {
                         <MoreHorizontal size={15} />
                       </button>
 
-                      {/* Dropdown Popover */}
+                      {/* Dropdown / Dropup Popover (Tự động bung lên trên khi gần đáy màn hình) */}
                       {isMenuOpen && (
                         <div
                           style={{
-                            position: 'absolute', right: 0, top: 36, zIndex: 50,
-                            width: 170, borderRadius: 12, background: '#1c1e22',
-                            border: '1px solid var(--border)', boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
-                            padding: '6px', display: 'flex', flexDirection: 'column', gap: 2,
+                            position: 'absolute',
+                            right: 0,
+                            ...(menuPlacement === 'top'
+                              ? { bottom: 36, top: 'auto' }
+                              : { top: 36, bottom: 'auto' }
+                            ),
+                            zIndex: 50,
+                            width: 170,
+                            borderRadius: 12,
+                            background: '#1c1e22',
+                            border: '1px solid var(--border)',
+                            boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
+                            padding: '6px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
                             animation: 'tabFadeIn 0.15s ease'
                           }}
                         >
