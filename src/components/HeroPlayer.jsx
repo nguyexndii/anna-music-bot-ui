@@ -112,8 +112,15 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
   }, [isPlaying, current, totalMs, isDragging, dragMs, progressMs, handleSeekCommit]);
 
   const toggleMute = () => {
-    if ((player?.volume || 0) > 0) { setPreviousVolume(player?.volume || 100); onAction('volume', 0); }
-    else onAction('volume', previousVolume || 100);
+    if ((player?.volume || 0) > 0) {
+      setPreviousVolume(player?.volume || 100);
+      setLocalVolume(0);
+      onAction('volume', 0);
+    } else {
+      const restored = previousVolume || 100;
+      setLocalVolume(restored);
+      onAction('volume', restored);
+    }
   };
 
   const handleFavoriteClick = (e) => {
@@ -295,7 +302,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin }) {
                 : <Volume2 size={15} />}
             </button>
             <input
-              type="range" min={0} max={150} value={localVolume}
+              type="range" min={0} max={100} value={localVolume}
               onChange={(e) => {
                 const v = Number(e.target.value);
                 setLocalVolume(v);

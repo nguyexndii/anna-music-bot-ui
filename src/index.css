@@ -689,3 +689,13 @@ button { cursor: pointer; }
   .rail-bottom { flex-direction: row; margin-top: 0; margin-left: auto; }
   .now-playing { min-height: auto; height: auto; padding: 18px 16px; }
 }
+
+/* ─── Remove Spin Button on Number Inputs ──────────── */
+input.no-spin-button::-webkit-outer-spin-button,
+input.no-spin-button::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input.no-spin-button[type="number"] {
+  -moz-appearance: textfield;
+}

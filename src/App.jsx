@@ -544,7 +544,7 @@ export default function App() {
 
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
           <div className="tab-enter" style={{ height: '100%', display: activeTab === 'search' ? 'flex' : 'none', flexDirection: 'column' }}>
-            <LiveSearch onOrderSong={handleOrderSong} player={player} />
+            <LiveSearch onOrderSong={handleOrderSong} player={player} guildId={guildId} token={token} />
           </div>
           <div className="tab-enter" style={{ height: '100%', display: activeTab === 'queue' ? 'flex' : 'none', flexDirection: 'column' }}>
             <QueueManager queue={player?.queue} onAction={handlePlayerAction} />

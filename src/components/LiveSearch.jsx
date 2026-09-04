@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { API_BASE } from '../config';
 import FavoritesModal from './FavoritesModal';
+import PlaylistDetailModal from './PlaylistDetailModal';
 
 // Helper nhận diện URL & Playlist
 function detectUrlType(text) {
@@ -75,12 +76,14 @@ function getTrackThumb(track) {
   return 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120';
 }
 
-export default function LiveSearch({ onOrderSong, player }) {
+export default function LiveSearch({ onOrderSong, player, guildId, token }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(() => localStorage.getItem('anna_search_mode') || 'official');
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const debounceRef = useRef(null);
 
   const detected = useMemo(() => detectUrlType(query), [query]);
@@ -399,7 +402,7 @@ export default function LiveSearch({ onOrderSong, player }) {
               <div>
                 <div className="section-label">
                   <span>PLAYLIST ĐÃ THÊM GẦN ĐÂY</span>
-                  <span style={{ fontSize: 9 }}>NHẤN ĐỂ PHÁT CẢ BỘ</span>
+                  <span style={{ fontSize: 9 }}>NHẤN ĐỂ XEM CHI TIẾT & PHÁT</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                   {recentPlaylists.slice(0, 6).map((pl, idx) => {
@@ -407,7 +410,10 @@ export default function LiveSearch({ onOrderSong, player }) {
                     return (
                       <div
                         key={idx}
-                        onClick={() => handleAddPlaylistUrl(pl)}
+                        onClick={() => {
+                          setSelectedPlaylist(pl);
+                          setIsPlaylistModalOpen(true);
+                        }}
                         className="playlist-hover-card"
                         style={{
                           display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12,
@@ -427,6 +433,7 @@ export default function LiveSearch({ onOrderSong, player }) {
                           e.currentTarget.style.transform = 'none';
                           e.currentTarget.querySelector('.pl-play-icon')?.style && (e.currentTarget.querySelector('.pl-play-icon').style.opacity = '0');
                         }}
+                        title="Xem toàn bộ bài hát trong playlist này"
                       >
                         <div style={{ width: 44, height: 44, borderRadius: 9, overflow: 'hidden', background: '#202328', display: 'grid', placeItems: 'center', flexShrink: 0, border: '1px solid var(--border)', position: 'relative' }}>
                           {thumb ? (
@@ -434,11 +441,19 @@ export default function LiveSearch({ onOrderSong, player }) {
                           ) : (
                             <ListMusic size={20} style={{ color: 'var(--yellow)' }} />
                           )}
-                          <div className="pl-play-icon" style={{
-                            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)',
-                            display: 'grid', placeItems: 'center', opacity: 0,
-                            transition: 'opacity .18s',
-                          }}>
+                          <div
+                            className="pl-play-icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddPlaylistUrl(pl);
+                            }}
+                            title="Phát toàn bộ ngay lập tức"
+                            style={{
+                              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)',
+                              display: 'grid', placeItems: 'center', opacity: 0,
+                              transition: 'opacity .18s',
+                            }}
+                          >
                             <Play size={16} fill="var(--yellow)" style={{ color: 'var(--yellow)' }} />
                           </div>
                         </div>
@@ -450,7 +465,30 @@ export default function LiveSearch({ onOrderSong, player }) {
                             {pl.trackCount || pl.itemCount ? `${pl.trackCount || pl.itemCount} BÀI` : 'PLAYLIST'}
                           </p>
                         </div>
-                        <Play size={14} style={{ color: 'var(--yellow)', flexShrink: 0, opacity: 0.5 }} />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddPlaylistUrl(pl);
+                          }}
+                          title="Phát toàn bộ ngay lập tức"
+                          style={{
+                            border: 0,
+                            background: 'transparent',
+                            padding: 4,
+                            cursor: 'pointer',
+                            display: 'grid',
+                            placeItems: 'center',
+                            flexShrink: 0,
+                            color: 'var(--yellow)',
+                            opacity: 0.75,
+                            transition: 'opacity 0.15s, transform 0.15s'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.transform = 'none'; }}
+                        >
+                          <Play size={14} fill="var(--yellow)" />
+                        </button>
                       </div>
                     );
                   })}
@@ -593,6 +631,19 @@ export default function LiveSearch({ onOrderSong, player }) {
         isOpen={isFavoritesModalOpen}
         onClose={() => setIsFavoritesModalOpen(false)}
         favorites={favorites}
+        onOrderSong={handleOrderTrack}
+      />
+
+      {/* ── Modal Chi Tiết Playlist ─────────────────────── */}
+      <PlaylistDetailModal
+        isOpen={isPlaylistModalOpen}
+        onClose={() => {
+          setIsPlaylistModalOpen(false);
+          setSelectedPlaylist(null);
+        }}
+        playlist={selectedPlaylist}
+        guildId={guildId || player?.guildId}
+        token={token}
         onOrderSong={handleOrderTrack}
       />
     </div>

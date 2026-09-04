@@ -336,7 +336,7 @@ export default function BottomMiniPlayer({
             <input
               type="range"
               min="0"
-              max="150"
+              max="100"
               value={localVolume}
               onChange={handleVolumeChange}
               className="w-16 h-1 bg-white/10 rounded-lg accent-anna-accent cursor-pointer"

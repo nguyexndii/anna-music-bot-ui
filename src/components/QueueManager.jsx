@@ -327,6 +327,7 @@ export default function QueueManager({ queue, onAction }) {
                 max={songs.length}
                 value={targetPosition}
                 onChange={(e) => setTargetPosition(e.target.value)}
+                className="no-spin-button"
                 style={{ width: '100%', height: 42, borderRadius: 10, border: '1px solid var(--border)', background: '#141619', color: '#fff', textAlign: 'center', fontSize: 16, fontFamily: '"DM Mono", monospace', fontWeight: 700, outline: 'none', marginBottom: 12 }}
                 autoFocus
               />
