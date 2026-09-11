@@ -23,7 +23,7 @@ class ErrorBoundary extends React.Component {
         <div className="min-h-screen bg-[#0f1015] flex flex-col items-center justify-center p-6 text-center text-white font-sans">
           <h2 className="text-xl font-bold mb-2 text-white">Đã xảy ra sự cố hiển thị</h2>
           <p className="text-xs text-anna-muted max-w-md mb-6 leading-relaxed">
-            Trình duyệt có thể đang lưu cache phiên bản cũ. Vui lòng nhấn nút bên dưới để tải lại hoặc gõ lại lệnh <code className="text-anna-accent font-bold">.web</code> trong Discord.
+            Trình duyệt có thể đang lưu cache phiên bản cũ. Vui lòng nhấn nút bên dưới để tải lại hoặc gõ lại lệnh <code className="text-anna-accent font-bold">/web</code> trong Discord.
           </p>
           {this.state.error?.message && (
             <p className="text-[11px] text-red-400/80 font-mono mb-4 max-w-lg px-3 py-1.5 rounded bg-red-500/10 border border-red-500/20 break-all">

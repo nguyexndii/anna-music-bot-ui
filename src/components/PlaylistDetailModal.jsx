@@ -227,16 +227,42 @@ export default function PlaylistDetailModal({
                   </span>
                 )}
               </div>
-              <p
-                style={{
-                  margin: '2px 0 0',
-                  fontSize: 11,
-                  color: 'var(--muted)',
-                  fontFamily: '"DM Mono", monospace'
-                }}
-              >
-                Nhấn bài để thêm lẻ, hoặc phát toàn bộ
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--muted)',
+                    fontFamily: '"DM Mono", monospace'
+                  }}
+                >
+                  Nhấn bài để thêm lẻ, hoặc phát toàn bộ
+                </span>
+                {playlist?.addedBy && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      fontSize: 10,
+                      color: 'var(--muted)',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      padding: '1px 6px',
+                      borderRadius: 5,
+                      border: '1px solid var(--border)'
+                    }}
+                  >
+                    {playlist.addedByAvatar ? (
+                      <img
+                        src={playlist.addedByAvatar}
+                        alt=""
+                        style={{ width: 13, height: 13, borderRadius: '50%', objectFit: 'cover' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : null}
+                    <span>Thêm bởi: <strong style={{ color: 'var(--ink)' }}>@{playlist.addedBy}</strong></span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

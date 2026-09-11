@@ -270,12 +270,13 @@ export default function BottomMiniPlayer({
 
             {(() => {
               const loopMode = player?.loopMode || player?.loop || 'off';
+              const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) || Boolean(player?.mode247 && !player?.current);
               return (
                 <button
                   onClick={() => onAction('loop')}
-                  disabled={Boolean(pendingAction)}
-                  title={`Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
-                  className={`relative p-1.5 transition active:scale-95 ${pendingAction ? 'opacity-50 cursor-not-allowed' : ''} ${
+                  disabled={Boolean(pendingAction) || isLofiCurrent}
+                  title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
+                  className={`relative p-1.5 transition active:scale-95 ${isLofiCurrent ? 'opacity-35 cursor-not-allowed grayscale' : (pendingAction ? 'opacity-50 cursor-not-allowed' : '')} ${
                     loopMode !== 'off'
                       ? 'text-anna-accent'
                       : 'text-anna-muted hover:text-white'

@@ -490,16 +490,17 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           </button>
           {(() => {
             const loopMode = player?.loopMode || player?.loop || 'off';
+            const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) || Boolean(player?.mode247 && !player?.current);
             return (
               <button
                 className={`ctrl-btn${loopMode !== 'off' ? ' active' : ''}`}
                 onClick={() => onAction('loop')}
-                disabled={Boolean(pendingAction)}
+                disabled={Boolean(pendingAction) || isLofiCurrent}
                 aria-label="Lặp lại"
-                title={`Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
+                title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
                 style={{
                   position: 'relative',
-                  ...(pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : {})
+                  ...(isLofiCurrent ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(1)' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : {}))
                 }}
               >
                 <Repeat size={17} />

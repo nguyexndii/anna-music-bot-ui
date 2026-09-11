@@ -215,6 +215,7 @@ export default function KaraokeFullscreenModal({
     (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())
   ));
   const loopMode = player?.loop || player?.loopMode || 'off';
+  const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) || Boolean(player?.mode247 && !player?.current);
   const isShuffle = Boolean(player?.shuffle);
 
   const fontSizes = fontSize === 'lg'
@@ -1108,12 +1109,14 @@ export default function KaraokeFullscreenModal({
 
             {/* Repeat / Loop */}
             <button
-              onClick={() => onAction?.('loop')}
+              onClick={() => !isLofiCurrent && onAction?.('loop')}
+              disabled={isLofiCurrent}
               style={{
                 border: 0,
-                background: loopMode !== 'off' ? 'rgba(232, 201, 119, 0.15)' : 'transparent',
-                color: loopMode !== 'off' ? 'var(--yellow)' : 'rgba(255,255,255,0.65)',
-                cursor: 'pointer',
+                background: loopMode !== 'off' && !isLofiCurrent ? 'rgba(232, 201, 119, 0.15)' : 'transparent',
+                color: isLofiCurrent ? 'rgba(255,255,255,0.25)' : (loopMode !== 'off' ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'),
+                cursor: isLofiCurrent ? 'not-allowed' : 'pointer',
+                opacity: isLofiCurrent ? 0.35 : 1,
                 padding: 8,
                 borderRadius: 10,
                 display: 'flex',
@@ -1122,9 +1125,9 @@ export default function KaraokeFullscreenModal({
                 position: 'relative',
                 transition: 'all .15s',
               }}
-              title={`Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
-              onMouseEnter={(e) => { if (loopMode === 'off') e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { if (loopMode === 'off') e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
+              title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
+              onMouseEnter={(e) => { if (!isLofiCurrent && loopMode === 'off') e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={(e) => { if (!isLofiCurrent && loopMode === 'off') e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
             >
               <Repeat size={18} />
               {loopMode === 'song' && (
