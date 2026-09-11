@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-muted-foreground: var(--muted-foreground);
+  --font-sans: var(--font-dm-sans), sans-serif;
+  --font-mono: var(--font-dm-mono), monospace;
+}
+
+:root { --background: #111316; --foreground: #eee9e0; --border: #2a2d31; --muted-foreground: #777b80; --paper: #181a1e; --yellow: #e8c977; --coral: #ef7864; }
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+html { background: var(--background); }
+body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-dm-sans), sans-serif; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+.auth-shell { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px 24px; background: var(--background); }
+.auth-brand { text-align: center; margin-bottom: 38px; }
+.brand-name { font: 400 42px/0.85 Georgia, serif; letter-spacing: -5px; padding-right: 5px; }
+.brand-name span { color: var(--yellow); }.brand-name b { color: var(--coral); font-weight: 400; }
+.brand-subtitle, .card-kicker, .pin-label, .auth-footer, .server-badge { font-family: var(--font-dm-mono), monospace; letter-spacing: .18em; }
+.brand-subtitle { color: var(--muted-foreground); font-size: 10px; margin-top: 14px; }
+.auth-card { width: min(100%, 360px); border: 1px solid var(--border); border-radius: 18px; background: var(--paper); padding: 28px; }
+.card-kicker { color: var(--muted-foreground); font-size: 9px; margin-bottom: 19px; }.auth-card h1 { font-size: 19px; letter-spacing: -.025em; font-weight: 500; margin: 0 0 8px; }.card-copy { color: var(--muted-foreground); font-size: 12px; line-height: 1.55; margin: 0; }
+.pin-label { display: block; color: var(--muted-foreground); font-size: 9px; margin: 26px 0 8px; }.auth-card > input { width: 100%; height: 48px; border: 1px solid var(--border); border-radius: 11px; outline: none; background: #141619; color: var(--foreground); padding: 0 14px; font: 16px var(--font-dm-mono), monospace; letter-spacing: .12em; }.auth-card > input:focus { border-color: var(--yellow); }.auth-card > input::placeholder { color: #55595e; letter-spacing: 0; font-size: 12px; }
+.pin-digits { display: flex; gap: 7px; margin-top: 10px; }.pin-digits span { flex: 1; height: 7px; border-radius: 3px; background: #2b2e32; color: transparent; }.pin-digits span.filled { background: var(--yellow); }.primary-button, .ghost-button { height: 46px; border-radius: 11px; font-weight: 700; font-size: 13px; border: 1px solid transparent; }.primary-button { width: 100%; background: var(--yellow); color: #202124; }.primary-button:hover { background: #f0d88e; }.ghost-button { width: 100%; background: transparent; border-color: var(--border); color: var(--muted-foreground); }.ghost-button:hover { color: var(--foreground); border-color: #55595e; }.form-error { color: var(--coral); font-size: 11px; margin: 12px 0 0; }.auth-card .primary-button { margin-top: 20px; }.card-footnote, .hint { color: var(--muted-foreground); font-size: 10px; text-align: center; line-height: 1.5; margin: 17px 0 0; }.auth-footer { color: #55595e; font-size: 9px; margin-top: 28px; }
+.voice-card { width: min(100%, 420px); text-align: center; padding: 32px; }.quiet-shape { height: 46px; display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 27px; }.quiet-shape i { width: 3px; height: 12px; border-radius: 3px; background: var(--yellow); opacity: .65; }.quiet-shape i:nth-child(2), .quiet-shape i:nth-child(4) { height: 26px; opacity: .35; }.quiet-shape i:nth-child(3) { height: 36px; opacity: .8; }.voice-card h1 { font-size: 20px; }.voice-card .card-copy { max-width: 310px; margin: 0 auto; }.server-badge { display: inline-block; color: var(--yellow); border: 1px solid #796b40; border-radius: 999px; padding: 8px 12px; font-size: 9px; margin: 23px 0 24px; }.voice-actions { display: flex; gap: 10px; }.voice-actions .primary-button, .voice-actions .ghost-button { flex: 1; }.voice-card .hint { margin-top: 18px; }
+@media (max-width: 480px) { .auth-shell { padding-inline: 16px; }.auth-card, .voice-card { padding: 25px 21px; }.auth-brand { margin-bottom: 28px; }.voice-actions { flex-direction: column; } }
