@@ -19,6 +19,7 @@ import {
 import { API_BASE, DEFAULT_TRACK_THUMB } from '../config';
 import FavoritesModal from './FavoritesModal';
 import PlaylistDetailModal from './PlaylistDetailModal';
+import AllPlaylistsModal from './AllPlaylistsModal';
 
 // Helper nhận diện URL & Playlist
 function detectUrlType(text) {
@@ -87,6 +88,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [isAllPlaylistsModalOpen, setIsAllPlaylistsModalOpen] = useState(false);
   const [playlistPreviewThumb, setPlaylistPreviewThumb] = useState(null);
   const debounceRef = useRef(null);
   const abortControllerRef = useRef(null);
@@ -481,12 +483,35 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
             {/* Playlists Gần Đây (Shows first track's thumbnail!) */}
             {recentPlaylists.length > 0 && (
               <div>
-                <div className="section-label">
-                  <span>PLAYLIST ĐÃ THÊM GẦN ĐÂY</span>
-                  <span style={{ fontSize: 9 }}>NHẤN ĐỂ XEM CHI TIẾT & PHÁT</span>
+                <div className="section-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>PLAYLIST ĐÃ THÊM GẦN ĐÂY</span>
+                    <ListMusic size={12} style={{ color: 'var(--yellow)' }} />
+                  </div>
+                  {recentPlaylists.length > 0 && (
+                    <button
+                      onClick={() => setIsAllPlaylistsModalOpen(true)}
+                      style={{
+                        border: 0,
+                        background: 'transparent',
+                        color: 'var(--yellow)',
+                        fontSize: 10,
+                        fontFamily: '"DM Mono", monospace',
+                        cursor: 'pointer',
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                      title="Xem toàn bộ danh sách phát của máy chủ"
+                    >
+                      <span>Xem tất cả ({recentPlaylists.length})</span>
+                    </button>
+                  )}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-                  {recentPlaylists.map((pl, idx) => {
+                  {recentPlaylists.slice(0, 6).map((pl, idx) => {
                     const thumb = pl.thumbnail || getPlaylistPreviewImage(pl.url) || pl.firstTrackThumb;
                     return (
                       <div
@@ -717,6 +742,18 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
         guildId={guildId || player?.guildId}
         token={token}
         onOrderSong={handleOrderTrack}
+      />
+
+      {/* ── Modal Toàn Bộ Danh Sách Phát ────────────────── */}
+      <AllPlaylistsModal
+        isOpen={isAllPlaylistsModalOpen}
+        onClose={() => setIsAllPlaylistsModalOpen(false)}
+        playlists={recentPlaylists}
+        onSelectPlaylist={(pl) => {
+          setIsAllPlaylistsModalOpen(false);
+          setSelectedPlaylist(pl);
+          setIsPlaylistModalOpen(true);
+        }}
       />
     </div>
   );
