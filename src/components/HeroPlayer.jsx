@@ -35,6 +35,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
 
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current   = player?.current;
+  const isPlayable = Boolean(current && (player?.isPlaying || player?.isPaused) && !player?.isPreparing);
   const isFav     = player?.favorites?.some(f =>
     (f.url && current?.url && f.url === current?.url) ||
     (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())
@@ -130,7 +131,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   }, [totalMs, onAction, isPlaying]);
 
   const handlePointerDown = (e) => {
-    if (!current || totalMs <= 0) return;
+    if (!isPlayable || !current || totalMs <= 0) return;
     const x = e.clientX ?? e.touches?.[0]?.clientX;
     if (x === undefined) return;
     setIsDragging(true); setDragMs(calculateTimeFromEvent(x));
@@ -149,6 +150,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   useEffect(() => {
     const kd = (e) => {
       if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+      if (!isPlayable && e.code !== 'KeyM') return;
       if (e.code === 'Space') { e.preventDefault(); onAction(isPlaying ? 'pause' : 'resume'); }
       else if (e.code === 'KeyM') { e.preventDefault(); toggleMute(); }
       else if (e.code === 'ArrowLeft') { e.preventDefault(); if (current && totalMs > 0) handleSeekCommit(Math.max(0, (isDragging ? dragMs : progressMs) - 5000)); }
@@ -156,7 +158,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     };
     window.addEventListener('keydown', kd);
     return () => window.removeEventListener('keydown', kd);
-  }, [isPlaying, current, totalMs, isDragging, dragMs, progressMs, handleSeekCommit]);
+  }, [isPlayable, isPlaying, current, totalMs, isDragging, dragMs, progressMs, handleSeekCommit]);
 
   const toggleMute = () => {
     if ((player?.volume || 0) > 0) {
@@ -393,7 +395,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
             onMouseDown={handlePointerDown}
             onTouchStart={handlePointerDown}
             onMouseMove={(e) => {
-              if (!progressBarRef.current || totalMs <= 0) return;
+              if (!progressBarRef.current || totalMs <= 0 || !isPlayable) return;
               const r = progressBarRef.current.getBoundingClientRect();
               const x = Math.max(0, Math.min(e.clientX - r.left, r.width));
               setHoverInfo({ percent: x / r.width * 100, timeStr: formatTime(Math.floor(x / r.width * totalMs)), x });
@@ -405,13 +407,13 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
             aria-valuenow={Math.floor(currentDisplayMs / 1000)}
             aria-label="Tua bài hát"
             style={{
-              cursor: (pendingAction || totalMs <= 0) ? 'not-allowed' : 'pointer',
-              opacity: pendingAction === 'seek' ? 0.65 : 1,
-              pointerEvents: pendingAction ? 'none' : 'auto'
+              cursor: (!isPlayable || pendingAction || totalMs <= 0) ? 'not-allowed' : 'pointer',
+              opacity: !isPlayable ? 0.35 : (pendingAction === 'seek' ? 0.65 : 1),
+              pointerEvents: (!isPlayable || pendingAction) ? 'none' : 'auto'
             }}
           >
             <div className="progress-fill" style={{ width: `${percent}%` }} />
-            {hoverInfo && totalMs > 0 && !isDragging && (
+            {hoverInfo && totalMs > 0 && !isDragging && isPlayable && (
               <div style={{
                 position: 'absolute', top: -28, left: `${hoverInfo.percent}%`,
                 transform: 'translateX(-50%)',
@@ -437,20 +439,20 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           <button
             className={`ctrl-btn${player?.shuffle ? ' active' : ''}`}
             onClick={() => onAction('shuffle')}
-            disabled={Boolean(pendingAction)}
+            disabled={!isPlayable || Boolean(pendingAction)}
             aria-label="Xáo trộn"
             title="Xáo trộn hàng chờ"
-            style={pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
           >
             <Shuffle size={17} />
           </button>
           <button
             className="ctrl-btn"
             onClick={() => onAction('previous')}
-            disabled={Boolean(pendingAction)}
+            disabled={!isPlayable || Boolean(pendingAction)}
             aria-label="Bài trước"
             title={pendingAction === 'previous' ? 'Đang quay lại...' : 'Bài trước'}
-            style={pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
           >
             {pendingAction === 'previous' ? (
               <Loader2 size={19} className="animate-spin" />
@@ -461,10 +463,10 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           <button
             className="ctrl-btn ctrl-play"
             onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
-            disabled={Boolean(pendingAction)}
+            disabled={!isPlayable || Boolean(pendingAction)}
             aria-label={isPlaying ? 'Tạm dừng' : 'Phát'}
             title={pendingAction === 'playback' ? 'Đang xử lý...' : (isPlaying ? 'Tạm dừng' : 'Phát')}
-            style={pendingAction ? { opacity: 0.7, cursor: 'not-allowed' } : undefined}
+            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(0.6)' } : (pendingAction ? { opacity: 0.7, cursor: 'not-allowed' } : undefined)}
           >
             {pendingAction === 'playback' ? (
               <Loader2 size={22} className="animate-spin text-black" />
@@ -477,10 +479,10 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           <button
             className="ctrl-btn"
             onClick={() => onAction('skip')}
-            disabled={Boolean(pendingAction)}
+            disabled={!isPlayable || Boolean(pendingAction)}
             aria-label="Bài tiếp"
             title={pendingAction === 'skip' ? 'Đang chuyển bài...' : 'Bài tiếp'}
-            style={pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
+            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
           >
             {pendingAction === 'skip' ? (
               <Loader2 size={19} className="animate-spin" />
@@ -495,12 +497,12 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
               <button
                 className={`ctrl-btn${loopMode !== 'off' ? ' active' : ''}`}
                 onClick={() => onAction('loop')}
-                disabled={Boolean(pendingAction) || isLofiCurrent}
+                disabled={!isPlayable || Boolean(pendingAction) || isLofiCurrent}
                 aria-label="Lặp lại"
                 title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
                 style={{
                   position: 'relative',
-                  ...(isLofiCurrent ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(1)' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : {}))
+                  ...((!isPlayable || isLofiCurrent) ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(1)' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : {}))
                 }}
               >
                 <Repeat size={17} />

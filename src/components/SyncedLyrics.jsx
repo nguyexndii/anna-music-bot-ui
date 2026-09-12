@@ -101,9 +101,10 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
+    const serverSaved = typeof lyricsData?.userSavedOffsetMs === 'number' ? lyricsData.userSavedOffsetMs : null;
     const saved = getSavedOffset(current?.title, isYtCc);
-    setManualOffsetMs(saved ?? 0);
-  }, [current?.title, current?.url, isYtCc]);
+    setManualOffsetMs(serverSaved !== null ? serverSaved : (saved ?? 0));
+  }, [current?.title, current?.url, isYtCc, lyricsData?.userSavedOffsetMs]);
 
   // Khi dữ liệu lời bài hát mới nạp xong: đảm bảo luôn ở đầu trang
   useEffect(() => {
@@ -229,9 +230,10 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       const isYtTrack = Boolean(current.url && (current.url.includes('youtube.com') || current.url.includes('youtu.be')));
       if (!isYtTrack || cached?.source === 'youtube_cc' || cached?.isLofi || cached?._fetchedFresh) {
         const isYt = cached?.source === 'youtube_cc';
+        const serverOffset = typeof cached?.userSavedOffsetMs === 'number' ? cached.userSavedOffsetMs : null;
         const savedOffset = getSavedOffset(current.title, isYt);
         setLyricsData(cached);
-        setManualOffsetMs(savedOffset !== null ? savedOffset : 0);
+        setManualOffsetMs(serverOffset !== null ? serverOffset : (savedOffset !== null ? savedOffset : 0));
         setLoading(false);
         return;
       }
@@ -257,8 +259,9 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         if (result) {
           lyricsCache.set(key, result);
           const isYt = result?.source === 'youtube_cc';
+          const serverOffset = typeof result?.userSavedOffsetMs === 'number' ? result.userSavedOffsetMs : null;
           const savedOffset = getSavedOffset(current.title, isYt);
-          setManualOffsetMs(savedOffset !== null ? savedOffset : 0);
+          setManualOffsetMs(serverOffset !== null ? serverOffset : (savedOffset !== null ? savedOffset : 0));
         }
         setLyricsData(result);
         setLoading(false);
@@ -272,8 +275,9 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
               if (result) {
                 lyricsCache.set(key, result);
                 const isYt = result?.source === 'youtube_cc';
+                const serverOffset = typeof result?.userSavedOffsetMs === 'number' ? result.userSavedOffsetMs : null;
                 const savedOffset = getSavedOffset(current.title, isYt);
-                setManualOffsetMs(savedOffset !== null ? savedOffset : 0);
+                setManualOffsetMs(serverOffset !== null ? serverOffset : (savedOffset !== null ? savedOffset : 0));
               }
               setLyricsData(result);
               setLoading(false);
@@ -338,9 +342,36 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     }
   }, [activeLineIdx, autoScroll, viewMode]);
 
+  const saveOffsetDebounceRef = useRef(null);
+
   const updateOffset = (newOffset) => {
     setManualOffsetMs(newOffset);
     saveOffset(current?.title, newOffset, isYtCc);
+
+    if (saveOffsetDebounceRef.current) {
+      clearTimeout(saveOffsetDebounceRef.current);
+    }
+
+    saveOffsetDebounceRef.current = setTimeout(() => {
+      saveOffsetDebounceRef.current = null;
+      const keyToSave = lyricsData?.trackKey;
+      if (!keyToSave) return;
+
+      const offsetApiUrl = guildId
+        ? `${API_BASE}/api/guilds/${guildId}/lyrics/offset`
+        : `${API_BASE}/api/lyrics/offset`;
+
+      fetch(offsetApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackKey: keyToSave,
+          offsetMs: newOffset,
+          title: current?.title || '',
+          artist: current?.artist || ''
+        })
+      }).catch(() => {});
+    }, 1500);
   };
 
   // Lofi / 24/7 special view

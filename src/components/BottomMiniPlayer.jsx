@@ -44,6 +44,7 @@ export default function BottomMiniPlayer({
 }) {
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current = player?.current;
+  const isPlayable = Boolean(current && (player?.isPlaying || player?.isPaused) && !player?.isPreparing);
 
   // Local progress interpolation
   const [progressMs, setProgressMs] = useState(0);
@@ -98,7 +99,7 @@ export default function BottomMiniPlayer({
   }, [totalMs, onAction]);
 
   const handlePointerDown = (e) => {
-    if (!current || totalMs <= 0) return;
+    if (!isPlayable || !current || totalMs <= 0) return;
     const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
     if (clientX === undefined) return;
     setIsDragging(true);
@@ -220,18 +221,18 @@ export default function BottomMiniPlayer({
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => onAction('shuffle')}
-              disabled={Boolean(pendingAction)}
+              disabled={!isPlayable || Boolean(pendingAction)}
               title="Xáo trộn hàng chờ"
-              className={`p-1.5 transition active:scale-95 ${pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white'}`}
+              className={`p-1.5 transition active:scale-95 ${!isPlayable ? 'opacity-35 cursor-not-allowed text-anna-muted' : (pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white')}`}
             >
               <Shuffle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
               onClick={() => onAction('previous')}
-              disabled={Boolean(pendingAction)}
+              disabled={!isPlayable || Boolean(pendingAction)}
               title={pendingAction === 'previous' ? 'Đang quay lại...' : 'Quay lại bài trước đó (Lưu 5 bài)'}
-              className={`p-1.5 transition active:scale-95 ${pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white'}`}
+              className={`p-1.5 transition active:scale-95 ${!isPlayable ? 'opacity-35 cursor-not-allowed text-anna-muted' : (pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white')}`}
             >
               {pendingAction === 'previous' ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -242,9 +243,9 @@ export default function BottomMiniPlayer({
 
             <button
               onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
-              disabled={Boolean(pendingAction)}
+              disabled={!isPlayable || Boolean(pendingAction)}
               title={pendingAction === 'playback' ? 'Đang xử lý...' : (isPlaying ? 'Tạm dừng' : 'Tiếp tục phát')}
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white text-black transition shadow-lg flex items-center justify-center ${pendingAction ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white text-black transition shadow-lg flex items-center justify-center ${!isPlayable ? 'opacity-40 cursor-not-allowed grayscale' : (pendingAction ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 active:scale-95')}`}
             >
               {pendingAction === 'playback' ? (
                 <Loader2 className="w-5 h-5 animate-spin text-black" />
@@ -257,9 +258,9 @@ export default function BottomMiniPlayer({
 
             <button
               onClick={() => onAction('skip')}
-              disabled={Boolean(pendingAction)}
+              disabled={!isPlayable || Boolean(pendingAction)}
               title={pendingAction === 'skip' ? 'Đang chuyển bài...' : 'Chuyển bài tiếp theo'}
-              className={`p-1.5 transition active:scale-95 ${pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white'}`}
+              className={`p-1.5 transition active:scale-95 ${!isPlayable ? 'opacity-35 cursor-not-allowed text-anna-muted' : (pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white')}`}
             >
               {pendingAction === 'skip' ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -274,9 +275,9 @@ export default function BottomMiniPlayer({
               return (
                 <button
                   onClick={() => onAction('loop')}
-                  disabled={Boolean(pendingAction) || isLofiCurrent}
+                  disabled={!isPlayable || Boolean(pendingAction) || isLofiCurrent}
                   title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
-                  className={`relative p-1.5 transition active:scale-95 ${isLofiCurrent ? 'opacity-35 cursor-not-allowed grayscale' : (pendingAction ? 'opacity-50 cursor-not-allowed' : '')} ${
+                  className={`relative p-1.5 transition active:scale-95 ${(!isPlayable || isLofiCurrent) ? 'opacity-35 cursor-not-allowed grayscale' : (pendingAction ? 'opacity-50 cursor-not-allowed' : '')} ${
                     loopMode !== 'off'
                       ? 'text-anna-accent'
                       : 'text-anna-muted hover:text-white'
@@ -304,9 +305,9 @@ export default function BottomMiniPlayer({
 
             <div
               ref={progressBarRef}
-              onMouseDown={pendingAction ? undefined : handlePointerDown}
-              onTouchStart={pendingAction ? undefined : handlePointerDown}
-              className={`relative flex-1 h-1.5 bg-white/10 hover:h-2 rounded-full transition-all group select-none flex items-center ${pendingAction ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+              onMouseDown={(!isPlayable || pendingAction) ? undefined : handlePointerDown}
+              onTouchStart={(!isPlayable || pendingAction) ? undefined : handlePointerDown}
+              className={`relative flex-1 h-1.5 bg-white/10 hover:h-2 rounded-full transition-all group select-none flex items-center ${(!isPlayable || pendingAction) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <div
                 className="h-full bg-gradient-to-r from-anna-accent to-anna-pink rounded-full transition-all"
