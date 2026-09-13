@@ -209,7 +209,7 @@ export default function KaraokeFullscreenModal({
 
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
   const hasSynced = Boolean(lyricsData?.syncedLyrics?.length > 0);
-  const isYtCc = lyricsData?.source === 'youtube_cc' || lyricsData?.source === 'youtube_auto_cc';
+  const isYtCc = lyricsData?.source === 'youtube_cc';
   const isFav = Boolean(player?.favorites?.some(f =>
     (f.url && current?.url && f.url === current?.url) ||
     (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())

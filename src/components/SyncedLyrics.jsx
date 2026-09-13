@@ -65,7 +65,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
   const [autoScroll, setAutoScroll] = useState(true);
 
-  const isYtCc = lyricsData?.source === 'youtube_cc' || lyricsData?.source === 'youtube_auto_cc';
+  const isYtCc = lyricsData?.source === 'youtube_cc';
 
   const [manualOffsetMs, setManualOffsetMs] = useState(() => {
     return getSavedOffset(current?.title, isYtCc) ?? 0;
@@ -174,14 +174,6 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         bg: 'rgba(56,239,125,0.08)',
         border: 'rgba(56,239,125,0.25)',
         title: 'Lời nhạc trích xuất từ phụ đề CC chính thức của nghệ sĩ trên YouTube'
-      });
-    } else if (lyricsData.source === 'youtube_auto_cc') {
-      report({
-        text: 'LỜI: CC TỰ ĐỘNG (AI)',
-        color: '#e8c977',
-        bg: 'rgba(232, 201, 119, 0.08)',
-        border: 'rgba(232, 201, 119, 0.25)',
-        title: 'Lời tạo tự động từ giọng hát (AI) bởi YouTube, có thể có từ nhận diện chưa chuẩn'
       });
     } else if (lyricsData.source === 'lrclib') {
       report({
