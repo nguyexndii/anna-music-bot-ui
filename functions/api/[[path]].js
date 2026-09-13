@@ -14,7 +14,7 @@ export async function onRequest(context) {
   const url = new URL(context.request.url);
 
   // Ưu tiên API_BASE từ biến môi trường Cloudflare Pages, fallback về tunnel đang chạy
-  const apiBase = (context.env.API_BASE || 'https://pockets-morrison-sells-nurse.trycloudflare.com').replace(/\/$/, '');
+  const apiBase = (context.env.API_BASE || 'https://jvc-labs-farmer-gardens.trycloudflare.com').replace(/\/$/, '');
   const targetUrl = `${apiBase}${url.pathname}${url.search}`;
 
   const requestHeaders = new Headers();
