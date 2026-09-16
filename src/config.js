@@ -28,3 +28,5 @@ export const DEFAULT_TRACK_THUMB = 'data:image/svg+xml;utf8,' + encodeURICompone
   '<path d="M48 43.5v9a3 3 0 1 1-1.8-2.7V45h5.5v-1.5h-3.7z" fill="#ffffff" opacity="0.95"/>' +
   '</svg>'
 );
+
+export const DEFAULT_PLAYLIST_THUMB = '/default-playlist.jpg';

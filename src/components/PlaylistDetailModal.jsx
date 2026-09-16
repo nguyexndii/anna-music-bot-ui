@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { X, Play, Plus, ListPlus, ChevronLeft, ChevronRight, Loader2, Music, Search, Check } from 'lucide-react';
-import { API_BASE, DEFAULT_TRACK_THUMB } from '../config';
+import { API_BASE, DEFAULT_TRACK_THUMB, DEFAULT_PLAYLIST_THUMB } from '../config';
 
 function getTrackThumb(track) {
   if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
@@ -123,7 +123,7 @@ export default function PlaylistDetailModal({
 
   const displayTitle = playlist.title || playlist.name || 'Danh Sách Phát';
   const totalCount = tracks.length || playlist.trackCount || playlist.itemCount || 0;
-  const thumb = playlist.thumbnail || (tracks[0] && getTrackThumb(tracks[0])) || null;
+  const thumb = playlist.thumbnail || (tracks[0] && getTrackThumb(tracks[0])) || DEFAULT_PLAYLIST_THUMB;
 
   return ReactDOM.createPortal(
     <div

@@ -360,8 +360,8 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
             <p className="track-eyebrow">
               {(current?.is247 || current?.requestedBy === 'Auto (24/7)') ? '24/7 · LOFI THƯ GIÃN' : getSourceLabel(current)}
             </p>
-            <h1 className="track-title" title={current?.title}>
-              {current?.title || 'Chưa có bài hát'}
+            <h1 className="track-title" title={current?.title || current?.name || 'Chưa có bài hát'}>
+              {current?.title || current?.name || (player?.isPlaying ? 'Đang phát âm thanh' : 'Chưa có bài hát')}
             </h1>
             <p className="track-artist" title={current?.artist}>
               {current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music'}
