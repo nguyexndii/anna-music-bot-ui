@@ -10,6 +10,7 @@ import ConnectingStepper from './components/ConnectingStepper';
 import LofiConfirmModal from './components/LofiConfirmModal';
 import Toast from './components/Toast';
 import DynamicAmbientBackground from './components/DynamicAmbientBackground';
+import NotFoundScreen from './components/NotFoundScreen';
 import { Search, ListMusic, Mic2, Settings, History, AlertCircle, Disc3, Play, Pause, SkipForward, Loader2 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from './config';
 
@@ -177,6 +178,27 @@ export default function App() {
   const [isRefreshingVoice, setIsRefreshingVoice] = useState(false);
   const [toasts, setToasts]               = useState([]);
   const [lyricsSourceInfo, setLyricsSourceInfo] = useState(null);
+  const [isNotFound, setIsNotFound] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const p = window.location.pathname;
+    return p !== '/' && p !== '' && p !== '/index.html';
+  });
+
+  useEffect(() => {
+    const checkPath = () => {
+      const p = window.location.pathname;
+      setIsNotFound(p !== '/' && p !== '' && p !== '/index.html');
+    };
+    window.addEventListener('popstate', checkPath);
+    return () => window.removeEventListener('popstate', checkPath);
+  }, []);
+
+  const handleGoHome = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/');
+      setIsNotFound(false);
+    }
+  }, []);
   const [pendingAction, setPendingAction] = useState(null); // 'skip' | 'previous' | 'playback' | 'seek' | 'playNow'
   const actionLockRef = useRef({});
   const pendingTimerRef = useRef(null);
@@ -569,6 +591,10 @@ export default function App() {
   };
 
   // ── Renders ─────────────────────────────────────────────────────────────────
+  if (isNotFound) {
+    return <NotFoundScreen onGoHome={handleGoHome} />;
+  }
+
   if (isInitialLoading || isVerifying) {
     return (
       <ConnectingStepper
