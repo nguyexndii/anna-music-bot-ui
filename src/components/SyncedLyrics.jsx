@@ -353,9 +353,13 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         ? `${API_BASE}/api/guilds/${guildId}/lyrics/offset`
         : `${API_BASE}/api/lyrics/offset`;
 
+      const token = localStorage.getItem('anna_web_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       fetch(offsetApiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           trackKey: keyToSave,
           offsetMs: newOffset,
