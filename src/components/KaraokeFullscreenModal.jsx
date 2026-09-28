@@ -702,7 +702,7 @@ export default function KaraokeFullscreenModal({
               hyphens: 'auto',
               lang: 'vi',
             }}>
-              {current?.title || 'Chưa có bài hát'}
+              {isLofiCurrent ? '24/7 Lofi Thư Giãn' : (current?.title || 'Chưa có bài hát')}
             </h2>
             <p style={{
               margin: 0,
@@ -710,7 +710,7 @@ export default function KaraokeFullscreenModal({
               color: 'var(--yellow)',
               fontWeight: 500,
             }}>
-              {current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music'}
+              {isLofiCurrent ? 'Chế độ phát nền 24/7' : (current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music')}
             </p>
           </div>
 
@@ -919,60 +919,62 @@ export default function KaraokeFullscreenModal({
             }}
           >
             {/* Like / Favorite Button */}
-            <button
-              onClick={() => {
-                if (!current) return;
-                setHeartPopping(true);
-                setTimeout(() => setHeartPopping(false), 500);
-                onAction?.('toggleFavorite', current);
-              }}
-              style={{
-                border: isFav ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid rgba(255, 255, 255, 0.12)',
-                background: isFav ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                color: isFav ? '#ef4444' : 'rgba(255, 255, 255, 0.75)',
-                borderRadius: 20,
-                padding: '6px 13px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 7,
-                cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                transform: heartPopping ? 'scale(1.18)' : 'scale(1)',
-                boxShadow: isFav ? '0 0 14px rgba(239, 68, 68, 0.3)' : 'none',
-                userSelect: 'none',
-                flexShrink: 0,
-              }}
-              title={isFav ? 'Xóa khỏi danh sách yêu thích' : 'Thêm vào danh sách yêu thích ❤️'}
-              onMouseEnter={(e) => {
-                if (!isFav) {
-                  e.currentTarget.style.color = '#f87171';
-                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isFav) {
-                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                }
-              }}
-            >
-              <Heart
-                size={16}
-                fill={isFav ? '#ef4444' : 'none'}
-                color={isFav ? '#ef4444' : 'currentColor'}
-                strokeWidth={isFav ? 0 : 2}
-              />
-              <span style={{
-                fontSize: 12,
-                fontWeight: 600,
-                fontFamily: '"Be Vietnam Pro", sans-serif',
-                letterSpacing: '0.02em',
-              }}>
-                {isFav ? 'Đã thích' : 'Yêu thích'}
-              </span>
-            </button>
+            {!isLofiCurrent && (
+              <button
+                onClick={() => {
+                  if (!current) return;
+                  setHeartPopping(true);
+                  setTimeout(() => setHeartPopping(false), 500);
+                  onAction?.('toggleFavorite', current);
+                }}
+                style={{
+                  border: isFav ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid rgba(255, 255, 255, 0.12)',
+                  background: isFav ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                  color: isFav ? '#ef4444' : 'rgba(255, 255, 255, 0.75)',
+                  borderRadius: 20,
+                  padding: '6px 13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  transform: heartPopping ? 'scale(1.18)' : 'scale(1)',
+                  boxShadow: isFav ? '0 0 14px rgba(239, 68, 68, 0.3)' : 'none',
+                  userSelect: 'none',
+                  flexShrink: 0,
+                }}
+                title={isFav ? 'Xóa khỏi danh sách yêu thích' : 'Thêm vào danh sách yêu thích ❤️'}
+                onMouseEnter={(e) => {
+                  if (!isFav) {
+                    e.currentTarget.style.color = '#f87171';
+                    e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isFav) {
+                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }
+                }}
+              >
+                <Heart
+                  size={16}
+                  fill={isFav ? '#ef4444' : 'none'}
+                  color={isFav ? '#ef4444' : 'currentColor'}
+                  strokeWidth={isFav ? 0 : 2}
+                />
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  fontFamily: '"Be Vietnam Pro", sans-serif',
+                  letterSpacing: '0.02em',
+                }}>
+                  {isFav ? 'Đã thích' : 'Yêu thích'}
+                </span>
+              </button>
+            )}
 
             {/* Requester info badge (if available) */}
             {current?.requestedBy && (

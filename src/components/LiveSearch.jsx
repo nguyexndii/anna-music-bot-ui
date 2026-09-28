@@ -95,10 +95,10 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
 
   const detected = useMemo(() => detectUrlType(query), [query]);
 
-  // Live search tự động khi người dùng gõ phím (as-you-type, debounce 350ms)
+  // Live search tự động khi người dùng gõ phím hoặc dán link (debounce 350ms)
   useEffect(() => {
     const trimmed = query.trim();
-    if (!trimmed || trimmed.length < 2 || detected?.isPlaylist || detected?.cleanUrl) {
+    if (!trimmed || trimmed.length < 2 || detected?.isPlaylist) {
       if (!trimmed) {
         setResults([]);
         setLoading(false);
@@ -114,7 +114,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query, searchMode, detected?.isPlaylist, detected?.cleanUrl]);
+  }, [query, searchMode, detected?.isPlaylist]);
 
   // Lấy trước ảnh bìa cho Playlist Spotify khi người dùng dán link
   useEffect(() => {

@@ -44,6 +44,12 @@ export default function BottomMiniPlayer({
 }) {
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current = player?.current;
+  const isLofi = Boolean(
+    current?.is247 ||
+    current?.requestedBy === 'Auto (24/7)' ||
+    current?.requestedBy === 'Auto (24/7 Lofi)' ||
+    (player?.mode247 && (!current || current?.requestedBy?.includes?.('Auto')))
+  );
   const isPlayable = Boolean(current && (player?.isPlaying || player?.isPaused) && !player?.isPreparing);
 
   // Local progress interpolation
@@ -185,9 +191,9 @@ export default function BottomMiniPlayer({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <h4 className="text-xs sm:text-sm font-bold text-white truncate group-hover/bar:text-anna-accent transition">
-                {current?.title || 'Chưa phát bài nào'}
+                {isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || 'Chưa phát bài nào')}
               </h4>
-              {current && (
+              {current && !isLofi && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -207,7 +213,7 @@ export default function BottomMiniPlayer({
               )}
             </div>
             <p className="text-[11px] text-anna-muted truncate mt-0.5">
-              {current?.artist && current.artist !== 'Unknown' ? current.artist : 'YouTube Music'}
+              {isLofi ? 'Chế độ phát nền 24/7' : (current?.artist && current.artist !== 'Unknown' ? current.artist : 'YouTube Music')}
             </p>
           </div>
         </div>

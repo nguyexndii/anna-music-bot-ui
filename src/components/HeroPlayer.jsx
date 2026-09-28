@@ -35,6 +35,12 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
 
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current   = player?.current;
+  const isLofi    = Boolean(
+    current?.is247 ||
+    current?.requestedBy === 'Auto (24/7)' ||
+    current?.requestedBy === 'Auto (24/7 Lofi)' ||
+    (player?.mode247 && (!current || current?.requestedBy?.includes?.('Auto')))
+  );
   const isPlayable = Boolean(current && (player?.isPlaying || player?.isPaused) && !player?.isPreparing);
   const isFav     = player?.favorites?.some(f =>
     (f.url && current?.url && f.url === current?.url) ||
@@ -174,7 +180,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
-    if (!current) return;
+    if (!current || isLofi) return;
     setHeartPopping(true);
     setTimeout(() => setHeartPopping(false), 550);
     onAction('toggleFavorite', current);
@@ -335,12 +341,30 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           {/* Vinyl Disc (Đĩa than cổ điển vân rãnh xoay tròn) */}
           <div
             className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
-            aria-label={current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát'}
+            aria-label={isLofi ? 'Đĩa nhạc: 24/7 Lofi Thư Giãn' : (current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát')}
           >
             <div className="vinyl-grooves" />
             <div className="vinyl-art">
-              {current?.thumbnail ? (
-                <img src={current.thumbnail} alt={`Bìa album: ${current.title}`} />
+              {isLofi ? (
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  background: 'radial-gradient(circle, #2d2238 0%, #120e1c 100%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--yellow, #e8c977)',
+                  gap: 3,
+                  userSelect: 'none'
+                }}>
+                  <Coffee size={24} style={{ filter: 'drop-shadow(0 0 6px rgba(232,201,119,0.5))' }} />
+                  <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.12em', fontFamily: '"DM Mono", monospace' }}>
+                    24/7 LOFI
+                  </span>
+                </div>
+              ) : current?.thumbnail ? (
+                <img src={current.thumbnail} alt={`Bìa album: ${current.title}`} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
                 <div className="vinyl-art-fallback">
                   <span>{current?.title?.[0] || '♪'}</span>
@@ -358,18 +382,18 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
         <div className="track-meta" style={{ marginTop: 8 }}>
           <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
             <p className="track-eyebrow">
-              {(current?.is247 || current?.requestedBy === 'Auto (24/7)') ? '24/7 · LOFI THƯ GIÃN' : getSourceLabel(current)}
+              {isLofi ? 'CHẾ ĐỘ PHÁT NỀN 24/7' : getSourceLabel(current)}
             </p>
-            <h1 className="track-title" title={current?.title || current?.name || 'Chưa có bài hát'}>
-              {current?.title || current?.name || (player?.isPlaying ? 'Đang phát âm thanh' : 'Chưa có bài hát')}
+            <h1 className="track-title" title={isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || current?.name || 'Chưa có bài hát')}>
+              {isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || current?.name || (player?.isPlaying ? 'Đang phát âm thanh' : 'Chưa có bài hát'))}
             </h1>
-            <p className="track-artist" title={current?.artist}>
-              {current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music'}
+            <p className="track-artist" title={isLofi ? 'Tự động phát khi phòng chờ • Thư thái & Tập trung' : current?.artist}>
+              {isLofi ? 'Tự động phát khi phòng chờ • Thư thái & Tập trung' : (current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music')}
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {current && (
+            {current && !isLofi && (
               <button
                 className={`fav-btn${isFav ? ' liked' : ''}${heartPopping ? ' heart-pop-anim' : ''}`}
                 onClick={handleFavoriteClick}
