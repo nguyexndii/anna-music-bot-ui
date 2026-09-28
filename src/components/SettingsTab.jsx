@@ -49,7 +49,8 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
     announceSongs: true,
     djOnly: false,
     djRoleId: null,
-    defaultVolume: 80
+    defaultVolume: 80,
+    autoplayLayers: ['ytmix', 'ai', 'lastfm', 'heuristic']
   });
 
   const [textChannels, setTextChannels] = useState([]);
@@ -387,6 +388,66 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 }`}
               />
             </button>
+          </div>
+
+          {/* 5b. Thứ Tự & Các Tầng Autoplay */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 flex flex-col gap-2.5 transition">
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-anna-accent" />
+                <span>Thứ Tự Tầng Gợi Ý Autoplay</span>
+              </p>
+              <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">
+                Tích chọn các tầng gợi ý nhạc bạn muốn dùng. Nếu chỉ chọn YouTube Mix, bot sẽ chỉ lấy nhạc từ YouTube Mix.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-anna-border/40">
+              {[
+                { id: 'ytmix', label: 'YouTube Mix (RD)', badge: '🔴', desc: 'Chuẩn gu thuật toán YouTube' },
+                { id: 'ai', label: 'Gemini DJ AI', badge: '✨', desc: 'Gợi ý thông minh theo vibe' },
+                { id: 'lastfm', label: 'Last.fm Similar', badge: '📻', desc: 'Thư viện bài hát quốc tế' },
+                { id: 'heuristic', label: 'Heuristic Fallback', badge: '🔍', desc: 'Cùng ca sĩ / bài nổi bật' }
+              ].map(layer => {
+                const currentLayers = Array.isArray(serverSettings.autoplayLayers) && serverSettings.autoplayLayers.length > 0
+                  ? serverSettings.autoplayLayers
+                  : ['ytmix', 'ai', 'lastfm', 'heuristic'];
+                const isChecked = currentLayers.includes(layer.id);
+                return (
+                  <button
+                    key={layer.id}
+                    type="button"
+                    onClick={() => {
+                      let nextLayers;
+                      if (isChecked) {
+                        if (currentLayers.length <= 1) return; // Luôn giữ ít nhất 1 tầng
+                        nextLayers = currentLayers.filter(id => id !== layer.id);
+                      } else {
+                        nextLayers = [...currentLayers, layer.id];
+                      }
+                      updateSetting('autoplayLayers', nextLayers);
+                    }}
+                    disabled={isSaving}
+                    className={`flex items-center justify-between p-2.5 rounded-xl border text-left transition ${
+                      isChecked
+                        ? 'bg-anna-accent/10 border-anna-accent/40 text-white'
+                        : 'bg-anna-surface/50 border-anna-border/40 text-anna-muted hover:border-anna-border'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{layer.badge}</span>
+                      <div>
+                        <div className="text-xs font-semibold">{layer.label}</div>
+                        <div className="text-[10px] opacity-70">{layer.desc}</div>
+                      </div>
+                    </div>
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${isChecked ? 'bg-anna-accent text-white' : 'bg-anna-border/40 text-anna-muted'}`}>
+                      {isChecked ? 'BẬT' : 'TẮT'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* 6. Crossfade */}
