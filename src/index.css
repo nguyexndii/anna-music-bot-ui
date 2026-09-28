@@ -620,7 +620,7 @@ button { cursor: pointer; }
 }
 
 /* ─── Auth screens & Equal Buttons ─────────────────── */
-.auth-shell { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px 24px; background: var(--bg); }
+.auth-shell { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px 24px; background: var(--bg); position: relative; }
 .auth-brand { text-align: center; margin-bottom: 28px; }
 .brand-name { font: 400 38px/0.85 Georgia, serif; letter-spacing: -4px; padding-right: 4px; }
 .brand-name .y { color: var(--yellow); } .brand-name .c { color: var(--coral); font-weight: 400; }
@@ -637,6 +637,249 @@ button { cursor: pointer; }
 .pin-digits { display: flex; gap: 7px; margin-top: 10px; }
 .pin-digits span { flex: 1; height: 6px; border-radius: 3px; background: #2b2e32; }
 .pin-digits span.filled { background: var(--yellow); }
+
+/* ─── Split 2-Column PIN Layout (Tối giản & Sang trọng) ──────────────── */
+.auth-split-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(100%, 780px);
+  min-height: 420px;
+  background: rgba(18, 20, 24, 0.75);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  position: relative;
+  animation: tabFadeIn .3s cubic-bezier(.2,.8,.2,1) both;
+}
+
+/* Cột trái: Hero Branding Tối Giản */
+.auth-hero-pane {
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(232, 201, 119, 0.08) 0%, rgba(224, 112, 85, 0.04) 50%, transparent 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+.hero-pane-glow {
+  position: absolute;
+  top: -60px;
+  left: -60px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 201, 119, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+  filter: blur(40px);
+}
+.hero-brand-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 1;
+}
+.hero-logo-box {
+  margin-bottom: 14px;
+  position: relative;
+}
+.hero-logo-img {
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  border: 2px solid rgba(232, 201, 119, 0.35);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 24px rgba(232, 201, 119, 0.2);
+  object-fit: cover;
+  image-rendering: pixelated;
+  transition: transform 0.2s ease;
+}
+.hero-logo-img:hover {
+  transform: scale(1.04);
+}
+.hero-brand-center .brand-name {
+  font-size: 42px;
+  margin-bottom: 2px;
+}
+.hero-brand-center .brand-subtitle {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 6px;
+}
+.hero-waves {
+  margin-top: 24px;
+  height: 26px;
+}
+
+/* Cột phải: Form nhập mã PIN */
+.auth-form-pane {
+  padding: 44px 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(14, 16, 19, 0.4);
+}
+.auth-card-split {
+  width: 100%;
+}
+.auth-card-split h1 {
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.cmd-tag {
+  color: var(--yellow);
+  font-family: "DM Mono", monospace;
+  background: rgba(232, 201, 119, 0.12);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 11.5px;
+}
+.pin-input-section {
+  margin: 22px 0 18px;
+}
+
+/* ─── 6 Ô Nhập PIN Riêng Biệt ─────────────────────────────── */
+.pin-split-container {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.pin-box {
+  width: 44px;
+  height: 56px;
+  border-radius: 12px;
+  background: #141619;
+  border: 1.5px solid var(--border);
+  color: var(--ink);
+  font-family: "DM Mono", monospace;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  touch-action: manipulation;
+  transition: border-color .18s, box-shadow .18s, transform .15s, background .18s;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+.pin-box:hover {
+  border-color: #45494f;
+}
+.pin-box:focus {
+  border-color: var(--yellow);
+  background: #191b20;
+  box-shadow: 0 0 16px rgba(232, 201, 119, 0.35), inset 0 2px 4px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
+.pin-box.filled {
+  border-color: rgba(232, 201, 119, 0.55);
+  background: #181a1f;
+  color: var(--yellow);
+}
+
+.split-btn {
+  margin-top: 12px;
+  font-size: 14px;
+  height: 48px;
+  border-radius: 12px;
+}
+.split-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+.card-footer-info {
+  margin-top: 14px;
+}
+
+/* ─── Tối ưu hóa toàn diện cho Mobile & Tablet (< 768px) ─── */
+@media (max-width: 768px) {
+  .auth-shell {
+    padding: 16px;
+    min-height: 100svh;
+  }
+  .auth-split-wrapper {
+    grid-template-columns: 1fr;
+    width: min(100%, 390px);
+    border-radius: 20px;
+    min-height: auto;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  }
+  .auth-hero-pane {
+    padding: 24px 20px 14px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .hero-logo-img {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+  }
+  .hero-brand-center .brand-name {
+    font-size: 32px;
+  }
+  .hero-brand-center .brand-subtitle {
+    font-size: 9px;
+  }
+  .hero-waves {
+    margin-top: 12px;
+    height: 20px;
+  }
+  .auth-form-pane {
+    padding: 22px 20px 26px;
+  }
+  .auth-card-split h1 {
+    font-size: 19px;
+  }
+  .card-copy {
+    font-size: 11.5px;
+  }
+  .pin-input-section {
+    margin: 18px 0 16px;
+  }
+  .pin-split-container {
+    gap: 6px;
+  }
+  .pin-box {
+    width: calc((100% - 30px) / 6);
+    height: 50px;
+    font-size: 21px;
+    border-radius: 10px;
+  }
+  .split-btn {
+    height: 46px;
+    font-size: 13.5px;
+  }
+}
+
+@media (max-width: 360px) {
+  .pin-split-container {
+    gap: 4px;
+  }
+  .pin-box {
+    width: calc((100% - 20px) / 6);
+    height: 46px;
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 380px) {
+  .pin-split-container {
+    gap: 5px;
+  }
+  .pin-box {
+    width: 38px;
+    height: 48px;
+    font-size: 20px;
+  }
+}
 
 .primary-button, .ghost-button {
   height: 44px;
@@ -736,20 +979,21 @@ button { cursor: pointer; }
     bottom: 0;
     left: 0;
     right: 0;
-    height: 58px;
-    min-height: 58px;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    min-height: 60px;
     width: 100%;
     z-index: 100;
-    background: rgba(18, 20, 24, 0.96);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(16, 18, 22, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--border);
     border-right: 0;
-    padding: 0 4px;
+    padding: 2px 6px max(6px, env(safe-area-inset-bottom, 0px));
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
     margin: 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
   }
 
   .rail-nav {
@@ -759,20 +1003,22 @@ button { cursor: pointer; }
     align-items: center;
     width: 100%;
     margin-top: 0;
-    gap: 2px;
+    gap: 4px;
   }
 
   .rail-btn {
     flex: 1;
-    max-width: 64px;
-    height: 50px;
-    border-radius: 10px;
-    padding: 4px 1px;
+    max-width: 68px;
+    height: 48px;
+    border-radius: 12px;
+    padding: 4px 2px;
     gap: 3px;
+    touch-action: manipulation;
   }
 
   .rail-btn span {
-    font-size: 8px;
+    font-size: 8.5px;
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
 
@@ -789,8 +1035,8 @@ button { cursor: pointer; }
     display: flex !important;
     flex: 1;
     width: 100%;
-    height: calc(100svh - 58px);
-    padding: 14px 16px 20px;
+    height: calc(100svh - 60px - env(safe-area-inset-bottom, 0px));
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
     border-right: 0;
     overflow-y: auto;
   }
@@ -805,46 +1051,53 @@ button { cursor: pointer; }
     display: flex !important;
     flex: 1;
     width: 100%;
-    height: calc(100svh - 58px);
-    padding: 16px 16px 120px; /* Space for mini-player + bottom rail */
+    height: calc(100svh - 60px - env(safe-area-inset-bottom, 0px));
+    padding: 14px 14px calc(125px + env(safe-area-inset-bottom, 0px)); /* Space for mini-player + bottom rail */
     border-right: 0;
     overflow-y: auto;
   }
 
-  /* Responsive Vinyl deck */
+  /* Responsive Vinyl deck trên Mobile */
   .vinyl-deck {
-    margin: 4px auto 10px;
-    max-width: 280px;
+    margin: 2px auto 8px;
+    max-width: 270px;
   }
   .vinyl-wrap {
-    width: min(54vw, 210px);
+    width: min(52vw, 200px);
   }
   .tonearm-assembly {
     top: -10px;
-    right: 8px;
-    width: 58px;
-    height: 168px;
-    transform-origin: 32px 34px;
+    right: 6px;
+    width: 56px;
+    height: 160px;
+    transform-origin: 30px 32px;
+  }
+
+  /* Ngăn chặn iOS Safari tự phóng to màn hình khi bấm vào ô nhập */
+  .search-box input {
+    font-size: 16px !important;
   }
 }
 
 /* ─── Mobile Mini Player Bar ────────────────────────── */
 .mobile-mini-player {
   position: fixed;
-  bottom: 58px;
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
-  height: 52px;
-  background: rgba(24, 26, 30, 0.98);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid var(--border);
+  height: 54px;
+  background: rgba(22, 24, 28, 0.98);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px 14px 0 0;
   display: flex;
   flex-direction: column;
   z-index: 99;
   cursor: pointer;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-  animation: slideUpMini 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.65);
+  animation: slideUpMini 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  touch-action: manipulation;
 }
 
 @keyframes slideUpMini {
@@ -856,19 +1109,20 @@ button { cursor: pointer; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 12px;
+  padding: 0 14px;
   height: 100%;
   min-width: 0;
 }
 
 .mini-player-thumb {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: #111;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .mini-player-info {
@@ -877,7 +1131,7 @@ button { cursor: pointer; }
 }
 
 .mini-player-title {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink);
   overflow: hidden;
@@ -891,26 +1145,31 @@ button { cursor: pointer; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: "DM Mono", monospace;
 }
 
 .mini-player-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .mini-ctrl-btn {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 0;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--ink);
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  touch-action: manipulation;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.mini-ctrl-btn:active {
+  transform: scale(0.92);
 }
 .mini-ctrl-btn:hover {
   background: var(--soft);

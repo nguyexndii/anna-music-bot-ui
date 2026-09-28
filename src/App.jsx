@@ -54,64 +54,180 @@ function BrandMark({ onClick }) {
   );
 }
 
-// ─── PIN / Auth screen ───────────────────────────────────────────────────────
+// ─── PIN 6-digit Split Input Component ────────────────────────────────────────
+function PinCodeInput({ length = 6, value = '', onChange, onComplete, disabled = false, autoFocus = true }) {
+  const inputRefs = useRef([]);
+  const digits = Array.from({ length }, (_, i) => value[i] || '');
+
+  const handleChange = (e, index) => {
+    const rawVal = e.target.value;
+    const char = rawVal.replace(/[^0-9]/g, '').slice(-1);
+    const newDigits = [...digits];
+    newDigits[index] = char;
+    const newValue = newDigits.join('');
+    onChange(newValue);
+
+    if (char && index < length - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    if (newValue.length === length && onComplete) {
+      onComplete(newValue);
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Backspace') {
+      if (!digits[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+        const newDigits = [...digits];
+        newDigits[index - 1] = '';
+        onChange(newDigits.join(''));
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < length - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text');
+    let extracted = pasteData.replace(/[^0-9]/g, '').slice(0, length);
+    if (pasteData.includes('token=')) {
+      const m = pasteData.match(/token=([0-9]{6})/);
+      if (m) extracted = m[1];
+    }
+    if (extracted) {
+      onChange(extracted);
+      const focusIndex = Math.min(extracted.length, length - 1);
+      inputRefs.current[focusIndex]?.focus();
+      if (extracted.length === length && onComplete) {
+        onComplete(extracted);
+      }
+    }
+  };
+
+  return (
+    <div className="pin-split-container" onPaste={handlePaste}>
+      {Array.from({ length }, (_, i) => (
+        <input
+          key={i}
+          ref={(el) => (inputRefs.current[i] = el)}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={1}
+          autoFocus={autoFocus && i === 0}
+          disabled={disabled}
+          value={digits[i] || ''}
+          onChange={(e) => handleChange(e, i)}
+          onKeyDown={(e) => handleKeyDown(e, i)}
+          className={`pin-box ${digits[i] ? 'filled' : ''}`}
+          aria-label={`Mã PIN số ${i + 1}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── PIN / Auth screen (Phương án A: Split 2-Column Layout) ───────────────────
 function AuthScreen({ onVerify, authError, isVerifying }) {
   const [pin, setPin] = useState('');
   const [localError, setLocalError] = useState('');
   const error = localError || authError;
 
-  const submit = (e) => {
-    e.preventDefault();
+  const handleComplete = (completedPin) => {
+    if (isVerifying || completedPin.length !== 6) return;
     setLocalError('');
-    let val = e.target.tokenInput.value.trim();
-    if (val.includes('token=')) {
-      try {
-        const parsed = new URL(val);
-        val = parsed.searchParams.get('token') || val;
-      } catch {
-        const m = val.match(/token=([a-zA-Z0-9._-]+)/);
-        if (m) val = m[1];
-      }
+    localStorage.removeItem('anna_web_token');
+    onVerify(completedPin, true);
+  };
+
+  const submit = (e) => {
+    e?.preventDefault();
+    setLocalError('');
+    let val = pin.trim();
+    if (!val || val.length < 6) {
+      setLocalError('Vui lòng nhập đủ 6 chữ số mã PIN.');
+      return;
     }
-    if (!val) return;
     localStorage.removeItem('anna_web_token');
     onVerify(val, true);
   };
 
   return (
-    <main className="auth-shell">
-      <div className="auth-brand">
-        <img src="/logo.gif" alt="Anna Music" style={{ width: 64, height: 64, borderRadius: 18, margin: '0 auto 14px', border: '1.5px solid var(--border)', objectFit: 'cover', imageRendering: 'pixelated', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }} />
-        <div className="brand-name"><span className="y">an</span><b className="c">na</b></div>
-        <div className="brand-subtitle">MUSIC WEB PLAYER</div>
+    <main className="auth-shell split-mode">
+      <div className="auth-split-wrapper">
+        {/* CỘT TRÁI: HERO BRANDING (TỐI GIẢN & SANG TRỌNG) */}
+        <section className="auth-hero-pane">
+          <div className="hero-pane-glow" aria-hidden="true" />
+          <div className="hero-brand-center">
+            <div className="hero-logo-box">
+              <img
+                src="/logo.gif"
+                alt="Anna Music"
+                className="hero-logo-img"
+              />
+            </div>
+            <div className="brand-name">
+              <span className="y">an</span><b className="c">na</b>
+            </div>
+            <div className="brand-subtitle">MUSIC WEB PLAYER</div>
+            <div className="quiet-shape hero-waves" aria-hidden="true">
+              <i /><i /><i /><i /><i />
+            </div>
+          </div>
+        </section>
+
+        {/* CỘT PHẢI: FORM NHẬP MÃ PIN 6 Ô */}
+        <section className="auth-form-pane">
+          <form className="auth-card-split" onSubmit={submit}>
+            <div className="card-kicker">KẾT NỐI TÀI KHOẢN</div>
+            <h1>Nhập mã PIN</h1>
+            <p className="card-copy">
+              Dùng lệnh <code className="cmd-tag">/web</code> trong Discord để nhận mã PIN 6 số.
+            </p>
+
+            <div className="pin-input-section">
+              <label className="pin-label">MÃ PIN 6 CHỮ SỐ</label>
+              <PinCodeInput
+                length={6}
+                value={pin}
+                onChange={(val) => {
+                  setPin(val);
+                  setLocalError('');
+                }}
+                onComplete={handleComplete}
+                disabled={isVerifying}
+                autoFocus={true}
+              />
+            </div>
+
+            {error && (
+              <p className="form-error">
+                <AlertCircle size={14} style={{ display: 'inline', marginRight: 6 }} />
+                {error}
+              </p>
+            )}
+
+            <button
+              className="primary-button split-btn"
+              type="submit"
+              disabled={isVerifying || pin.length < 6}
+            >
+              {isVerifying ? 'Đang kết nối...' : 'Kết Nối'}
+            </button>
+
+            <div className="card-footer-info">
+              <p className="card-footnote">Mã PIN chỉ có hiệu lực trong phiên hiện tại.</p>
+            </div>
+          </form>
+        </section>
       </div>
-      <form className="auth-card" onSubmit={submit}>
-        <div className="card-kicker">KẾT NỐI TÀI KHOẢN</div>
-        <h1>Nhập mã PIN</h1>
-        <p className="card-copy">Dùng lệnh <code style={{color:'var(--yellow)'}}>/web</code> trong Discord để nhận mã 6 số</p>
-        <label className="pin-label" htmlFor="tokenInput">MÃ PIN</label>
-        <input
-          id="tokenInput"
-          name="tokenInput"
-          autoFocus
-          inputMode="numeric"
-          maxLength={30}
-          value={pin}
-          onChange={e => { setPin(e.target.value); setLocalError(''); }}
-          placeholder="Nhập PIN 6 số..."
-        />
-        <div className="pin-digits" aria-hidden="true">
-          {Array.from({ length: 6 }, (_, i) => (
-            <span key={i} className={pin[i] ? 'filled' : ''}></span>
-          ))}
-        </div>
-        {error && <p className="form-error"><AlertCircle size={12} style={{display:'inline',marginRight:4}} />{error}</p>}
-        <button className="primary-button" type="submit" disabled={isVerifying}>
-          {isVerifying ? 'Đang kết nối...' : 'Kết Nối'}
-        </button>
-        <p className="card-footnote">Mã PIN chỉ có hiệu lực trong phiên hiện tại.</p>
-      </form>
-      <footer className="auth-footer">ANNA MUSIC</footer>
+
+      <footer className="auth-footer">ANNA MUSIC • WEB PLAYER 24/7</footer>
     </main>
   );
 }
