@@ -14,9 +14,9 @@ export async function onRequest(context) {
   const url = new URL(context.request.url);
 
   // Ưu tiên API_BASE từ biến môi trường Cloudflare Pages, nhưng bỏ qua tunnel cũ đã chết
-  let apiBase = context.env.API_BASE || 'https://miniature-supplier-say-qualifying.trycloudflare.com';
-  if (!apiBase || apiBase.includes('pockets-morrison-sells-nurse') || apiBase.includes('jvc-labs-farmer-gardens')) {
-    apiBase = 'https://miniature-supplier-say-qualifying.trycloudflare.com';
+  let apiBase = context.env.API_BASE || 'https://joseph-desperate-samples-router.trycloudflare.com';
+  if (!apiBase || apiBase.includes('pockets-morrison-sells-nurse') || apiBase.includes('jvc-labs-farmer-gardens') || apiBase.includes('miniature-supplier-say-qualifying')) {
+    apiBase = 'https://joseph-desperate-samples-router.trycloudflare.com';
   }
   apiBase = apiBase.replace(/\/$/, '');
   const targetUrl = `${apiBase}${url.pathname}${url.search}`;
