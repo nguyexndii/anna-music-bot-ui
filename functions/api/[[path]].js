@@ -23,7 +23,7 @@ export async function onRequest(context) {
   let apiBase = 'https://asking-grain-result-knew.trycloudflare.com';
   if (context.env.API_BASE) {
     const custom = context.env.API_BASE.replace(/\/$/, '');
-    if (!deadTunnels.some(dead => custom.includes(dead))) {
+    if (!deadTunnels.some(dead => custom.includes(dead)) && !custom.includes('160.191') && !custom.includes('http://')) {
       apiBase = custom;
     }
   }
@@ -57,6 +57,7 @@ export async function onRequest(context) {
     responseHeaders.set('Access-Control-Allow-Origin', '*');
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    responseHeaders.set('X-Debug-Target', targetUrl);
 
     const resBody = await response.text();
     return new Response(resBody, {
