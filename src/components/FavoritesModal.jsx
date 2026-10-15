@@ -30,8 +30,12 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
   if (!isOpen) return null;
 
   const handlePlayAll = () => {
-    favorites.forEach((song) => {
-      onOrderSong?.(song);
+    if (!favorites || favorites.length === 0) return;
+    onOrderSong?.({
+      tracks: favorites,
+      title: 'Danh sách Bài Hát Yêu Thích',
+      isPlaylist: true,
+      itemCount: favorites.length
     });
     onClose?.();
   };

@@ -11,7 +11,8 @@ import LofiConfirmModal from './components/LofiConfirmModal';
 import Toast from './components/Toast';
 import DynamicAmbientBackground from './components/DynamicAmbientBackground';
 import NotFoundScreen from './components/NotFoundScreen';
-import { Search, ListMusic, Mic2, Settings, History, AlertCircle, Disc3, Play, Pause, SkipForward, Loader2 } from 'lucide-react';
+import NoVoiceSession from './components/NoVoiceSession';
+import { Search, ListMusic, Mic2, Settings, History, AlertCircle, Disc3, Play, Pause, SkipForward, Loader2, LogOut } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from './config';
 
 function getTrackThumb(track) {
@@ -232,38 +233,7 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
   );
 }
 
-// ─── No Voice screen ─────────────────────────────────────────────────────────
-function NoVoiceScreen({ user, onRefresh, isRefreshing, onLogout }) {
-  return (
-    <main className="auth-shell">
-      <div className="auth-brand">
-        <img src="/logo.gif" alt="Anna Music" style={{ width: 64, height: 64, borderRadius: 18, margin: '0 auto 14px', border: '1.5px solid var(--border)', objectFit: 'cover', imageRendering: 'pixelated', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }} />
-        <div className="brand-name"><span className="y">an</span><b className="c">na</b></div>
-        <div className="brand-subtitle">MUSIC WEB PLAYER</div>
-      </div>
-      <section className="auth-card voice-card">
-        <div className="quiet-shape" aria-hidden="true">
-          <i /><i /><i /><i /><i />
-        </div>
-        <div className="card-kicker">PHIÊN KẾT NỐI</div>
-        <h1>Chưa ở trong kênh Voice</h1>
-        <p className="card-copy">
-          Để sử dụng web player, bạn cần tham gia một kênh thoại (Voice Channel) trên Discord trước. Bot và bạn phải ở cùng kênh.
-        </p>
-        {user?.guildName && (
-          <div className="server-badge">{user.guildName.toUpperCase()}</div>
-        )}
-        <div className="voice-actions">
-          <button className="primary-button" onClick={onRefresh} disabled={isRefreshing}>
-            {isRefreshing ? 'Đang kiểm tra...' : 'Thử Lại'}
-          </button>
-        </div>
-        <p className="hint">Sau khi vào kênh Voice, nhấn Thử Lại để đồng bộ.</p>
-      </section>
-      <footer className="auth-footer">ANNA MUSIC</footer>
-    </main>
-  );
-}
+
 
 // ─── Main App ────────────────────────────────────────────────────────────────
 export default function App() {
@@ -548,39 +518,33 @@ export default function App() {
     const cg = guildId || user?.guildId;
     const ct = token || localStorage.getItem('anna_web_token');
     if (!cg || !ct) return;
+    const isBatch = Array.isArray(track?.tracks) && track.tracks.length > 0;
     const title = track?.title || track?.name || (track?.isPlaylist ? 'Danh sách phát' : 'bài hát');
     try {
       showToast(`Đang thêm "${title}"...`, 'info');
+      const payload = isBatch ? { tracks: track.tracks, token: ct } : { track, token: ct };
       const res = await fetch(`${API_BASE}/api/guilds/${cg}/play`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ct}` },
-        body: JSON.stringify({ track, token: ct }),
+        body: JSON.stringify(payload),
       });
       if (res.status === 401) { handleAuthExpired(); return; }
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
-        if (data.isPlaylist || data.addedCount || track?.isPlaylist) {
-          const c = data.addedCount || (data.tracks ? data.tracks.length : '');
-          showToast(`Đã thêm Playlist${c ? ` (${c} bài)` : ''} vào hàng chờ!`);
+        if (isBatch || data.isPlaylist || data.addedCount || track?.isPlaylist) {
+          const c = data.addedCount || (track?.tracks ? track.tracks.length : '');
+          showToast(`Đã thêm ${c ? `${c} bài hát` : 'Playlist'} vào hàng chờ!`);
         } else {
           showToast(`Đã thêm "${data.track?.title || title}" vào hàng chờ!`);
-        }
-        if (data.track && (!player?.current || player.current.is247 || player.current.requestedBy === 'Auto (24/7)')) {
-          setPlayer(prev => prev ? {
-            ...prev,
-            current: {
-              ...data.track,
-              is247: false,
-              requestedBy: user?.displayName || user?.username || 'User'
-            }
-          } : prev);
         }
         fetchState(true);
       } else {
         showToast(data.error || 'Lỗi thêm bài hát', 'error');
         if (data.error?.includes('Voice')) handleRefreshVoice();
       }
-    } catch { showToast('Không thể gửi yêu cầu đến bot!', 'error'); }
+    } catch {
+      showToast('Không thể gửi yêu cầu đến bot!', 'error');
+    }
   };
 
   // 6. Player action với chống spam và phản hồi trực quan tức thì
@@ -731,10 +695,11 @@ export default function App() {
 
   if (!user.isInVoice || (!user.isSameVoice && user.botVoice)) {
     return (
-      <NoVoiceScreen
+      <NoVoiceSession
         user={user}
-        onRefresh={handleRefreshVoice}
+        guildName={guild?.name || user?.guildName}
         isRefreshing={isRefreshingVoice}
+        onRefresh={handleRefreshVoice}
         onLogout={handleLogout}
       />
     );
@@ -800,9 +765,17 @@ export default function App() {
             className="rail-avatar"
             src={user.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
             alt={user.displayName || user.username}
-            title={`${user.displayName || user.username} (bạn)`}
-            style={{ borderColor: 'var(--yellow)' }}
+            title={`${user.displayName || user.username} (Bạn)`}
           />
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="p-2 rounded-xl text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+            title="Đăng xuất phiên Web"
+            aria-label="Đăng xuất"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </aside>
 

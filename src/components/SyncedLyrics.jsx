@@ -63,7 +63,18 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     return !isLofiTrack && Boolean(songKey && !lyricsCache.has(songKey));
   });
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(() => {
+    const saved = localStorage.getItem('anna_karaoke_autoscroll');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  useEffect(() => {
+    const handleAutoScrollChange = (e) => {
+      if (typeof e.detail === 'boolean') setAutoScroll(e.detail);
+    };
+    window.addEventListener('anna_autoscroll_change', handleAutoScrollChange);
+    return () => window.removeEventListener('anna_autoscroll_change', handleAutoScrollChange);
+  }, []);
 
   const isYtCc = lyricsData?.source === 'youtube_cc';
 
@@ -139,8 +150,8 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       report({
         text: 'LOFI CHILL · TỰ ĐỘNG',
         color: 'var(--yellow)',
-        bg: 'rgba(232,201,119,0.08)',
-        border: 'rgba(232,201,119,0.25)',
+        bg: 'rgba(249, 115, 22,0.08)',
+        border: 'rgba(249, 115, 22,0.25)',
         title: 'Bản nhạc Lofi thư giãn tự động'
       });
       return;
@@ -195,8 +206,8 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       report({
         text: 'LỜI: ĐỒNG BỘ',
         color: 'var(--yellow)',
-        bg: 'rgba(232,201,119,0.08)',
-        border: 'rgba(232,201,119,0.25)'
+        bg: 'rgba(249, 115, 22,0.08)',
+        border: 'rgba(249, 115, 22,0.25)'
       });
     }
   }, [lyricsData, loading, isLofiTrack, current?.title, onSourceChange]);
@@ -240,11 +251,13 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     if (durMs > 0) params.set('duration', durMs);
     if (current.url) params.set('url', current.url);
 
+    const tok = localStorage.getItem('anna_web_token');
+    const authHeaders = tok ? { Authorization: `Bearer ${tok}` } : {};
     const fetchUrl = guildId
-      ? `${API_BASE}/api/guilds/${guildId}/lyrics`
+      ? `${API_BASE}/api/guilds/${guildId}/lyrics?${params}`
       : `${API_BASE}/api/lyrics?${params}`;
 
-    fetch(fetchUrl)
+    fetch(fetchUrl, { headers: authHeaders })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         const result = (d?.success && d?.lyrics) ? { ...d, _fetchedFresh: true } : null;
@@ -376,9 +389,9 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       <>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '40px 20px', textAlign: 'center' }}>
           <div style={{
-            fontFamily: '"DM Mono", monospace', fontSize: 10, letterSpacing: '0.16em',
-            color: 'var(--yellow)', background: 'rgba(232,201,119,0.1)', padding: '5px 14px',
-            borderRadius: 999, border: '1px solid rgba(232,201,119,0.3)', marginBottom: 14
+            fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '0.16em',
+            color: 'var(--yellow)', background: 'rgba(249, 115, 22,0.1)', padding: '5px 14px',
+            borderRadius: 999, border: '1px solid rgba(249, 115, 22,0.3)', marginBottom: 14
           }}>
             LOFI 24/7 · PHÁT TỰ ĐỘNG
           </div>
@@ -391,12 +404,12 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           <button
             onClick={() => setIsFullscreen(true)}
             style={{
-              border: '1px solid rgba(232, 201, 119, 0.45)',
-              background: 'rgba(232, 201, 119, 0.12)',
+              border: '1px solid rgba(249, 115, 22, 0.45)',
+              background: 'rgba(249, 115, 22, 0.12)',
               color: 'var(--yellow)',
               borderRadius: 10, padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6,
-              cursor: 'pointer', fontSize: 11, fontFamily: '"DM Mono", monospace', fontWeight: 700,
-              boxShadow: '0 4px 14px rgba(232,201,119,0.15)',
+              cursor: 'pointer', fontSize: 11, fontFamily: '"JetBrains Mono", monospace', fontWeight: 700,
+              boxShadow: '0 4px 14px rgba(249, 115, 22,0.15)',
               transition: 'all .18s',
             }}
           >
@@ -434,7 +447,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           <p
             title={current?.title}
             style={{
-              fontFamily: '"DM Mono", monospace', fontSize: 9.5, letterSpacing: '0.14em',
+              fontFamily: '"JetBrains Mono", monospace', fontSize: 9.5, letterSpacing: '0.14em',
               color: 'var(--yellow)', margin: '0 0 2px', textTransform: 'uppercase',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
             }}
@@ -457,11 +470,11 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           <button
             onClick={() => setIsFullscreen(true)}
             style={{
-              border: '1px solid rgba(232, 201, 119, 0.45)',
-              background: 'rgba(232, 201, 119, 0.12)',
+              border: '1px solid rgba(249, 115, 22, 0.45)',
+              background: 'rgba(249, 115, 22, 0.12)',
               color: 'var(--yellow)',
               borderRadius: 8, padding: '5px 9px', display: 'flex', alignItems: 'center', gap: 5,
-              cursor: 'pointer', fontSize: 10, fontFamily: '"DM Mono", monospace', fontWeight: 700,
+              cursor: 'pointer', fontSize: 10, fontFamily: '"JetBrains Mono", monospace', fontWeight: 700,
               transition: 'all .18s',
             }}
             title="Mở chế độ Lời nhạc & Karaoke toàn màn hình (Phím tắt: ESC để đóng)"
@@ -475,11 +488,11 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
             <button
               onClick={() => setViewMode(m => m === 'plain' ? 'synced' : 'plain')}
               style={{
-                border: `1px solid ${viewMode === 'plain' ? 'rgba(232,201,119,0.45)' : 'var(--border)'}`,
-                background: viewMode === 'plain' ? 'rgba(232,201,119,.12)' : 'transparent',
+                border: `1px solid ${viewMode === 'plain' ? 'rgba(249, 115, 22,0.45)' : 'var(--border)'}`,
+                background: viewMode === 'plain' ? 'rgba(249, 115, 22,.12)' : 'transparent',
                 color: viewMode === 'plain' ? 'var(--yellow)' : 'var(--muted)',
                 borderRadius: 8, padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 4,
-                cursor: 'pointer', fontSize: 10, fontFamily: '"DM Mono", monospace',
+                cursor: 'pointer', fontSize: 10, fontFamily: '"JetBrains Mono", monospace',
                 transition: 'all .18s',
               }}
               title={viewMode === 'plain' ? 'Chuyển sang xem lời chạy theo nhạc' : 'Chuyển sang đọc toàn bộ lời bài hát'}
@@ -493,8 +506,8 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
             <button
               onClick={() => setShowSyncAdjust(p => !p)}
               style={{
-                border: `1px solid ${showSyncAdjust ? 'rgba(232,201,119,0.45)' : 'var(--border)'}`,
-                background: showSyncAdjust ? 'rgba(232,201,119,.12)' : 'transparent',
+                border: `1px solid ${showSyncAdjust ? 'rgba(249, 115, 22,0.45)' : 'var(--border)'}`,
+                background: showSyncAdjust ? 'rgba(249, 115, 22,.12)' : 'transparent',
                 color: showSyncAdjust ? 'var(--yellow)' : 'var(--muted)',
                 borderRadius: 8, padding: '5px 7px', display: 'flex', alignItems: 'center',
                 cursor: 'pointer',
@@ -524,12 +537,12 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'rgba(232, 201, 119, 0.12)',
-                border: '1px solid rgba(232, 201, 119, 0.4)',
+                background: 'rgba(249, 115, 22, 0.12)',
+                border: '1px solid rgba(249, 115, 22, 0.4)',
                 color: 'var(--yellow)',
                 fontSize: 11,
                 fontWeight: 800,
-                fontFamily: '"DM Mono", monospace',
+                fontFamily: '"JetBrains Mono", monospace',
                 cursor: 'help',
                 userSelect: 'none',
                 flexShrink: 0,
@@ -545,14 +558,21 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           {/* Auto Scroll Toggle (icon + minimal) */}
           {showSynced && (
             <button
-              onClick={() => setAutoScroll(p => !p)}
+              onClick={() => {
+              setAutoScroll(p => {
+                const next = !p;
+                localStorage.setItem('anna_karaoke_autoscroll', String(next));
+                window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
+                return next;
+              });
+            }}
               style={{
-                border: `1px solid ${autoScroll ? 'rgba(232,201,119,0.45)' : 'var(--border)'}`,
-                background: autoScroll ? 'rgba(232,201,119,.08)' : 'transparent',
+                border: `1px solid ${autoScroll ? 'rgba(249, 115, 22,0.45)' : 'var(--border)'}`,
+                background: autoScroll ? 'rgba(249, 115, 22,.08)' : 'transparent',
                 color: autoScroll ? 'var(--yellow)' : 'var(--muted)',
                 borderRadius: 8, padding: '5px 7px', display: 'flex', alignItems: 'center',
                 cursor: 'pointer',
-                fontSize: 9, fontFamily: '"DM Mono", monospace',
+                fontSize: 9, fontFamily: '"JetBrains Mono", monospace',
                 transition: 'all .18s',
               }}
               title={autoScroll ? 'Tắt tự cuộn' : 'Bật tự cuộn'}
@@ -566,8 +586,8 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
 
           {lyricsData?.lyrics && !hasSynced && (
             <span style={{
-              fontFamily: '"DM Mono", monospace', fontSize: 9.5, color: 'var(--yellow)', letterSpacing: '0.08em',
-              border: '1px solid rgba(232, 201, 119, 0.3)', borderRadius: 6, padding: '4px 8px', background: 'rgba(232, 201, 119, 0.08)',
+              fontFamily: '"JetBrains Mono", monospace', fontSize: 9.5, color: 'var(--yellow)', letterSpacing: '0.08em',
+              border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: 6, padding: '4px 8px', background: 'rgba(249, 115, 22, 0.08)',
               fontWeight: 600
             }}>
               LỜI ĐỌC
@@ -584,7 +604,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           background: 'var(--paper)', border: '1px solid var(--border)', flexShrink: 0
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9.5, color: 'var(--muted)', marginRight: 2 }}>BÙ TRỄ:</span>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9.5, color: 'var(--muted)', marginRight: 2 }}>BÙ TRỄ:</span>
             <button
               onClick={() => updateOffset(manualOffsetMs - 10000)}
               style={{ padding: '3px 7px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--yellow)', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}
@@ -622,7 +642,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
             </button>
             <button
               onClick={() => updateOffset(0)}
-              style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--yellow)', background: 'transparent', color: 'var(--yellow)', fontSize: 10, fontFamily: '"DM Mono", monospace', cursor: 'pointer', fontWeight: 700 }}
+              style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid var(--yellow)', background: 'transparent', color: 'var(--yellow)', fontSize: 10, fontFamily: '"JetBrains Mono", monospace', cursor: 'pointer', fontWeight: 700 }}
               title="Đặt lại mặc định"
             >
               RESET
@@ -663,7 +683,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
               +10s
             </button>
           </div>
-          <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--muted)', fontFamily: '"DM Mono", monospace' }}>
+          <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--muted)', fontFamily: '"JetBrains Mono", monospace' }}>
             {manualOffsetMs === 0 ? (
               isYtCc ? (
                 <span style={{ color: '#38ef7d' }}>
@@ -699,7 +719,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: 10, color: 'var(--muted)' }}>
             <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: 'var(--yellow)' }} />
-            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10, letterSpacing: '0.12em' }}>ĐANG TẢI LỜI BÀI HÁT...</span>
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '0.12em' }}>ĐANG TẢI LỜI BÀI HÁT...</span>
           </div>
         )}
 
@@ -748,10 +768,10 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
                       lineHeight: 1.55,
                       cursor: 'pointer',
                       transition: 'color 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
-                      background: isActive ? 'rgba(232, 201, 119, 0.12)' : 'transparent',
-                      border: isActive ? '1px solid rgba(232, 201, 119, 0.3)' : '1px solid transparent',
-                      boxShadow: isActive ? '0 6px 20px rgba(0,0,0,0.35), inset 0 0 10px rgba(232,201,119,0.06)' : 'none',
-                      textShadow: isActive ? '0 0 14px rgba(232, 201, 119, 0.35)' : 'none',
+                      background: isActive ? 'rgba(249, 115, 22, 0.12)' : 'transparent',
+                      border: isActive ? '1px solid rgba(249, 115, 22, 0.3)' : '1px solid transparent',
+                      boxShadow: isActive ? '0 6px 20px rgba(0,0,0,0.35), inset 0 0 10px rgba(249, 115, 22,0.06)' : 'none',
+                      textShadow: isActive ? '0 0 14px rgba(249, 115, 22, 0.35)' : 'none',
                       maxWidth: '96%',
                       textAlign: 'center',
                       userSelect: 'none',
@@ -764,9 +784,9 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                 <div style={{
-                  fontFamily: '"DM Mono", monospace', fontSize: 10, letterSpacing: '0.12em',
-                  color: 'var(--yellow)', background: 'rgba(232, 201, 119, 0.08)', padding: '5px 16px',
-                  borderRadius: 999, border: '1px solid rgba(232, 201, 119, 0.25)', marginBottom: 18,
+                  fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: '0.12em',
+                  color: 'var(--yellow)', background: 'rgba(249, 115, 22, 0.08)', padding: '5px 16px',
+                  borderRadius: 999, border: '1px solid rgba(249, 115, 22, 0.25)', marginBottom: 18,
                   fontWeight: 600
                 }}>
                   LỜI BÀI HÁT
