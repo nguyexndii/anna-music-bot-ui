@@ -64,7 +64,7 @@ export default function LofiConfirmModal({ isOpen, onClose, onConfirm, queueCoun
               onClose();
               onConfirm();
             }}
-            className="flex-1 py-2.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-orange-500/20 transition active:scale-95"
+            className="flex-1 py-2.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20 transition active:scale-95"
           >
             <Check className="w-4 h-4 stroke-[2.5]" />
             <span>Chuyển Lofi</span>

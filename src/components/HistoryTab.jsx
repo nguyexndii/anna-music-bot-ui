@@ -31,7 +31,7 @@ export default function HistoryTab({ player, onOrderSong }) {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Search box */}
-      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-orange-500/50 transition-all mb-3.5">
+      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-cyan-500/50 transition-all mb-3.5">
         <Search size={15} className="text-zinc-500 flex-shrink-0" />
         <input
           value={query}

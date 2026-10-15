@@ -57,7 +57,7 @@ export default function PermissionModal({ isOpen, onClose, user }) {
           Bạn không có quyền chỉnh sửa mục này. Chỉ{' '}
           <span className="text-zinc-200 font-semibold">Chủ sở hữu máy chủ (Server Owner)</span> hoặc
           thành viên có quyền{' '}
-          <span className="text-orange-400 font-semibold">
+          <span className="text-cyan-400 font-semibold">
             Quản trị viên (Administrator / Manage Server)
           </span>{' '}
           mới có thể thay đổi Cài Đặt Phát Nhạc của Server.
@@ -89,7 +89,7 @@ export default function PermissionModal({ isOpen, onClose, user }) {
         {/* Action Button */}
         <button
           onClick={onClose}
-          className="w-full mt-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition active:scale-95"
+          className="w-full mt-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition active:scale-95"
         >
           <Check className="w-4 h-4 stroke-[2.5]" />
           <span>Đã hiểu</span>

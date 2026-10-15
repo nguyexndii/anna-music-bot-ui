@@ -10,8 +10,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3005',
-        changeOrigin: true
+        target: process.env.VITE_PROXY_TARGET || 'https://asking-grain-result-knew.trycloudflare.com',
+        changeOrigin: true,
+        secure: false
       }
     }
   }

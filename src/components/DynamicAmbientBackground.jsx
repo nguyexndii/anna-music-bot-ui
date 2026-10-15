@@ -99,7 +99,7 @@ export default function DynamicAmbientBackground({ currentTrack, isPlaying = tru
         overflow: 'hidden',
         pointerEvents: 'none',
         zIndex: 0,
-        background: '#09090b',
+        background: '#06080f',
         opacity: isVisible ? (isPlaying ? 1 : 0.65) : 0,
         visibility: isVisible ? 'visible' : 'hidden',
         transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s',
@@ -190,7 +190,7 @@ export default function DynamicAmbientBackground({ currentTrack, isPlaying = tru
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(9, 9, 11, 0.48) 0%, rgba(9, 9, 11, 0.84) 68%, #09090b 100%)',
+          background: 'radial-gradient(ellipse at 50% 50%, rgba(6, 8, 15, 0.55) 0%, rgba(6, 8, 15, 0.88) 70%, #06080f 100%)',
           pointerEvents: 'none',
         }}
       />

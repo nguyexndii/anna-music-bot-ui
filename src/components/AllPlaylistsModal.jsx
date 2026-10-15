@@ -55,7 +55,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
         {/* Header */}
         <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113] gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 flex-shrink-0">
               <ListMusic className="w-4 h-4" />
             </div>
             <div>
@@ -63,7 +63,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                 <h3 className="text-sm sm:text-base font-bold text-zinc-100 tracking-tight">
                   Tất Cả Danh Sách Phát
                 </h3>
-                <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
                   {playlists.length} PLAYLIST
                 </span>
               </div>
@@ -84,7 +84,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
 
         {/* Search Filter */}
         <div className="px-6 py-3 border-b border-white/[0.07] bg-[#111113]/60">
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[#0E0E11] border border-white/[0.08] focus-within:border-orange-500/50 transition">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[#0E0E11] border border-white/[0.08] focus-within:border-cyan-500/50 transition">
             <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
             <input
               type="text"
@@ -123,7 +123,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                   <div
                     key={idx}
                     onClick={() => onSelectPlaylist?.(pl)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.06] hover:border-orange-500/30 cursor-pointer transition-all duration-150 group"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.06] hover:border-cyan-500/30 cursor-pointer transition-all duration-150 group"
                     title="Nhấn để xem các bài hát trong playlist này"
                   >
                     <div className="w-13 h-13 rounded-lg overflow-hidden bg-zinc-900 flex-shrink-0 border border-white/[0.08] relative aspect-square">
@@ -137,7 +137,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-orange-400">
+                        <div className="w-full h-full flex items-center justify-center text-cyan-400">
                           <ListMusic className="w-5 h-5" />
                         </div>
                       )}
@@ -146,13 +146,13 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                     <div className="min-w-0 flex-1">
                       <p
                         title={pl.title || pl.name}
-                        className="text-xs sm:text-sm font-semibold text-zinc-100 truncate group-hover:text-orange-400 transition-colors"
+                        className="text-xs sm:text-sm font-semibold text-zinc-100 truncate group-hover:text-cyan-400 transition-colors"
                       >
                         {pl.title || pl.name || 'Danh Sách Phát'}
                       </p>
 
                       <div className="flex items-center justify-between gap-2 mt-1.5">
-                        <span className="font-mono text-[10px] font-semibold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-1.5 py-0.5 rounded">
+                        <span className="font-mono text-[10px] font-semibold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-1.5 py-0.5 rounded">
                           {pl.trackCount || pl.itemCount
                             ? `${pl.trackCount || pl.itemCount} BÀI`
                             : 'PLAYLIST'}

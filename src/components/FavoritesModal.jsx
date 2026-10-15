@@ -73,7 +73,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
             {favorites.length > 0 && (
               <button
                 onClick={handlePlayAll}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold shadow-md transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold shadow-md transition"
                 title="Thêm tất cả bài yêu thích vào hàng chờ"
               >
                 <Play className="w-3.5 h-3.5 fill-white" />
@@ -105,7 +105,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                 <div
                   key={song.url || idx}
                   onClick={() => onOrderSong?.(song)}
-                  className="flex items-center gap-3 p-2 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.04] hover:border-orange-500/30 cursor-pointer transition-all duration-150 group"
+                  className="flex items-center gap-3 p-2 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.04] hover:border-cyan-500/30 cursor-pointer transition-all duration-150 group"
                   title="Nhấn để thêm vào hàng chờ"
                 >
                   <span className="font-mono text-xs text-zinc-500 w-6 text-right tabular-nums flex-shrink-0">
@@ -122,7 +122,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
 
                   <div className="min-w-0 flex-1">
                     <p
-                      className="text-xs font-semibold text-zinc-200 truncate group-hover:text-orange-400 transition-colors"
+                      className="text-xs font-semibold text-zinc-200 truncate group-hover:text-cyan-400 transition-colors"
                       title={song.title}
                     >
                       {song.title}
@@ -138,7 +138,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                     </span>
                   )}
 
-                  <div className="w-7 h-7 rounded-md bg-[#1F1F24] border border-white/[0.08] text-zinc-400 group-hover:text-orange-400 group-hover:border-orange-500/30 flex items-center justify-center flex-shrink-0 transition">
+                  <div className="w-7 h-7 rounded-md bg-[#1F1F24] border border-white/[0.08] text-zinc-400 group-hover:text-cyan-400 group-hover:border-cyan-500/30 flex items-center justify-center flex-shrink-0 transition">
                     <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                   </div>
                 </div>

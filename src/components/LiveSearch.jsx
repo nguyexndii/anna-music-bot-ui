@@ -232,7 +232,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* ── Command Bar Search Input ──────────────────────── */}
-      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-orange-500/50 focus-within:bg-[#151519] transition-all mb-4">
+      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-cyan-500/50 focus-within:bg-[#151519] transition-all mb-4">
         <button
           type="button"
           onClick={() => {
@@ -242,7 +242,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           className="text-zinc-400 hover:text-zinc-200 p-0 flex items-center justify-center transition-colors"
           title="Tìm kiếm bài hát"
         >
-          {loading ? <Loader2 size={16} className="animate-spin text-orange-500" /> : <Search size={16} />}
+          {loading ? <Loader2 size={16} className="animate-spin text-cyan-500" /> : <Search size={16} />}
         </button>
 
         <input
@@ -268,7 +268,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           onClick={() => handleModeChange(searchMode === 'all' ? 'official' : 'all')}
           className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-mono tracking-wider transition-colors flex-shrink-0 ${
             searchMode === 'all'
-              ? 'bg-orange-500/10 text-orange-400 border border-orange-500/25 font-bold'
+              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 font-bold'
               : 'bg-[#18181B] text-zinc-400 hover:text-zinc-200 border border-white/[0.06]'
           }`}
           title={searchMode === 'all' ? 'Đang bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)' : 'Bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)'}
@@ -295,7 +295,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
 
       {/* ── Playlist Detection Banner ─────────────────────── */}
       {detected?.isPlaylist && (
-        <div className="flex items-center justify-between gap-3 p-3.5 mb-4 rounded-xl bg-[#141417] border border-orange-500/25 shadow-lg">
+        <div className="flex items-center justify-between gap-3 p-3.5 mb-4 rounded-xl bg-[#141417] border border-cyan-500/25 shadow-lg">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#18181B] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
               {playlistPreviewThumb ? (
@@ -303,11 +303,11 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
               ) : getPlaylistPreviewImage(query) ? (
                 <img src={getPlaylistPreviewImage(query)} alt="Playlist" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
-                <Disc3 size={18} className="text-orange-500" />
+                <Disc3 size={18} className="text-cyan-500" />
               )}
             </div>
             <div className="min-w-0">
-              <span className="font-mono text-[10px] font-bold text-orange-400 tracking-wider uppercase">
+              <span className="font-mono text-[10px] font-bold text-cyan-400 tracking-wider uppercase">
                 {detected.label}
               </span>
               <p className="text-xs text-zinc-400 truncate max-w-sm m-0">
@@ -319,7 +319,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           <button
             type="button"
             onClick={() => handleAddPlaylistUrl(detected?.cleanUrl || query.trim())}
-            className="h-8 px-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-zinc-950 font-bold text-xs flex items-center gap-1.5 flex-shrink-0 transition-colors shadow-sm"
+            className="h-8 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-bold text-xs flex items-center gap-1.5 flex-shrink-0 transition-colors shadow-sm"
           >
             <ListPlus size={14} />
             <span>Thêm Playlist</span>
@@ -333,7 +333,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
         {/* Loading Spinner */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-14 gap-2 text-zinc-400">
-            <Loader2 size={22} className="animate-spin text-orange-500" />
+            <Loader2 size={22} className="animate-spin text-cyan-500" />
             <span className="font-mono text-[10px] tracking-widest text-zinc-500">ĐANG TÌM KIẾM...</span>
           </div>
         )}
@@ -371,7 +371,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                             {song.title}
                           </span>
                           {isPlaylist && (
-                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-semibold flex-shrink-0">
+                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold flex-shrink-0">
                               PLAYLIST
                             </span>
                           )}
@@ -440,13 +440,13 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                 <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
                   <div className="flex items-center gap-1.5">
                     <span>DANH SÁCH PHÁT GẦN ĐÂY</span>
-                    <ListMusic size={12} className="text-orange-500" />
+                    <ListMusic size={12} className="text-cyan-500" />
                   </div>
                   {recentPlaylists.length > 0 && (
                     <button
                       type="button"
                       onClick={() => setIsAllPlaylistsModalOpen(true)}
-                      className="text-orange-400 hover:text-orange-300 font-mono text-[10px] tracking-wider transition-colors"
+                      className="text-cyan-400 hover:text-cyan-300 font-mono text-[10px] tracking-wider transition-colors"
                     >
                       Xem tất cả ({recentPlaylists.length}) →
                     </button>
@@ -469,7 +469,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                           {thumb ? (
                             <img src={thumb} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} className="w-full h-full object-cover" />
                           ) : (
-                            <ListMusic size={18} className="text-orange-500" />
+                            <ListMusic size={18} className="text-cyan-500" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -505,12 +505,12 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                 <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
                   <div className="flex items-center gap-1.5">
                     <span>YÊU THÍCH ({favorites.length})</span>
-                    <Heart size={12} className="text-orange-500" fill="currentColor" />
+                    <Heart size={12} className="text-cyan-500" fill="currentColor" />
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsFavoritesModalOpen(true)}
-                    className="text-orange-400 hover:text-orange-300 font-mono text-[10px] tracking-wider transition-colors"
+                    className="text-cyan-400 hover:text-cyan-300 font-mono text-[10px] tracking-wider transition-colors"
                   >
                     Xem tất cả →
                   </button>
@@ -545,7 +545,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                   <button
                     type="button"
                     onClick={() => setIsFavoritesModalOpen(true)}
-                    className="mt-2 w-full py-2 rounded-xl bg-[#141417] hover:bg-orange-500/10 border border-white/[0.07] hover:border-orange-500/30 text-orange-400 font-mono text-[11px] font-semibold tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                    className="mt-2 w-full py-2 rounded-xl bg-[#141417] hover:bg-cyan-500/10 border border-white/[0.07] hover:border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-semibold tracking-wider flex items-center justify-center gap-1.5 transition-all"
                   >
                     <span>XEM TOÀN BỘ DANH SÁCH YÊU THÍCH ({favorites.length} BÀI)</span>
                     <span>↗</span>
@@ -559,7 +559,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
               <div>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
                   <span>PHỔ BIẾN TRONG MÁY CHỦ</span>
-                  <Flame className="text-orange-500" size={12} />
+                  <Flame className="text-cyan-500" size={12} />
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -575,9 +575,9 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                         <span
                           className={`font-mono text-xs font-bold w-6 text-center rounded py-0.5 ${
                             idx === 0
-                              ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
                               : isTop3
-                              ? 'bg-orange-500/10 text-orange-300 border border-orange-500/20'
+                              ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
                               : 'text-zinc-500'
                           }`}
                         >

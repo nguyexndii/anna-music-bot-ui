@@ -24,9 +24,9 @@ export default function Toast({ toasts, toast, onDismiss }) {
               {isError ? (
                 <AlertCircle size={15} className="text-rose-400" />
               ) : isActionLoading ? (
-                <Loader2 size={15} className="animate-spin text-orange-400" />
+                <Loader2 size={15} className="animate-spin text-cyan-400" />
               ) : isInfo ? (
-                <Sparkles size={15} className="text-orange-400" />
+                <Sparkles size={15} className="text-cyan-400" />
               ) : (
                 <CheckCircle2 size={15} className="text-emerald-400" />
               )}
@@ -114,7 +114,7 @@ export default function Toast({ toasts, toast, onDismiss }) {
 
         .toast-info {
           color: #f4f4f5;
-          border-color: rgba(249, 115, 22, 0.25);
+          border-color: rgba(6, 182, 212, 0.25);
         }
 
         .anna-toast-icon-wrap {
@@ -136,7 +136,7 @@ export default function Toast({ toasts, toast, onDismiss }) {
         }
 
         .toast-info .anna-toast-icon-wrap {
-          background: rgba(249, 115, 22, 0.12);
+          background: rgba(6, 182, 212, 0.12);
         }
 
         .anna-toast-text {
