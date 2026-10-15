@@ -274,8 +274,9 @@ export default function App() {
   });
 
   const [guildId, setGuildId] = useState(() => {
+    if (typeof window === 'undefined') return null;
     const u = new URLSearchParams(window.location.search);
-    return u.get('guild') || localStorage.getItem('anna_web_guild') || null;
+    return u.get('guild') || localStorage.getItem('anna_guild_id') || localStorage.getItem('anna_web_guild') || null;
   });
 
   const [user, setUser] = useState(null);
@@ -308,6 +309,7 @@ export default function App() {
     if (typeof window !== 'undefined') {
       try {
         localStorage.removeItem('anna_web_token');
+        localStorage.removeItem('anna_guild_id');
         localStorage.removeItem('anna_web_guild');
       } catch {}
       window.history.pushState({}, '', '/');
@@ -344,6 +346,7 @@ export default function App() {
   const handleAuthExpired = useCallback(() => {
     try {
       localStorage.removeItem('anna_web_token');
+      localStorage.removeItem('anna_guild_id');
       localStorage.removeItem('anna_web_guild');
     } catch {}
     setToken(null);
@@ -354,6 +357,40 @@ export default function App() {
     setAuthError('Phiên đăng nhập đã hết hạn hoặc không tìm thấy máy chủ. Vui lòng nhập lại mã PIN từ Discord.');
     showToast('Phiên làm việc đã hết hạn!', 'error');
   }, [showToast]);
+
+  // Polling State Core Function
+  const fetchState = useCallback(async (isFull = false) => {
+    const ct = tokenRef.current || token || localStorage.getItem('anna_web_token');
+    const cg = guildIdRef.current || guildId || user?.guildId || localStorage.getItem('anna_guild_id') || localStorage.getItem('anna_web_guild');
+    if (!ct || !cg) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/guilds/${cg}/state${isFull ? '?full=1' : ''}`, {
+        headers: { Authorization: `Bearer ${ct}` },
+      });
+      if (res.status === 401 || res.status === 404) {
+        handleAuthExpired();
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setPlayer(prev => {
+          if (!prev) return data.player;
+          return {
+            ...prev,
+            ...data.player,
+            queue: data.player?.queue !== undefined ? data.player.queue : prev.queue,
+            favorites: data.player?.favorites !== undefined ? data.player.favorites : prev.favorites,
+            history: data.player?.history !== undefined ? data.player.history : prev.history,
+            topTracks: data.player?.topTracks !== undefined ? data.player.topTracks : prev.topTracks,
+            recentPlaylists: data.player?.recentPlaylists !== undefined ? data.player.recentPlaylists : prev.recentPlaylists,
+          };
+        });
+        if (data.guild) setGuild(data.guild);
+      }
+    } catch {
+      // Network hiccup - ignore
+    }
+  }, [token, guildId, user, handleAuthExpired]);
 
   // Verify PIN / Token
   const verifyToken = useCallback(async (tokenVal, fromUserSubmit = false) => {
@@ -367,18 +404,40 @@ export default function App() {
         body: JSON.stringify({ token: tokenVal }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data.success) {
-        setToken(data.token);
-        setGuildId(data.guildId);
+      if (res.ok && data.success && data.user) {
+        const actualToken = data.token || tokenVal;
+        const actualGuildId = data.user.guildId || data.guildId;
+        setToken(actualToken);
+        setGuildId(actualGuildId);
         setUser(data.user);
-        setGuild({ id: data.guildId, name: data.user?.guildName });
-        localStorage.setItem('anna_web_token', data.token);
-        localStorage.setItem('anna_web_guild', data.guildId);
+        setGuild({ id: actualGuildId, name: data.user?.guildName });
+        localStorage.setItem('anna_web_token', actualToken);
+        localStorage.setItem('anna_guild_id', actualGuildId);
+        localStorage.setItem('anna_web_guild', actualGuildId);
+        tokenRef.current = actualToken;
+        guildIdRef.current = actualGuildId;
+
         if (fromUserSubmit) {
           showToast(`Chào mừng ${data.user?.displayName || data.user?.username || 'bạn'} đến với Anna Lounge! ☕`);
         }
+
+        // Kéo dữ liệu bot state ngay lập tức không chờ interval
+        try {
+          fetch(`${API_BASE}/api/guilds/${actualGuildId}/state?full=1`, {
+            headers: { Authorization: `Bearer ${actualToken}` },
+          })
+            .then(r => r.json())
+            .then(stData => {
+              if (stData?.success && stData?.player) {
+                setPlayer(stData.player);
+                if (stData.guild) setGuild(stData.guild);
+              }
+            })
+            .catch(() => {});
+        } catch {}
       } else {
         localStorage.removeItem('anna_web_token');
+        localStorage.removeItem('anna_guild_id');
         localStorage.removeItem('anna_web_guild');
         setToken(null);
         setGuildId(null);
@@ -405,39 +464,11 @@ export default function App() {
     }
   }, [verifyToken]);
 
-  // Polling State
-  const fetchState = useCallback(async (isFull = false) => {
-    const ct = tokenRef.current;
-    const cg = guildIdRef.current;
-    if (!ct || !cg || !user) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/guilds/${cg}/state${isFull ? '?full=1' : ''}`, {
-        headers: { Authorization: `Bearer ${ct}` },
-      });
-      if (res.status === 401 || res.status === 404) {
-        handleAuthExpired();
-        return;
-      }
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.success) {
-        setPlayer(prev => {
-          if (!prev) return data.player;
-          return {
-            ...prev,
-            ...data.player,
-            queue: data.player?.queue !== undefined ? data.player.queue : prev.queue,
-            favorites: data.player?.favorites !== undefined ? data.player.favorites : prev.favorites,
-          };
-        });
-        if (data.guild) setGuild(data.guild);
-      }
-    } catch {
-      // Network hiccup - ignore
-    }
-  }, [user, handleAuthExpired]);
-
+  // Polling chu kỳ 1.5s
   useEffect(() => {
-    if (!token || !guildId || !user) return;
+    const ct = token || localStorage.getItem('anna_web_token');
+    const cg = guildId || user?.guildId || localStorage.getItem('anna_guild_id');
+    if (!ct || !cg) return;
     fetchState(true);
     const interval = setInterval(() => fetchState(false), 1500);
     return () => clearInterval(interval);
@@ -633,7 +664,7 @@ export default function App() {
       <DynamicAmbientBackground currentTrack={player?.current} isPlaying={player?.isPlaying} />
 
       {/* ── TOP APP WRAPPER: STRICT 100vh - (Header + Body + MiniPlayer) ──── */}
-      <div className="flex-1 flex overflow-hidden w-full h-[calc(100vh-68px)]">
+      <div className="flex-1 min-h-0 flex overflow-hidden w-full">
 
         {/* ── 1. LEFT SIDEBAR (GỌN GÀNG, 210px CỐ ĐỊNH TRÊN DESKTOP) ──────── */}
         <aside className="w-[210px] shrink-0 bg-[#16181b] border-r border-white/5 hidden lg:flex flex-col justify-between p-3 select-none z-20">

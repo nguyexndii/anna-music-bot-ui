@@ -321,7 +321,7 @@ export default function HeroPlayer({
   // DESKTOP FULL VIEW: MÂM ĐĨA THAN VINYL CỔ ĐIỂN CHÂN THỰC (TONEARM + CONIC GROOVES)
   // ───────────────────────────────────────────────────────────────────────────
   return (
-    <aside className="w-full h-full bg-surface-container-low border-l border-white/5 p-3 flex flex-col justify-between select-none overflow-hidden z-20">
+    <aside className="w-full h-full bg-surface-container-low border-l border-white/5 p-3 flex flex-col justify-between select-none overflow-y-auto no-scrollbar z-20">
       
       {/* 1. Top Status Header */}
       <div className="flex items-center justify-between pb-1 shrink-0">
