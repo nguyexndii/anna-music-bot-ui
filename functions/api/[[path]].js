@@ -28,7 +28,8 @@ export async function onRequest(context) {
     }
   }
   apiBase = apiBase.replace(/\/$/, '');
-  const targetUrl = `${apiBase}${url.pathname}${url.search}`;
+  const pathname = url.pathname === '/api/health' ? '/health' : url.pathname;
+  const targetUrl = `${apiBase}${pathname}${url.search}`;
 
   const requestHeaders = new Headers();
   for (const [key, value] of context.request.headers.entries()) {
