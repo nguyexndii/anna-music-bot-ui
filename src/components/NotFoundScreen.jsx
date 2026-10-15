@@ -3,118 +3,79 @@ import { Home, Compass } from 'lucide-react';
 
 export default function NotFoundScreen({ onGoHome }) {
   return (
-    <main className="auth-shell">
-      {/* Brand Header with prominent big logo */}
-      <div className="auth-brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
-        <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
-          <img
-            src="/logo.gif"
-            alt="Anna Music Logo"
-            style={{
-              width: 130,
-              height: 130,
-              borderRadius: 28,
-              border: '2px solid rgba(232, 201, 119, 0.45)',
-              objectFit: 'cover',
-              imageRendering: 'pixelated',
-              boxShadow: '0 0 35px rgba(232, 201, 119, 0.28), 0 16px 32px rgba(0,0,0,0.6)',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              cursor: 'pointer'
-            }}
-            onClick={onGoHome}
-            title="Quay về trang chủ"
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 0 45px rgba(232, 201, 119, 0.45), 0 20px 40px rgba(0,0,0,0.7)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 0 35px rgba(232, 201, 119, 0.28), 0 16px 32px rgba(0,0,0,0.6)';
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: -6,
-              right: -6,
-              background: 'var(--coral)',
-              color: '#fff',
-              fontSize: 10,
-              fontWeight: 800,
-              padding: '2px 8px',
-              borderRadius: 999,
-              border: '2px solid var(--bg)',
-              letterSpacing: '0.08em'
-            }}
-          >
+    <main
+      className="min-h-screen w-full bg-[#09090B] flex flex-col items-center justify-center p-6 text-zinc-100 select-none relative overflow-hidden"
+      style={{
+        fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      }}
+    >
+      {/* Subtle top vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: 'radial-gradient(ellipse 60% 40% at 50% 25%, rgba(234, 88, 12, 0.08), transparent 70%)',
+        }}
+      />
+
+      {/* Brand Header */}
+      <div className="relative z-10 flex flex-col items-center mb-6">
+        <div className="relative mb-4 group cursor-pointer" onClick={onGoHome} title="Quay về trang chủ">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden ring-1 ring-orange-500/30 border border-white/[0.08] shadow-2xl shadow-black/80 bg-zinc-900 group-hover:scale-105 transition-transform duration-200">
+            <img
+              src="/logo.gif"
+              alt="Anna Music Logo"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="absolute -bottom-2 -right-2 bg-orange-500 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-[#09090B] shadow-md">
             404
           </div>
         </div>
 
-        <div className="brand-name">
-          <span className="y">an</span><b className="c">na</b>
-        </div>
-        <div className="brand-subtitle">MUSIC WEB PLAYER</div>
+        <h1 className="text-xl font-bold tracking-tight text-zinc-100">
+          ANNA MUSIC
+        </h1>
+        <p className="font-mono text-[11px] tracking-widest text-zinc-500 uppercase mt-0.5">
+          STUDIO WEB PLAYER
+        </p>
       </div>
 
       {/* 404 Content Card */}
-      <section className="auth-card voice-card" style={{ maxWidth: 440 }}>
-        {/* Equalizer Wave Indicator */}
-        <div className="quiet-shape" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-        </div>
-
-        <div className="card-kicker" style={{ color: 'var(--coral)', letterSpacing: '0.2em', fontWeight: 600 }}>
+      <section className="relative z-10 w-full max-w-md bg-[#111113] border border-white/[0.08] rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/80 text-center flex flex-col items-center space-y-4">
+        <span className="font-mono text-xs font-bold text-orange-400 uppercase tracking-widest">
           KHÔNG TÌM THẤY TRANG
-        </div>
+        </span>
 
-        <h1 style={{ fontSize: 21, letterSpacing: '-0.02em', fontWeight: 600, color: 'var(--ink)' }}>
+        <h2 className="text-lg font-bold text-zinc-100">
           Lạc Lối Trong Giai Điệu Rồi!
-        </h1>
+        </h2>
 
-        <p className="card-copy" style={{ marginTop: 10, lineHeight: 1.6, color: 'var(--muted)', fontSize: 13 }}>
-          Đường dẫn bạn truy cập không tồn tại hoặc đã bị thay đổi.<br />
-          Đừng lo lắng, hãy để Anna đưa bạn quay lại với những bài hát quen thuộc nhé!
+        <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+          Đường dẫn bạn truy cập không tồn tại hoặc phiên nghe đã kết thúc. Hãy để Anna đưa bạn quay lại với những giai điệu quen thuộc nhé!
         </p>
 
-        {/* Server badge style for 404 info */}
-        <div
-          className="server-badge"
-          style={{
-            borderColor: 'rgba(239, 120, 100, 0.4)',
-            color: 'var(--coral)',
-            margin: '18px 0 22px',
-            fontSize: 10,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6
-          }}
-        >
-          <Compass size={12} /> ERROR 404 • PATH NOT FOUND
+        <div className="inline-flex items-center gap-2 font-mono text-[11px] text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-3 py-1 rounded-full my-2">
+          <Compass className="w-3.5 h-3.5 text-orange-400" />
+          <span>ERROR 404 • PATH NOT FOUND</span>
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
+        <div className="w-full pt-2">
           <button
-            className="primary-button"
             onClick={onGoHome}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            className="w-full py-3 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-[0.98] transition"
           >
-            <Home size={16} />
-            Quay Về Trang Chủ
+            <Home className="w-4 h-4" />
+            <span>Quay Về Trang Chủ</span>
           </button>
         </div>
 
-        <p className="card-footnote" style={{ marginTop: 20 }}>
-          Cần kết nối Web Player? Dùng lệnh <code style={{ color: 'var(--yellow)', fontWeight: 600 }}>/web</code> trong Discord để lấy mã PIN mới.
+        <p className="text-xs text-zinc-500 pt-2">
+          Cần kết nối Web Player? Dùng lệnh <code className="text-orange-400 font-mono font-bold bg-orange-500/10 border border-orange-500/20 px-1.5 py-0.5 rounded">/web</code> trong Discord để lấy mã PIN mới.
         </p>
       </section>
 
-      <footer className="auth-footer" style={{ marginTop: 28 }}>
+      <footer className="relative z-10 font-mono text-[11px] text-zinc-600 mt-8 tracking-wider">
         ANNA MUSIC · 2024 - 2026
       </footer>
     </main>

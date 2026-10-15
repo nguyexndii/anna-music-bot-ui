@@ -22,13 +22,13 @@ export default function Toast({ toasts, toast, onDismiss }) {
           >
             <div className="anna-toast-icon-wrap">
               {isError ? (
-                <AlertCircle size={15} className="text-[#ef7864]" />
+                <AlertCircle size={15} className="text-rose-400" />
               ) : isActionLoading ? (
-                <Loader2 size={15} className="animate-spin text-[#e8c977]" />
+                <Loader2 size={15} className="animate-spin text-orange-400" />
               ) : isInfo ? (
-                <Sparkles size={15} className="text-[#e8c977]" />
+                <Sparkles size={15} className="text-orange-400" />
               ) : (
-                <CheckCircle2 size={15} className="text-[#6fcf97]" />
+                <CheckCircle2 size={15} className="text-emerald-400" />
               )}
             </div>
 
@@ -52,20 +52,20 @@ export default function Toast({ toasts, toast, onDismiss }) {
       <style>{`
         .anna-toast-container {
           position: fixed;
-          top: 24px;
-          right: 24px;
+          top: 20px;
+          right: 20px;
           z-index: 999999;
           display: flex;
           flex-direction: column;
           align-items: flex-end;
-          gap: 10px;
+          gap: 8px;
           pointer-events: none;
-          max-width: 440px;
+          max-width: 420px;
         }
 
         @media (max-width: 640px) {
           .anna-toast-container {
-            top: 16px;
+            top: 14px;
             right: 14px;
             left: 14px;
             max-width: none;
@@ -79,17 +79,17 @@ export default function Toast({ toasts, toast, onDismiss }) {
           user-select: none;
           display: flex;
           align-items: center;
-          gap: 11px;
+          gap: 10px;
           padding: 10px 14px;
-          border-radius: 14px;
-          font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          border-radius: 12px;
+          font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           font-size: 13px;
           font-weight: 500;
           line-height: 1.4;
-          letter-spacing: -0.01em;
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          animation: toastSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+          background: #141417;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75);
+          animation: toastSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
           transition: transform 0.15s ease, opacity 0.15s ease;
           max-width: 100%;
         }
@@ -103,47 +103,40 @@ export default function Toast({ toasts, toast, onDismiss }) {
         }
 
         .toast-success {
-          background: rgba(18, 22, 25, 0.92);
-          border: 1px solid rgba(111, 207, 151, 0.22);
-          color: #f1f3f5;
-          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 20px rgba(111, 207, 151, 0.08);
+          color: #f4f4f5;
+          border-color: rgba(16, 185, 129, 0.25);
         }
 
         .toast-error {
-          background: rgba(28, 18, 20, 0.94);
-          border: 1px solid rgba(239, 120, 100, 0.3);
-          color: #fff0f0;
-          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 20px rgba(239, 120, 100, 0.12);
+          color: #fff1f2;
+          border-color: rgba(244, 63, 94, 0.3);
         }
 
         .toast-info {
-          background: rgba(22, 22, 26, 0.92);
-          border: 1px solid rgba(232, 201, 119, 0.22);
-          color: #f5f4ef;
-          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 20px rgba(232, 201, 119, 0.08);
+          color: #f4f4f5;
+          border-color: rgba(249, 115, 22, 0.25);
         }
 
         .anna-toast-icon-wrap {
           flex-shrink: 0;
-          width: 26px;
-          height: 26px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(255, 255, 255, 0.06);
         }
 
         .toast-success .anna-toast-icon-wrap {
-          background: rgba(111, 207, 151, 0.12);
+          background: rgba(16, 185, 129, 0.12);
         }
 
         .toast-error .anna-toast-icon-wrap {
-          background: rgba(239, 120, 100, 0.14);
+          background: rgba(244, 63, 94, 0.12);
         }
 
         .toast-info .anna-toast-icon-wrap {
-          background: rgba(232, 201, 119, 0.12);
+          background: rgba(249, 115, 22, 0.12);
         }
 
         .anna-toast-text {
@@ -168,13 +161,13 @@ export default function Toast({ toasts, toast, onDismiss }) {
 
         .anna-toast-close:hover {
           color: #ffffff;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.08);
         }
 
         @keyframes toastSlideIn {
           from {
             opacity: 0;
-            transform: translateY(-12px) scale(0.94);
+            transform: translateY(-10px) scale(0.96);
           }
           to {
             opacity: 1;

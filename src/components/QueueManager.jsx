@@ -1,26 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-
 import {
   ListOrdered,
   Trash2,
   Music2,
-  Clock,
   CheckSquare,
   Square,
   Play,
-  ChevronUp,
-  ChevronDown,
   GripVertical,
   ArrowUpToLine,
   ArrowUpDown,
   MoreHorizontal,
   X,
-  Sparkles,
-  Radio,
   Loader2,
-  Coffee,
-  RotateCcw
+  Coffee
 } from 'lucide-react';
 import { DEFAULT_TRACK_THUMB } from '../config';
 
@@ -41,20 +34,18 @@ function formatRequesterName(name) {
 }
 
 export default function QueueManager({ queue, onAction, pendingAction, player }) {
-
   const songs = queue || [];
   const isLofiMode = Boolean(
     player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')
   );
-  const isSwitchingTo247 = pendingAction === 'switchTo247';
 
   const [selectedIndices, setSelectedIndices] = useState(new Set());
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
-  const [jumpModalData, setJumpModalData] = useState(null); // { song, index }
+  const [jumpModalData, setJumpModalData] = useState(null);
   const [targetPosition, setTargetPosition] = useState('1');
   const [activeMenuIdx, setActiveMenuIdx] = useState(null);
-  const [menuPlacement, setMenuPlacement] = useState('bottom'); // 'bottom' or 'top'
+  const [menuPlacement, setMenuPlacement] = useState('bottom');
 
   const lastClickedIndexRef = useRef(null);
   const listContainerRef = useRef(null);
@@ -164,7 +155,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
     setJumpModalData(null);
   };
 
-  // Toggle menu thông minh (tự động mở lên trên nếu gần cuối màn hình)
+  // Toggle menu thông minh (bung lên hoặc xuống tùy vị trí)
   const handleToggleMenu = (e, index) => {
     e.stopPropagation();
     if (activeMenuIdx === index) {
@@ -173,7 +164,6 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
     }
     const rect = e.currentTarget.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
-    // Menu cao ~175px, nếu khoảng trống phía dưới < 185px thì bung lên trên (dropup)
     if (spaceBelow < 185) {
       setMenuPlacement('top');
     } else {
@@ -182,19 +172,15 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
     setActiveMenuIdx(index);
   };
 
-  // Multi-select helpers (Hỗ trợ Shift + Click chọn dải nhiều bài cùng lúc)
+  // Multi-select helpers (Shift + Click)
   const toggleSelect = (index, event) => {
     const isShift = Boolean(event && event.shiftKey);
     const newSet = new Set(selectedIndices);
 
     if (isShift && lastClickedIndexRef.current !== null && lastClickedIndexRef.current !== index) {
-      // Bỏ bôi đen văn bản vô tình do giữ phím Shift
       window.getSelection()?.removeAllRanges();
-
       const start = Math.min(lastClickedIndexRef.current, index);
       const end = Math.max(lastClickedIndexRef.current, index);
-
-      // Thêm toàn bộ các bài trong khoảng từ start đến end vào danh sách chọn
       for (let i = start; i <= end; i++) {
         newSet.add(i);
       }
@@ -261,24 +247,32 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
   const isAllSelected = songs.length > 0 && selectedIndices.size === songs.length;
 
   return (
-    <div ref={listContainerRef} style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, minHeight: 0 }}>
-      {/* ── Portaled Modals (render at document root to bypass overflow clipping) ── */}
+    <div ref={listContainerRef} className="flex flex-col gap-3 flex-1 min-h-0">
+      {/* ── Portaled Modals (Clean Studio Dark Dialogs) ── */}
 
       {showClearModal && ReactDOM.createPortal(
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setShowClearModal(false); }}
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         >
-          <div style={{ width: '100%', maxWidth: 360, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
-            <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap' }}>Xóa toàn bộ hàng chờ?</h4>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>
-              Bạn có chắc chắn muốn xóa tất cả <b style={{ color: 'var(--ink)' }}>{songs.length} bài hát</b> trong hàng chờ không?
+          <div className="w-full max-w-sm rounded-2xl bg-[#141417] border border-white/[0.08] p-5 shadow-2xl">
+            <h4 className="text-base font-bold text-zinc-100 m-0 mb-2">Xóa toàn bộ hàng chờ?</h4>
+            <p className="text-xs text-zinc-400 leading-relaxed m-0 mb-5">
+              Bạn có chắc chắn muốn xóa tất cả <b className="text-zinc-200">{songs.length} bài hát</b> trong hàng chờ không?
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button onClick={() => setShowClearModal(false)} className="ghost-button" style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}>
+            <div className="flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowClearModal(false)}
+                className="px-3.5 py-1.5 rounded-lg border border-white/[0.08] bg-[#18181B] hover:bg-[#222226] text-xs font-medium text-zinc-300 transition-colors"
+              >
                 Hủy
               </button>
-              <button onClick={confirmClearAll} style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <button
+                type="button"
+                onClick={confirmClearAll}
+                className="px-3.5 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-xs font-bold text-white transition-colors"
+              >
                 Xóa Hết
               </button>
             </div>
@@ -290,18 +284,26 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
       {showBatchModal && ReactDOM.createPortal(
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setShowBatchModal(false); }}
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         >
-          <div style={{ width: '100%', maxWidth: 360, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
-            <h4 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--ink)', whiteSpace: 'nowrap' }}>Xóa {selectedIndices.size} bài đã chọn?</h4>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>
+          <div className="w-full max-w-sm rounded-2xl bg-[#141417] border border-white/[0.08] p-5 shadow-2xl">
+            <h4 className="text-base font-bold text-zinc-100 m-0 mb-2">Xóa {selectedIndices.size} bài đã chọn?</h4>
+            <p className="text-xs text-zinc-400 leading-relaxed m-0 mb-5">
               Các bài hát được đánh dấu sẽ bị xóa khỏi hàng chờ.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button onClick={() => setShowBatchModal(false)} className="ghost-button" style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, whiteSpace: 'nowrap', width: 'auto' }}>
+            <div className="flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowBatchModal(false)}
+                className="px-3.5 py-1.5 rounded-lg border border-white/[0.08] bg-[#18181B] hover:bg-[#222226] text-xs font-medium text-zinc-300 transition-colors"
+              >
                 Hủy
               </button>
-              <button onClick={confirmBatchDelete} style={{ height: 38, padding: '0 18px', borderRadius: 8, fontSize: 12.5, background: 'var(--coral)', color: '#fff', border: 0, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <button
+                type="button"
+                onClick={confirmBatchDelete}
+                className="px-3.5 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-xs font-bold text-white transition-colors"
+              >
                 Xác Nhận Xóa
               </button>
             </div>
@@ -313,34 +315,34 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
       {jumpModalData && ReactDOM.createPortal(
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setJumpModalData(null); }}
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         >
-          <div style={{ width: '100%', maxWidth: 380, borderRadius: 16, background: 'var(--paper)', border: '1px solid var(--border)', padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div className="w-full max-w-sm rounded-2xl bg-[#141417] border border-white/[0.08] p-5 shadow-2xl">
+            <div className="flex items-center justify-between mb-3.5">
               <div>
-                <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Chuyển Vị Trí Bài Hát</h4>
-                <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--muted)' }}>Hiện tại: <b style={{ color: 'var(--yellow)' }}>#{jumpModalData.index + 1}</b></p>
+                <h4 className="text-sm font-bold text-zinc-100 m-0">Chuyển Vị Trí Bài Hát</h4>
+                <p className="text-[11px] text-zinc-400 m-0 mt-0.5">Hiện tại: <b className="text-orange-400">#{jumpModalData.index + 1}</b></p>
               </div>
-              <button onClick={() => setJumpModalData(null)} style={{ border: 0, background: 'transparent', color: 'var(--muted)', cursor: 'pointer' }}>
-                <X size={18} />
+              <button type="button" onClick={() => setJumpModalData(null)} className="text-zinc-400 hover:text-white p-1">
+                <X size={16} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10, background: 'var(--soft)', marginBottom: 16 }}>
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#18181B] border border-white/[0.06] mb-4">
               <img
                 src={jumpModalData.song.thumbnail || DEFAULT_TRACK_THUMB}
                 alt=""
                 onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
-                style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }}
+                className="w-9 h-9 rounded-md object-cover flex-shrink-0"
               />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{jumpModalData.song.title}</p>
-                <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{jumpModalData.song.artist || 'YouTube'}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-zinc-200 truncate m-0">{jumpModalData.song.title}</p>
+                <p className="text-[11px] text-zinc-500 truncate m-0 mt-0.5">{jumpModalData.song.artist || 'YouTube'}</p>
               </div>
             </div>
 
             <form onSubmit={handleConfirmJump}>
-              <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
+              <label className="block text-[11px] text-zinc-400 mb-1.5">
                 Nhập số thứ tự muốn chuyển đến (1 - {songs.length}):
               </label>
               <input
@@ -349,20 +351,19 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 max={songs.length}
                 value={targetPosition}
                 onChange={(e) => setTargetPosition(e.target.value)}
-                className="no-spin-button"
-                style={{ width: '100%', height: 42, borderRadius: 10, border: '1px solid var(--border)', background: '#141619', color: '#fff', textAlign: 'center', fontSize: 16, fontFamily: '"DM Mono", monospace', fontWeight: 700, outline: 'none', marginBottom: 12 }}
+                className="no-spin-button w-full h-10 rounded-xl border border-white/[0.08] bg-[#101012] text-zinc-100 text-center font-mono text-base font-bold outline-none focus:border-orange-500 mb-3"
                 autoFocus
               />
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
-                <button type="button" onClick={() => setTargetPosition('1')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--yellow)', fontSize: 11, cursor: 'pointer' }}>#1 (Kế tiếp)</button>
-                {songs.length >= 2 && <button type="button" onClick={() => setTargetPosition('2')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 11, cursor: 'pointer' }}>#2</button>}
-                {songs.length >= 5 && <button type="button" onClick={() => setTargetPosition('5')} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--ink)', fontSize: 11, cursor: 'pointer' }}>#5</button>}
-                <button type="button" onClick={() => setTargetPosition(String(songs.length))} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--soft)', color: 'var(--muted)', fontSize: 11, cursor: 'pointer' }}>Cuối (#{songs.length})</button>
+              <div className="flex gap-1.5 flex-wrap mb-4">
+                <button type="button" onClick={() => setTargetPosition('1')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-orange-400 text-xs font-mono font-medium">#1 (Kế tiếp)</button>
+                {songs.length >= 2 && <button type="button" onClick={() => setTargetPosition('2')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-zinc-300 text-xs font-mono font-medium">#2</button>}
+                {songs.length >= 5 && <button type="button" onClick={() => setTargetPosition('5')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-zinc-300 text-xs font-mono font-medium">#5</button>}
+                <button type="button" onClick={() => setTargetPosition(String(songs.length))} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-zinc-400 text-xs font-mono font-medium">Cuối (#{songs.length})</button>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button type="button" onClick={() => setJumpModalData(null)} className="ghost-button" style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12, width: 'auto', whiteSpace: 'nowrap' }}>Hủy</button>
-                <button type="submit" className="primary-button" style={{ height: 38, padding: '0 16px', borderRadius: 8, fontSize: 12, width: 'auto', whiteSpace: 'nowrap' }}>Xác Nhận</button>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setJumpModalData(null)} className="px-3 py-1.5 rounded-lg border border-white/[0.08] bg-[#18181B] text-xs font-medium text-zinc-300">Hủy</button>
+                <button type="submit" className="px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-xs font-bold text-zinc-950">Xác Nhận</button>
               </div>
             </form>
           </div>
@@ -370,62 +371,49 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
         document.body
       )}
 
-
       {/* ── Top Header Bar ──────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 12, background: 'var(--paper)', border: '1px solid var(--border)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="flex items-center justify-between p-2.5 px-3.5 rounded-xl bg-[#141417] border border-white/[0.06] flex-shrink-0">
+        <div className="flex items-center gap-2.5">
           {songs.length > 0 && (
             <button
+              type="button"
               onClick={toggleSelectAll}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, border: 0, background: 'transparent', color: 'var(--muted)', fontSize: 12, cursor: 'pointer', padding: 0 }}
+              className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 text-xs transition-colors"
             >
-              {isAllSelected ? <CheckSquare size={16} style={{ color: 'var(--yellow)' }} /> : <Square size={16} />}
+              {isAllSelected ? <CheckSquare size={15} className="text-orange-500" /> : <Square size={15} />}
               <span>{isAllSelected ? 'Bỏ chọn' : 'Chọn tất cả'}</span>
             </button>
           )}
-          <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 11, color: 'var(--muted)' }}>
+          <span className="font-mono text-xs text-zinc-500 tabular-nums">
             {songs.length} bài {totalSeconds > 0 ? `• ${formatTotalTime(totalSeconds)}` : ''}
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="flex items-center gap-2">
           {(() => {
             const isRoomEmpty = Boolean(player?.voiceChannel && player.voiceChannel.humanMemberCount === 0);
             const isSwitching = pendingAction === 'toggleLofiMode' || pendingAction === 'switchTo247';
 
             let btnLabel = 'VỀ NHẠC LOFI';
             let btnTitle = 'Lưu hàng chờ và chuyển sang nhạc Lofi 24/7';
-            let btnIcon = <Coffee size={13} />;
-            let btnStyle = {
-              background: 'rgba(232, 201, 119, 0.1)',
-              color: 'var(--yellow)',
-              border: '1px solid rgba(232, 201, 119, 0.28)'
-            };
+            let btnIcon = <Coffee size={12} />;
+            let btnClasses = 'border-orange-500/25 bg-orange-500/10 text-orange-400 hover:bg-orange-500/15';
 
             if (isRoomEmpty) {
               btnLabel = 'PHÒNG TRỐNG (24/7)';
               btnTitle = 'Phòng Voice hiện không có ai, bot duy trì phát Lofi 24/7';
-              btnIcon = <Coffee size={13} />;
-              btnStyle = {
-                background: 'rgba(255, 255, 255, 0.03)',
-                color: 'var(--muted)',
-                border: '1px solid var(--border)',
-                opacity: 0.65,
-                cursor: 'not-allowed'
-              };
+              btnIcon = <Coffee size={12} />;
+              btnClasses = 'border-white/[0.06] bg-white/[0.02] text-zinc-500 cursor-not-allowed opacity-60';
             } else if (isLofiMode) {
-              btnLabel = 'TIẾP TỤC PHÁT NHẠC';
+              btnLabel = 'TIẾP TỤC PHÁT';
               btnTitle = songs.length > 0 ? `Tiếp tục phát ${songs.length} bài hát trong hàng chờ` : 'Phát lại bài hát gần nhất';
-              btnIcon = <Play size={12} fill="currentColor" />;
-              btnStyle = {
-                background: 'rgba(74, 222, 128, 0.12)',
-                color: '#4ade80',
-                border: '1px solid rgba(74, 222, 128, 0.45)'
-              };
+              btnIcon = <Play size={11} fill="currentColor" />;
+              btnClasses = 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/15';
             }
 
             return (
               <button
+                type="button"
                 onClick={() => {
                   if (isSwitching) return;
                   if (isRoomEmpty) {
@@ -436,18 +424,9 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 }}
                 disabled={isSwitching}
                 title={btnTitle}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '4px 10px', borderRadius: 7,
-                  fontSize: 11, fontWeight: 600,
-                  cursor: isRoomEmpty ? 'not-allowed' : (isSwitching ? 'wait' : 'pointer'),
-                  transition: 'all 0.18s ease',
-                  whiteSpace: 'nowrap',
-                  opacity: isSwitching ? 0.65 : 1,
-                  ...btnStyle
-                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-mono font-bold tracking-wider transition-colors ${btnClasses}`}
               >
-                {isSwitching ? <Loader2 size={13} className="animate-spin" /> : btnIcon}
+                {isSwitching ? <Loader2 size={11} className="animate-spin" /> : btnIcon}
                 <span>{isSwitching ? 'ĐANG CHUYỂN...' : btnLabel}</span>
               </button>
             );
@@ -455,18 +434,20 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
 
           {selectedIndices.size > 0 ? (
             <button
+              type="button"
               onClick={handleDeleteSelected}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 6, background: 'rgba(239,120,100,0.15)', color: 'var(--coral)', border: '1px solid rgba(239,120,100,0.3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30 text-xs font-semibold hover:bg-red-500/20 transition-colors"
             >
-              <Trash2 size={13} />
+              <Trash2 size={12} />
               <span>Xóa ({selectedIndices.size})</span>
             </button>
           ) : songs.length > 0 ? (
             <button
+              type="button"
               onClick={() => setShowClearModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, border: 0, background: 'transparent', color: 'var(--coral)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+              className="flex items-center gap-1 px-2 py-1 text-red-400 hover:text-red-300 text-xs font-semibold transition-colors"
             >
-              <Trash2 size={13} />
+              <Trash2 size={12} />
               <span>Xóa Hết</span>
             </button>
           ) : null}
@@ -474,70 +455,48 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
       </div>
 
       {/* ── Queue Song List ─────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingRight: 2 }}>
+      <div className="flex-1 overflow-y-auto min-h-0 pr-1">
         {songs.length === 0 ? (
-          <div style={{ padding: '70px 20px', textAlign: 'center', color: 'var(--muted)' }}>
-            <Music2 size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-            <p style={{ fontWeight: 500, color: 'var(--ink)', fontSize: 15, margin: '0 0 4px' }}>Hàng chờ đang trống</p>
-            <p style={{ fontSize: 12, margin: '0 0 16px' }}>Chuyển sang tab <b>Khám Phá</b> để thêm bài hát hoặc bật nhạc nền Lofi thư giãn!</p>
+          <div className="py-16 px-4 text-center text-zinc-500">
+            <Music2 size={32} className="mx-auto mb-3 opacity-40 text-zinc-400" />
+            <p className="font-semibold text-zinc-300 text-sm mb-1">Hàng chờ đang trống</p>
+            <p className="text-xs text-zinc-500 mb-4">Chuyển sang tab <b>Khám Phá</b> để thêm bài hát hoặc bật nhạc nền Lofi thư giãn.</p>
             {isLofiMode ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '8px 18px', borderRadius: 10,
-                    background: 'rgba(232, 201, 119, 0.12)',
-                    color: 'var(--yellow)',
-                    border: '1px solid rgba(232, 201, 119, 0.35)',
-                    fontSize: 12, fontWeight: 600,
-                    userSelect: 'none'
-                  }}
-                >
+              <div className="flex flex-col items-center gap-2.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/25 text-orange-400 font-mono text-xs font-bold">
                   <Coffee size={14} />
-                  <span>Đang Phát Nhạc Lofi Thư Giãn</span>
+                  <span>ĐANG PHÁT LOFI THƯ GIÃN 24/7</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => onAction('toggleLofiMode')}
                   disabled={pendingAction === 'toggleLofiMode'}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '7px 16px', borderRadius: 8,
-                    background: 'rgba(74, 222, 128, 0.12)',
-                    color: '#4ade80',
-                    border: '1px solid rgba(74, 222, 128, 0.4)',
-                    fontSize: 12, fontWeight: 600, cursor: 'pointer'
-                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/20 transition-colors"
                 >
-                  <Play size={13} fill="currentColor" />
+                  <Play size={12} fill="currentColor" />
                   <span>Tiếp Tục Phát Nhạc</span>
                 </button>
               </div>
             ) : (
               <button
+                type="button"
                 onClick={() => onAction('toggleLofiMode')}
                 disabled={pendingAction === 'toggleLofiMode'}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  padding: '8px 16px', borderRadius: 10,
-                  background: 'rgba(232, 201, 119, 0.1)',
-                  color: 'var(--yellow)',
-                  border: '1px solid rgba(232, 201, 119, 0.28)',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  transition: 'all 0.18s ease'
-                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/25 text-orange-400 text-xs font-semibold hover:bg-orange-500/15 transition-colors"
               >
-                <Coffee size={14} />
-                <span>Chuyển Sang Nhạc Lofi Thư Giãn</span>
+                <Coffee size={13} />
+                <span>Bật Nhạc Lofi 24/7</span>
               </button>
             )}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className="flex flex-col gap-1">
             {songs.map((song, idx) => {
               const isSelected = selectedIndices.has(idx);
               const isDragging = draggedIndex === idx;
               const isDragOver = dragOverIndex === idx;
               const isMenuOpen = activeMenuIdx === idx;
+              const displayIndex = String(idx + 1).padStart(2, '0');
 
               return (
                 <div
@@ -548,18 +507,16 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                   onDrop={(e) => handleDrop(e, idx)}
                   onDragEnd={handleDragEnd}
                   onClick={(e) => toggleSelect(idx, e)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
-                    borderRadius: 10, background: isSelected ? 'rgba(232,201,119,0.08)' : 'var(--paper)',
-                    border: `1px solid ${isSelected ? 'rgba(232,201,119,0.3)' : isDragOver ? 'var(--yellow)' : 'var(--border)'}`,
-                    opacity: isDragging ? 0.4 : 1,
-                    cursor: 'pointer', transition: 'border-color .15s, background .15s',
-                    position: 'relative',
-                    userSelect: 'none'
-                  }}
+                  className={`group flex items-center gap-2.5 p-2 rounded-xl border transition-all select-none cursor-pointer ${
+                    isSelected
+                      ? 'bg-orange-500/10 border-orange-500/30'
+                      : isDragOver
+                      ? 'bg-[#18181B] border-orange-500'
+                      : 'bg-[#141417] hover:bg-[#18181B] border-white/[0.05] hover:border-white/[0.09]'
+                  } ${isDragging ? 'opacity-40' : 'opacity-100'}`}
                 >
                   {/* Drag Grip */}
-                  <div style={{ color: 'var(--muted)', cursor: 'grab', display: 'flex', alignItems: 'center' }} title="Kéo thả đổi vị trí">
+                  <div className="text-zinc-600 hover:text-zinc-400 cursor-grab flex items-center" title="Kéo thả đổi vị trí">
                     <GripVertical size={14} />
                   </div>
 
@@ -567,9 +524,9 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); toggleSelect(idx, e); }}
-                    style={{ border: 0, background: 'transparent', color: isSelected ? 'var(--yellow)' : 'var(--muted)', cursor: 'pointer', padding: 0 }}
+                    className="text-zinc-500 hover:text-zinc-300 p-0 flex items-center"
                   >
-                    {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
+                    {isSelected ? <CheckSquare size={15} className="text-orange-500" /> : <Square size={15} />}
                   </button>
 
                   {/* Index badge */}
@@ -577,13 +534,9 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                     type="button"
                     onClick={(e) => { e.stopPropagation(); openJumpModal(song, idx); }}
                     title="Nhấn để đổi vị trí"
-                    style={{
-                      width: 22, height: 22, borderRadius: 6, border: '1px solid var(--border)',
-                      background: 'var(--soft)', color: 'var(--muted)', fontSize: 10, fontFamily: '"DM Mono", monospace',
-                      fontWeight: 700, display: 'grid', placeItems: 'center', cursor: 'pointer', flexShrink: 0
-                    }}
+                    className="w-5 text-center font-mono text-[11px] font-semibold text-zinc-500 group-hover:text-zinc-300 tabular-nums flex-shrink-0"
                   >
-                    {idx + 1}
+                    {displayIndex}
                   </button>
 
                   {/* Thumbnail */}
@@ -591,126 +544,74 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                     src={song.thumbnail || DEFAULT_TRACK_THUMB}
                     alt=""
                     onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
-                    style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
+                    className="w-9 h-9 rounded-md object-cover flex-shrink-0 border border-white/[0.06] bg-[#18181B]"
                   />
 
-                  {/* Song Title & Artist (Spans full remaining space with clean tooltip) */}
-                  <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-                    <p
-                      title={song.title}
-                      style={{
-                        margin: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--ink)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                      }}
-                    >
+                  {/* Song Title & Artist */}
+                  <div className="min-w-0 flex-1 pr-2">
+                    <p className="text-xs font-medium text-zinc-200 group-hover:text-white truncate m-0" title={song.title}>
                       {song.title}
                     </p>
-                    <p
-                      title={`${song.artist || getSourceLabel(song)} • ${song.duration || ''} • Yêu cầu bởi: ${formatRequesterName(song.requestedBy) || 'User'}`}
-                      style={{
-                        margin: '2px 0 0', fontSize: 11, color: 'var(--muted)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                      }}
-                    >
+                    <p className="text-[11px] text-zinc-500 truncate m-0 mt-0.5" title={`${song.artist || getSourceLabel(song)} • ${song.duration || ''}`}>
                       <span>{song.artist && song.artist !== 'Unknown' ? song.artist : getSourceLabel(song)}</span>
                       {song.duration ? ` • ${song.duration}` : ''}
                       {song.requestedBy ? ` • 👤 ${formatRequesterName(song.requestedBy)}` : ''}
                     </p>
-
                   </div>
 
-                  {/* Right Actions: Quick Play + Dropdown More Menu */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+                  {/* Right Actions */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     {/* Quick Play */}
                     <button
                       type="button"
                       onClick={() => onAction('playNow', idx)}
                       disabled={Boolean(pendingAction)}
-                      style={{
-                        width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)',
-                        background: 'var(--soft)', color: 'var(--ink)', display: 'grid', placeItems: 'center',
-                        cursor: pendingAction ? 'not-allowed' : 'pointer',
-                        opacity: pendingAction ? 0.6 : 1
-                      }}
+                      className="w-7 h-7 rounded-lg border border-white/[0.06] bg-[#18181B] hover:bg-[#222226] text-zinc-300 hover:text-white flex items-center justify-center transition-colors"
                       title={pendingAction === 'playNow' ? 'Đang nạp bài...' : 'Phát ngay bài này'}
                     >
                       {pendingAction === 'playNow' ? (
-                        <Loader2 size={13} className="animate-spin text-white" />
+                        <Loader2 size={12} className="animate-spin text-orange-500" />
                       ) : (
-                        <Play size={13} fill="currentColor" style={{ marginLeft: 1 }} />
+                        <Play size={12} fill="currentColor" className="ml-0.5" />
                       )}
                     </button>
 
-                    {/* More Menu Dropdown Toggle */}
-                    <div style={{ position: 'relative' }}>
+                    {/* More Menu Popover */}
+                    <div className="relative">
                       <button
                         type="button"
                         onClick={(e) => handleToggleMenu(e, idx)}
-                        style={{
-                          width: 30, height: 30, borderRadius: 8,
-                          border: `1px solid ${isMenuOpen ? 'var(--yellow)' : 'var(--border)'}`,
-                          background: isMenuOpen ? 'var(--soft)' : 'transparent',
-                          color: isMenuOpen ? 'var(--yellow)' : 'var(--muted)',
-                          display: 'grid', placeItems: 'center', cursor: 'pointer'
-                        }}
+                        className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors ${
+                          isMenuOpen
+                            ? 'border-orange-500/40 bg-orange-500/10 text-orange-400'
+                            : 'border-white/[0.06] bg-[#18181B] hover:bg-[#222226] text-zinc-400 hover:text-zinc-200'
+                        }`}
                         title="Tùy chọn khác..."
                       >
-                        <MoreHorizontal size={15} />
+                        <MoreHorizontal size={14} />
                       </button>
 
-                      {/* Dropdown / Dropup Popover (Tự động bung lên trên khi gần đáy màn hình) */}
                       {isMenuOpen && (
                         <div
-                          style={{
-                            position: 'absolute',
-                            right: 0,
-                            ...(menuPlacement === 'top'
-                              ? { bottom: 36, top: 'auto' }
-                              : { top: 36, bottom: 'auto' }
-                            ),
-                            zIndex: 50,
-                            width: 170,
-                            borderRadius: 12,
-                            background: '#1c1e22',
-                            border: '1px solid var(--border)',
-                            boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
-                            padding: '6px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 2,
-                            animation: 'tabFadeIn 0.15s ease'
-                          }}
+                          className={`absolute right-0 z-50 w-44 rounded-xl bg-[#141417] border border-white/[0.08] shadow-2xl p-1 flex flex-col gap-0.5 animate-in fade-in duration-150 ${
+                            menuPlacement === 'top' ? 'bottom-8' : 'top-8'
+                          }`}
                         >
                           <button
                             type="button"
                             disabled={Boolean(pendingAction)}
                             onClick={() => { onAction('playNow', idx); setActiveMenuIdx(null); }}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px',
-                              borderRadius: 6, border: 0, background: 'transparent',
-                              color: 'var(--ink)', fontSize: 11.5,
-                              cursor: pendingAction ? 'not-allowed' : 'pointer',
-                              opacity: pendingAction ? 0.6 : 1,
-                              textAlign: 'left', width: '100%'
-                            }}
-                            onMouseEnter={(e) => { if (!pendingAction) e.currentTarget.style.background = 'var(--soft)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-zinc-200 hover:bg-[#1E1E22] text-left w-full transition-colors"
                           >
-                            {pendingAction === 'playNow' ? (
-                              <Loader2 size={12} className="animate-spin text-white" />
-                            ) : (
-                              <Play size={12} fill="currentColor" />
-                            )}
-                            <span>{pendingAction === 'playNow' ? 'Đang phát...' : 'Phát ngay'}</span>
+                            <Play size={12} fill="currentColor" className="text-zinc-400" />
+                            <span>Phát ngay</span>
                           </button>
 
                           {idx > 0 && (
                             <button
                               type="button"
                               onClick={() => handleMoveToTop(idx)}
-                              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 6, border: 0, background: 'transparent', color: 'var(--yellow)', fontSize: 11.5, cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--soft)'}
-                              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-orange-400 hover:bg-[#1E1E22] text-left w-full transition-colors"
                             >
                               <ArrowUpToLine size={13} />
                               <span>Đưa lên đầu (#1)</span>
@@ -720,22 +621,18 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                           <button
                             type="button"
                             onClick={() => openJumpModal(song, idx)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 6, border: 0, background: 'transparent', color: 'var(--ink)', fontSize: 11.5, cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--soft)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-zinc-200 hover:bg-[#1E1E22] text-left w-full transition-colors"
                           >
-                            <ArrowUpDown size={13} />
+                            <ArrowUpDown size={13} className="text-zinc-400" />
                             <span>Chuyển vị trí...</span>
                           </button>
 
-                          <div style={{ height: 1, background: 'var(--border)', margin: '3px 0' }} />
+                          <div className="h-px bg-white/[0.06] my-1" />
 
                           <button
                             type="button"
                             onClick={() => { onAction('remove', idx); setActiveMenuIdx(null); }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 6, border: 0, background: 'transparent', color: 'var(--coral)', fontSize: 11.5, cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,120,100,0.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-red-400 hover:bg-red-500/10 text-left w-full transition-colors"
                           >
                             <Trash2 size={13} />
                             <span>Xóa khỏi hàng chờ</span>

@@ -11,8 +11,6 @@ import {
   Disc3,
   ListPlus,
   ListMusic,
-  Sparkles,
-  Globe,
   SlidersHorizontal,
   User
 } from 'lucide-react';
@@ -232,20 +230,21 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
   const recentPlaylists = player?.recentPlaylists || [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      {/* ── Search Input Box ──────────────────────────────── */}
-      <div className="search-box">
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* ── Command Bar Search Input ──────────────────────── */}
+      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-orange-500/50 focus-within:bg-[#151519] transition-all mb-4">
         <button
           type="button"
           onClick={() => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
             executeSearch(query.trim(), searchMode);
           }}
-          style={{ border: 0, background: 'transparent', color: 'var(--muted)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+          className="text-zinc-400 hover:text-zinc-200 p-0 flex items-center justify-center transition-colors"
           title="Tìm kiếm bài hát"
         >
-          {loading ? <Loader2 size={16} className="animate-spin text-yellow" /> : <Search size={16} />}
+          {loading ? <Loader2 size={16} className="animate-spin text-orange-500" /> : <Search size={16} />}
         </button>
+
         <input
           type="text"
           value={query}
@@ -258,176 +257,139 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
             }
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Tìm bài hát, ca sĩ, dán link YouTube / Spotify / Playlist..."
+          placeholder="Tìm bài hát, ca sĩ, dán link YouTube / Spotify..."
           autoFocus
+          className="flex-1 bg-transparent border-0 outline-none text-zinc-100 placeholder:text-zinc-500 text-xs sm:text-sm font-normal min-w-0"
         />
 
-        {/* Nút Nâng Cao Lồng Trong Ô Nhập */}
+        {/* Nâng Cao Toggle Pill */}
         <button
+          type="button"
           onClick={() => handleModeChange(searchMode === 'all' ? 'official' : 'all')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '4px 9px',
-            borderRadius: 7,
-            border: searchMode === 'all' ? '1px solid rgba(232,201,119,0.5)' : '1px solid var(--border)',
-            background: searchMode === 'all' ? 'rgba(232,201,119,0.15)' : 'var(--soft)',
-            color: searchMode === 'all' ? 'var(--yellow)' : 'var(--muted)',
-            boxShadow: searchMode === 'all' ? '0 0 10px rgba(232,201,119,0.18)' : 'none',
-            fontSize: 9.5,
-            fontWeight: searchMode === 'all' ? 700 : 500,
-            fontFamily: '"DM Mono", monospace',
-            letterSpacing: '0.04em',
-            cursor: 'pointer',
-            flexShrink: 0,
-            transition: 'all .2s cubic-bezier(0.4, 0, 0.2, 1)',
-            marginRight: 4
-          }}
-          title={searchMode === 'all' ? 'Đang bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...) — Nhấn để tắt' : 'Bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)'}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-mono tracking-wider transition-colors flex-shrink-0 ${
+            searchMode === 'all'
+              ? 'bg-orange-500/10 text-orange-400 border border-orange-500/25 font-bold'
+              : 'bg-[#18181B] text-zinc-400 hover:text-zinc-200 border border-white/[0.06]'
+          }`}
+          title={searchMode === 'all' ? 'Đang bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)' : 'Bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)'}
         >
-          <SlidersHorizontal size={12} style={{ color: searchMode === 'all' ? 'var(--yellow)' : 'var(--muted)' }} />
+          <SlidersHorizontal size={11} />
           <span>NÂNG CAO</span>
         </button>
 
         {query ? (
           <button
+            type="button"
             onClick={handleClear}
-            style={{ border: 0, background: 'transparent', color: 'var(--muted)', cursor: 'pointer', padding: 2 }}
+            className="text-zinc-400 hover:text-zinc-100 p-1 rounded-md transition-colors"
             aria-label="Xóa tìm kiếm"
           >
             <X size={15} />
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={() => executeSearch(query.trim(), searchMode)}
-            className="search-kbd"
-            style={{ border: 0, cursor: 'pointer' }}
-            title="Nhấn Enter để tìm"
-          >
+          <span className="hidden sm:inline-block font-mono text-[9px] text-zinc-500 bg-[#18181B] px-1.5 py-0.5 rounded border border-white/[0.06]">
             ENTER
-          </button>
+          </span>
         )}
       </div>
 
       {/* ── Playlist Detection Banner ─────────────────────── */}
       {detected?.isPlaylist && (
-        <div style={{
-          margin: '-10px 0 18px',
-          padding: '12px 16px',
-          borderRadius: 14,
-          background: 'rgba(232,201,119,0.06)',
-          border: '1px solid rgba(232,201,119,0.25)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-            <div style={{
-              width: 42, height: 42, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
-              background: '#1c1e22', border: '1px solid var(--border)', display: 'grid', placeItems: 'center'
-            }}>
+        <div className="flex items-center justify-between gap-3 p-3.5 mb-4 rounded-xl bg-[#141417] border border-orange-500/25 shadow-lg">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#18181B] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
               {playlistPreviewThumb ? (
-                <img src={playlistPreviewThumb} alt="Playlist" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setPlaylistPreviewThumb(null)} />
+                <img src={playlistPreviewThumb} alt="Playlist" className="w-full h-full object-cover" onError={() => setPlaylistPreviewThumb(null)} />
               ) : getPlaylistPreviewImage(query) ? (
-                <img src={getPlaylistPreviewImage(query)} alt="Playlist" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <img src={getPlaylistPreviewImage(query)} alt="Playlist" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
-                <Disc3 size={20} style={{ color: 'var(--yellow)', animation: 'spin 8s linear infinite' }} />
+                <Disc3 size={18} className="text-orange-500" />
               )}
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10, fontWeight: 700, color: 'var(--yellow)', letterSpacing: '0.1em' }}>
-                  {detected.label.toUpperCase()}
-                </span>
-              </div>
-              <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div className="min-w-0">
+              <span className="font-mono text-[10px] font-bold text-orange-400 tracking-wider uppercase">
+                {detected.label}
+              </span>
+              <p className="text-xs text-zinc-400 truncate max-w-sm m-0">
                 {query}
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={() => handleAddPlaylistUrl(detected?.cleanUrl || query.trim())}
-            style={{
-              height: 36, borderRadius: 9, padding: '0 14px',
-              background: 'var(--yellow)', color: '#1c1e21',
-              fontWeight: 700, fontSize: 12, border: 0,
-              display: 'flex', alignItems: 'center', gap: 6,
-              cursor: 'pointer', flexShrink: 0
-            }}
+            className="h-8 px-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-zinc-950 font-bold text-xs flex items-center gap-1.5 flex-shrink-0 transition-colors shadow-sm"
           >
-            <ListPlus size={15} />
+            <ListPlus size={14} />
             <span>Thêm Playlist</span>
           </button>
         </div>
       )}
 
       {/* ── Main Scroll Area ──────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingRight: 2 }}>
+      <div className="flex-1 overflow-y-auto min-h-0 pr-1">
         
-        {/* Loading */}
+        {/* Loading Spinner */}
         {loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: 10, color: 'var(--muted)' }}>
-            <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: 'var(--yellow)' }} />
-            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10, letterSpacing: '0.14em' }}>ĐANG TÌM KIẾM...</span>
+          <div className="flex flex-col items-center justify-center py-14 gap-2 text-zinc-400">
+            <Loader2 size={22} className="animate-spin text-orange-500" />
+            <span className="font-mono text-[10px] tracking-widest text-zinc-500">ĐANG TÌM KIẾM...</span>
           </div>
         )}
 
         {/* 1. Results List when Query is Typed */}
         {query.trim() && !detected?.isPlaylist && !loading && (
           <div>
-            <div className="section-label">
+            <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
               <span>KẾT QUẢ TÌM KIẾM ({results.length})</span>
-              <span style={{ fontSize: 9 }}>NHẤN ĐỂ PHÁT</span>
+              <span className="text-[10px] text-zinc-500">BẤM ĐỂ PHÁT</span>
             </div>
 
             {results.length === 0 ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--muted)' }}>
-                <p style={{ fontWeight: 500, color: 'var(--ink)', fontSize: 14, margin: '0 0 6px' }}>Không tìm thấy bài hát</p>
-                <p style={{ fontSize: 12, margin: 0, lineHeight: 1.6 }}>Hãy thử tìm bằng từ khóa khác hoặc dán trực tiếp đường dẫn YouTube / Spotify nhé!</p>
+              <div className="py-14 px-4 text-center text-zinc-400">
+                <p className="font-medium text-zinc-200 text-sm mb-1.5">Không tìm thấy bài hát</p>
+                <p className="text-xs text-zinc-500">Hãy thử tìm với từ khóa khác hoặc dán link YouTube/Spotify nhé.</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="flex flex-col gap-1">
                 {results.map((song, i) => {
                   const isPlaylist = song.isPlaylist || song.type === 'playlist';
                   return (
                     <div
                       key={song.id || song.url || i}
                       onClick={() => handleOrderTrack(song)}
-                      className="song-row"
-                      style={{ borderRadius: 10 }}
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
                     >
-                      <div className="song-thumb">
-                        <img src={getTrackThumb(song)} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
+                      <div className="w-10 h-10 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 relative border border-white/[0.06]">
+                        <img src={getTrackThumb(song)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
                       </div>
-                      <div className="song-info">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span className="song-name" title={song.title}>{song.title}</span>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate" title={song.title}>
+                            {song.title}
+                          </span>
                           {isPlaylist && (
-                            <span style={{
-                              fontFamily: '"DM Mono", monospace', fontSize: 9, padding: '1px 6px', borderRadius: 4,
-                              background: 'rgba(232,201,119,0.15)', color: 'var(--yellow)', border: '1px solid rgba(232,201,119,0.3)', flexShrink: 0
-                            }}>
+                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20 font-semibold flex-shrink-0">
                               PLAYLIST
                             </span>
                           )}
                         </div>
-                        <span className="song-sub" title={song.artist}>
+                        <span className="text-[11px] text-zinc-400 truncate block mt-0.5" title={song.artist}>
                           {song.artist && song.artist !== 'Unknown' ? song.artist : getSourceLabel(song)}
                           {song.itemCount ? ` • ${song.itemCount} bài` : ''}
                         </span>
                       </div>
-                      <span className="song-dur">{song.duration || ''}</span>
+
+                      <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
+                        {song.duration || ''}
+                      </span>
+
                       <button
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); handleOrderTrack(song); }}
-                        style={{
-                          width: 32, height: 32, borderRadius: 8, border: '1px solid var(--border)',
-                          background: 'var(--soft)', color: 'var(--ink)', display: 'grid', placeItems: 'center',
-                          marginLeft: 6, flexShrink: 0, cursor: 'pointer'
-                        }}
+                        className="w-8 h-8 rounded-lg border border-white/[0.06] bg-[#18181B] hover:bg-[#222226] text-zinc-300 hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
                         title="Thêm vào hàng chờ"
                       >
                         <Plus size={14} />
@@ -442,34 +404,28 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
 
         {/* 2. Default Discover Landing when Query is Empty */}
         {!query.trim() && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <div className="flex flex-col gap-6">
             
             {/* Recently Played */}
             {history.length > 0 && (
               <div>
-                <div className="section-label">
-                  <span>NGHE GẦN ĐÂY</span>
+                <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+                  NGHE GẦN ĐÂY
                 </div>
-                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 8, paddingTop: 4 }}>
+                <div className="flex gap-3 overflow-x-auto pb-2 pt-1 no-scrollbar">
                   {history.slice(0, 8).map((item, idx) => (
                     <div
                       key={idx}
                       onClick={() => handleOrderTrack(item)}
-                      style={{
-                        width: 140, flexShrink: 0, cursor: 'pointer', padding: 10,
-                        borderRadius: 14, background: 'var(--paper)', border: '1px solid var(--border)',
-                        transition: 'border-color .18s, transform .15s',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--yellow)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; }}
+                      className="w-32 flex-shrink-0 p-2.5 rounded-xl bg-[#141417] hover:bg-[#18181C] border border-white/[0.06] hover:border-white/[0.12] cursor-pointer transition-all"
                     >
-                      <div style={{ width: '100%', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#202328', position: 'relative', marginBottom: 8 }}>
-                        <img src={getTrackThumb(item)} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-[#18181B] mb-2 border border-white/[0.06]">
+                        <img src={getTrackThumb(item)} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} className="w-full h-full object-cover" />
                       </div>
-                      <p title={item.title} style={{ margin: '0 0 3px', fontSize: 12.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p title={item.title} className="text-xs font-medium text-zinc-200 truncate m-0 mb-0.5">
                         {item.title}
                       </p>
-                      <p title={item.artist} style={{ margin: 0, fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p title={item.artist} className="text-[11px] text-zinc-500 truncate m-0">
                         {item.artist && item.artist !== 'Unknown' ? item.artist : getSourceLabel(item)}
                       </p>
                     </div>
@@ -478,39 +434,26 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
               </div>
             )}
 
-
-
-            {/* Playlists Gần Đây (Shows first track's thumbnail!) */}
+            {/* Playlists Gần Đây */}
             {recentPlaylists.length > 0 && (
               <div>
-                <div className="section-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>PLAYLIST ĐÃ THÊM GẦN ĐÂY</span>
-                    <ListMusic size={12} style={{ color: 'var(--yellow)' }} />
+                <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+                  <div className="flex items-center gap-1.5">
+                    <span>DANH SÁCH PHÁT GẦN ĐÂY</span>
+                    <ListMusic size={12} className="text-orange-500" />
                   </div>
                   {recentPlaylists.length > 0 && (
                     <button
+                      type="button"
                       onClick={() => setIsAllPlaylistsModalOpen(true)}
-                      style={{
-                        border: 0,
-                        background: 'transparent',
-                        color: 'var(--yellow)',
-                        fontSize: 10,
-                        fontFamily: '"DM Mono", monospace',
-                        cursor: 'pointer',
-                        padding: '2px 6px',
-                        borderRadius: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                      title="Xem toàn bộ danh sách phát của máy chủ"
+                      className="text-orange-400 hover:text-orange-300 font-mono text-[10px] tracking-wider transition-colors"
                     >
-                      <span>Xem tất cả ({recentPlaylists.length})</span>
+                      Xem tất cả ({recentPlaylists.length}) →
                     </button>
                   )}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {recentPlaylists.slice(0, 6).map((pl, idx) => {
                     const thumb = pl.thumbnail || getPlaylistPreviewImage(pl.url) || pl.firstTrackThumb;
                     return (
@@ -520,68 +463,31 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                           setSelectedPlaylist(pl);
                           setIsPlaylistModalOpen(true);
                         }}
-                        className="playlist-hover-card"
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12,
-                          background: 'var(--paper)', border: '1px solid var(--border)', cursor: 'pointer',
-                          transition: 'border-color .18s, background .18s, transform .15s',
-                          position: 'relative', overflow: 'hidden',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = 'rgba(232,201,119,0.6)';
-                          e.currentTarget.style.background = 'rgba(232,201,119,0.06)';
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = 'var(--border)';
-                          e.currentTarget.style.background = 'var(--paper)';
-                          e.currentTarget.style.transform = 'none';
-                        }}
-                        title="Xem toàn bộ bài hát trong playlist này"
+                        className="flex items-center gap-3 p-2.5 rounded-xl bg-[#141417] hover:bg-[#18181C] border border-white/[0.06] hover:border-white/[0.12] cursor-pointer transition-all"
                       >
-                        <div style={{ width: 44, height: 44, borderRadius: 9, overflow: 'hidden', background: '#202328', display: 'grid', placeItems: 'center', flexShrink: 0, border: '1px solid var(--border)', position: 'relative' }}>
+                        <div className="w-11 h-11 rounded-lg overflow-hidden bg-[#18181B] flex items-center justify-center flex-shrink-0 border border-white/[0.06]">
                           {thumb ? (
-                            <img src={thumb} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={thumb} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} className="w-full h-full object-cover" />
                           ) : (
-                            <ListMusic size={20} style={{ color: 'var(--yellow)' }} />
+                            <ListMusic size={18} className="text-orange-500" />
                           )}
                         </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <p title={pl.title || pl.name} style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div className="flex-1 min-w-0">
+                          <p title={pl.title || pl.name} className="text-xs font-medium text-zinc-200 truncate m-0">
                             {pl.title || pl.name || 'Danh Sách Phát'}
                           </p>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, margin: '2px 0 0' }}>
-                            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)', flexShrink: 0 }}>
+                          <div className="flex items-center justify-between gap-2 mt-1">
+                            <span className="font-mono text-[10px] text-zinc-500">
                               {pl.trackCount || pl.itemCount ? `${pl.trackCount || pl.itemCount} BÀI` : 'PLAYLIST'}
                             </span>
                             {pl.addedBy && (
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  minWidth: 0,
-                                  overflow: 'hidden',
-                                  background: 'rgba(255, 255, 255, 0.04)',
-                                  padding: '1px 5px',
-                                  borderRadius: 4,
-                                  border: '1px solid rgba(255, 255, 255, 0.06)'
-                                }}
-                                title={`Thêm bởi: ${pl.addedBy}`}
-                              >
+                              <div className="flex items-center gap-1 text-[10px] text-zinc-400 bg-[#18181B] px-1.5 py-0.5 rounded border border-white/[0.04]">
                                 {pl.addedByAvatar ? (
-                                  <img
-                                    src={pl.addedByAvatar}
-                                    alt=""
-                                    style={{ width: 12, height: 12, borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }}
-                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                  />
+                                  <img src={pl.addedByAvatar} alt="" className="w-3 h-3 rounded-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                                 ) : (
-                                  <User size={10} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+                                  <User size={10} className="text-zinc-500" />
                                 )}
-                                <span style={{ fontSize: 9, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 75 }}>
-                                  @{pl.addedBy}
-                                </span>
+                                <span className="truncate max-w-[70px]">@{pl.addedBy}</span>
                               </div>
                             )}
                           </div>
@@ -593,126 +499,83 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
               </div>
             )}
 
-            {/* Favorites */}
+            {/* Bài Hát Yêu Thích */}
             {favorites.length > 0 && (
               <div>
-                <div className="section-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>BÀI HÁT YÊU THÍCH ({favorites.length})</span>
-                    <Heart size={12} style={{ color: 'var(--coral)' }} />
+                <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+                  <div className="flex items-center gap-1.5">
+                    <span>YÊU THÍCH ({favorites.length})</span>
+                    <Heart size={12} className="text-orange-500" fill="currentColor" />
                   </div>
                   <button
+                    type="button"
                     onClick={() => setIsFavoritesModalOpen(true)}
-                    style={{
-                      border: 0,
-                      background: 'transparent',
-                      color: 'var(--yellow)',
-                      fontSize: 10,
-                      fontFamily: '"DM Mono", monospace',
-                      cursor: 'pointer',
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                    title="Mở toàn bộ danh sách yêu thích"
+                    className="text-orange-400 hover:text-orange-300 font-mono text-[10px] tracking-wider transition-colors"
                   >
-                    <span>XEM TẤT CẢ</span>
-                    <span>↗</span>
+                    Xem tất cả →
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="flex flex-col gap-1">
                   {favorites.slice(0, 4).map((fav, idx) => (
-                    <button
+                    <div
                       key={idx}
-                      className="song-row"
                       onClick={() => handleOrderTrack(fav)}
-                      title={`Phát ${fav.title}`}
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
                     >
-                      <div className="song-thumb">
-                        <img src={getTrackThumb(fav)} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
+                      <div className="w-9 h-9 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/[0.06]">
+                        <img src={getTrackThumb(fav)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
                       </div>
-                      <div className="song-info">
-                        <span className="song-name" title={fav.title}>{fav.title}</span>
-                        <span className="song-sub" title={fav.artist}>{fav.artist || 'YouTube'}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate block" title={fav.title}>
+                          {fav.title}
+                        </span>
+                        <span className="text-[11px] text-zinc-500 truncate block mt-0.5" title={fav.artist}>
+                          {fav.artist || 'YouTube'}
+                        </span>
                       </div>
-                      <span className="song-dur">{fav.duration || ''}</span>
-                    </button>
+                      <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
+                        {fav.duration || ''}
+                      </span>
+                    </div>
                   ))}
                 </div>
-
-                {favorites.length > 4 && (
-                  <button
-                    onClick={() => setIsFavoritesModalOpen(true)}
-                    style={{
-                      marginTop: 8,
-                      width: '100%',
-                      padding: '8px 0',
-                      borderRadius: 10,
-                      border: '1px solid var(--border)',
-                      background: 'var(--soft)',
-                      color: 'var(--yellow)',
-                      fontSize: 11,
-                      fontFamily: '"DM Mono", monospace',
-                      letterSpacing: '0.06em',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                      transition: 'border-color .15s, background .15s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--yellow)';
-                      e.currentTarget.style.background = 'rgba(232,201,119,0.08)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border)';
-                      e.currentTarget.style.background = 'var(--soft)';
-                    }}
-                  >
-                    <span>XEM TOÀN BỘ DANH SÁCH YÊU THÍCH ({favorites.length} BÀI)</span>
-                    <span>↗</span>
-                  </button>
-                )}
               </div>
             )}
 
-            {/* Top Tracks */}
+            {/* Phổ Biến Trong Máy Chủ (Top Tracks) */}
             {topTracks.length > 0 && (
               <div>
-                <div className="section-label">
+                <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
                   <span>PHỔ BIẾN TRONG MÁY CHỦ</span>
-                  <Flame size={12} style={{ color: 'var(--yellow)' }} />
+                  <Flame size={12} className="text-orange-500" />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {topTracks.slice(0, 8).map((top, idx) => (
-                    <button
+
+                <div className="flex flex-col gap-1">
+                  {topTracks.slice(0, 6).map((top, idx) => (
+                    <div
                       key={idx}
-                      className="song-row"
                       onClick={() => handleOrderTrack(top)}
-                      title={`Phát ${top.title}`}
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
                     >
-                      <div className="song-thumb" style={{ position: 'relative', overflow: 'hidden' }}>
-                        <img src={getTrackThumb(top)} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        {idx < 3 && (
-                          <span style={{
-                            position: 'absolute', bottom: 2, right: 3,
-                            fontFamily: '"DM Mono", monospace', fontWeight: 800,
-                            fontSize: 10, color: 'var(--yellow)',
-                            textShadow: '0 1px 4px rgba(0,0,0,0.9)',
-                            lineHeight: 1
-                          }}>#{idx + 1}</span>
-                        )}
+                      <span className="font-mono text-xs font-semibold text-zinc-500 w-5 text-center">
+                        {idx + 1}
+                      </span>
+                      <div className="w-9 h-9 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/[0.06]">
+                        <img src={getTrackThumb(top)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
                       </div>
-                      <div className="song-info">
-                        <span className="song-name" title={top.title}>{top.title}</span>
-                        <span className="song-sub" title={top.artist}>{top.playCount ? `Đã phát ${top.playCount} lần` : (top.artist || '')}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate block" title={top.title}>
+                          {top.title}
+                        </span>
+                        <span className="text-[11px] text-zinc-500 truncate block mt-0.5" title={top.artist}>
+                          {top.playCount ? `Đã phát ${top.playCount} lần` : (top.artist || '')}
+                        </span>
                       </div>
-                      <span className="song-dur">{top.duration || ''}</span>
-                    </button>
+                      <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
+                        {top.duration || ''}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -723,7 +586,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
 
       </div>
 
-      {/* ── Modal Danh Sách Yêu Thích ───────────────────── */}
+      {/* ── Modals ────────────────────────────────────────── */}
       <FavoritesModal
         isOpen={isFavoritesModalOpen}
         onClose={() => setIsFavoritesModalOpen(false)}
@@ -731,7 +594,6 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
         onOrderSong={handleOrderTrack}
       />
 
-      {/* ── Modal Chi Tiết Playlist ─────────────────────── */}
       <PlaylistDetailModal
         isOpen={isPlaylistModalOpen}
         onClose={() => {
@@ -744,7 +606,6 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
         onOrderSong={handleOrderTrack}
       />
 
-      {/* ── Modal Toàn Bộ Danh Sách Phát ────────────────── */}
       <AllPlaylistsModal
         isOpen={isAllPlaylistsModalOpen}
         onClose={() => setIsAllPlaylistsModalOpen(false)}

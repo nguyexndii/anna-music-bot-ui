@@ -66,7 +66,6 @@ export default function KaraokeFullscreenModal({
   const animFrameRef = useRef(null);
   const lastSpaceRef = useRef(0);
   const lastSeekTimeRef = useRef(0);
-  // Track the server snapshot so we can compute elapsed properly
   const progressBaseRef = useRef({ baseMs: 0, snapshotAt: 0, playing: false });
 
   // Lock body scroll when modal is open to ensure window never moves
@@ -85,7 +84,7 @@ export default function KaraokeFullscreenModal({
     if (player?.volume !== undefined) setLocalVolume(player.volume);
   }, [player?.volume]);
 
-  // Reset scroll and timeline immediately when song changes (play hết bài này sang bài khác)
+  // Reset scroll and timeline immediately when song changes
   const lastTrackTitleRef = useRef(current?.title);
   useEffect(() => {
     if (current?.title !== lastTrackTitleRef.current) {
@@ -99,7 +98,6 @@ export default function KaraokeFullscreenModal({
 
   // Sync the progress base when player data changes (every server poll)
   useEffect(() => {
-    // Nếu vừa tua (< 1800ms), không để server poll cũ đè làm giật timeline
     if (Date.now() - lastSeekTimeRef.current < 1800) return;
 
     let baseMs = 0;
@@ -148,9 +146,10 @@ export default function KaraokeFullscreenModal({
       else break;
     }
   }
+
   const currentActiveIdx = computedActiveIdx !== -1 ? computedActiveIdx : activeLineIdx;
 
-  // Auto-scroll to center active lyric line inside container ONLY (never moves window/body)
+  // Auto-scroll to center active lyric line inside container ONLY
   useEffect(() => {
     if (!autoScroll || !scrollRef.current) return;
     if (currentActiveIdx <= 0) {
@@ -161,7 +160,7 @@ export default function KaraokeFullscreenModal({
       const containerHeight = container.clientHeight;
       const targetTop = target.offsetTop;
       const targetHeight = target.offsetHeight;
-      const desiredScrollTop = targetTop - (containerHeight / 2) + (targetHeight / 2);
+      const desiredScrollTop = targetTop - containerHeight / 2 + targetHeight / 2;
       container.scrollTo({
         top: Math.max(0, desiredScrollTop),
         behavior: 'smooth',
@@ -210,17 +209,23 @@ export default function KaraokeFullscreenModal({
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
   const hasSynced = Boolean(lyricsData?.syncedLyrics?.length > 0);
   const isYtCc = lyricsData?.source === 'youtube_cc';
-  const isFav = Boolean(player?.favorites?.some(f =>
-    (f.url && current?.url && f.url === current?.url) ||
-    (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())
-  ));
+  const isFav = Boolean(
+    player?.favorites?.some(
+      (f) =>
+        (f.url && current?.url && f.url === current?.url) ||
+        (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())
+    )
+  );
   const loopMode = player?.loop || player?.loopMode || 'off';
-  const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) || Boolean(player?.mode247 && !player?.current);
+  const isLofiCurrent =
+    Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) ||
+    Boolean(player?.mode247 && !player?.current);
   const isShuffle = Boolean(player?.shuffle);
 
-  const fontSizes = fontSize === 'lg'
-    ? { base: 17, active: 25, linePad: '7px 18px' }
-    : { base: 14, active: 20, linePad: '5px 12px' };
+  const fontSizes =
+    fontSize === 'lg'
+      ? { base: 18, active: 28, linePad: '10px 20px' }
+      : { base: 15, active: 22, linePad: '8px 16px' };
 
   const handleSeekClick = (e) => {
     if (!progressBarRef.current || totalMs <= 0) return;
@@ -282,166 +287,41 @@ export default function KaraokeFullscreenModal({
     onAction?.('volume', v);
   };
 
-  // CSS keyframe injection for vinyl spin + styles
-  const cssStyles = `
-    @keyframes vinylSpin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    @keyframes karaokeLineIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .kara-lyrics-area::-webkit-scrollbar { width: 3px; }
-    .kara-lyrics-area::-webkit-scrollbar-track { background: transparent; }
-    .kara-lyrics-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
-    .kara-vinyl {
-      animation-play-state: ${isPlaying ? 'running' : 'paused'};
-    }
-    .kara-seek-bar:hover .kara-seek-thumb { opacity: 1; }
-    @keyframes heartBounce {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.28); }
-      70% { transform: scale(0.92); }
-      100% { transform: scale(1); }
-    }
-    @media (max-width: 680px) {
-      .kara-footer-left { width: auto !important; min-width: auto !important; }
-      .kara-requester { display: none !important; }
-      .kara-footer-right { width: auto !important; min-width: auto !important; }
-      .kara-footer-right input[type="range"] { width: 50px !important; }
-    }
-  `;
-
   return ReactDOM.createPortal(
     <div
-      className="karaoke-stage-root"
+      className="fixed inset-0 z-[999999] flex flex-col bg-[#09090B] text-zinc-100 font-sans select-none overflow-hidden"
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh',
-        maxHeight: '100vh',
-        zIndex: 999999,
-        background: '#0a0c10',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        // Vietnamese typography: Be Vietnam Pro native support
-        fontFamily: '"Be Vietnam Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        color: '#fff',
+        fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
-      <style>{cssStyles}</style>
-
-      {/* ── Ambient Blurred Background ── */}
-      {current?.thumbnail && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: -60,
-            backgroundImage: `url(${current.thumbnail})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'blur(80px) brightness(0.2) saturate(1.5)',
-            opacity: 0.7,
-            pointerEvents: 'none',
-            zIndex: 0,
-            transform: 'scale(1.2)',
-          }}
-        />
-      )}
+      {/* ── Subtle Zero-CPU Vignette ── */}
       <div
+        className="absolute inset-0 pointer-events-none z-0"
         style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(ellipse at 50% 20%, rgba(20,24,32,0.1) 0%, rgba(10,12,16,0.94) 70%)',
-          pointerEvents: 'none',
-          zIndex: 1,
+          background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(234, 88, 12, 0.08), transparent 70%)',
         }}
       />
 
-      {/* ── Top Header ── */}
-      <header
-        style={{
-          position: 'relative',
-          zIndex: 20,
-          height: 62,
-          padding: '0 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          background: 'rgba(10,12,16,0.6)',
-          gap: 12,
-        }}
-      >
-        {/* Left: Clean Brand + Lyrics Source badge (No cluttered duplicate titles) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          <img
-            src="/logo.gif"
-            alt="Anna Logo"
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 9,
-              imageRendering: 'pixelated',
-              border: '1.5px solid rgba(232,201,119,0.35)',
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-            <span style={{
-              fontFamily: '"DM Mono", monospace',
-              fontSize: 11,
-              fontWeight: 800,
-              color: 'var(--yellow)',
-              letterSpacing: '0.08em',
-              whiteSpace: 'nowrap',
-            }}>
+      {/* ── Studio Header ── */}
+      <header className="relative z-20 h-14 px-5 sm:px-6 flex items-center justify-between border-b border-white/[0.07] bg-[#09090B]/95 gap-3">
+        {/* Left: Brand + Lyrics Source badge */}
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden ring-1 ring-orange-500/30 flex-shrink-0 bg-zinc-900">
+            <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mono text-xs font-bold tracking-wider text-orange-400">
               ANNA KARAOKE
             </span>
             {lyricsSourceInfo && (
-              <span style={{
-                fontFamily: '"DM Mono", monospace',
-                fontSize: 8.5,
-                letterSpacing: '0.06em',
-                color: lyricsSourceInfo.color || 'var(--muted)',
-                background: lyricsSourceInfo.bg || 'rgba(255,255,255,0.05)',
-                border: `1px solid ${lyricsSourceInfo.border || 'rgba(255,255,255,0.1)'}`,
-                padding: '2px 7px',
-                borderRadius: 5,
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-              }}>
+              <span className="font-mono text-[10px] tracking-wider px-2 py-0.5 rounded border border-white/10 bg-white/[0.04] text-zinc-400 font-medium truncate max-w-[150px] sm:max-w-[200px]">
                 {(lyricsSourceInfo.text || '').replace(/^NGUỒN:\s*/i, 'LỜI: ')}
               </span>
             )}
             {hasSynced && !isYtCc && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
-                  background: 'rgba(232, 201, 119, 0.15)',
-                  border: '1px solid rgba(232, 201, 119, 0.4)',
-                  color: 'var(--yellow)',
-                  fontSize: 9.5,
-                  fontWeight: 800,
-                  fontFamily: '"DM Mono", monospace',
-                  cursor: 'help',
-                  flexShrink: 0,
-                  lineHeight: 1
-                }}
-                title="⚠️ Lời từ Spotify / Bên thứ ba · Có thể lệch nhẹ so với video YouTube"
+                className="w-4 h-4 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 font-mono text-[10px] font-bold flex items-center justify-center cursor-help flex-shrink-0"
+                title="Lời từ Spotify / Bên thứ ba · Có thể lệch nhẹ so với bản thu âm"
               >
                 !
               </span>
@@ -449,65 +329,43 @@ export default function KaraokeFullscreenModal({
           </div>
         </div>
 
-        {/* Right: Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
-          {/* Font size: A | A+ only */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: 7,
-            border: '1px solid rgba(255,255,255,0.08)',
-            padding: 2,
-            gap: 1,
-          }}>
+        {/* Right: Controls & Exit */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Font size toggle */}
+          <div className="flex items-center bg-[#141417] border border-white/[0.08] rounded-lg p-0.5">
             {['md', 'lg'].map((size) => (
               <button
                 key={size}
                 onClick={() => setFontSize(size)}
-                style={{
-                  border: 0,
-                  background: fontSize === size ? 'var(--yellow)' : 'transparent',
-                  color: fontSize === size ? '#111' : 'rgba(255,255,255,0.5)',
-                  fontWeight: 700,
-                  fontSize: size === 'lg' ? 11 : 9,
-                  padding: '4px 8px',
-                  borderRadius: 5,
-                  cursor: 'pointer',
-                  fontFamily: '"DM Mono", monospace',
-                  lineHeight: 1,
-                  transition: 'all .15s',
-                }}
-                title={size === 'md' ? 'Cỡ chữ bình thường' : 'Cỡ chữ lớn'}
+                className={`px-2.5 py-1 text-xs font-mono font-medium rounded transition-all ${
+                  fontSize === size
+                    ? 'bg-orange-500 text-white shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+                title={size === 'md' ? 'Cỡ chữ chuẩn' : 'Cỡ chữ phóng to'}
               >
                 {size === 'md' ? 'A' : 'A+'}
               </button>
             ))}
           </div>
 
-          {/* Offset calibration (only when synced) */}
+          {/* Offset calibration button */}
           {hasSynced && (
             <button
               onClick={() => setShowOffsetBar((p) => !p)}
-              style={{
-                border: `1px solid ${showOffsetBar ? 'rgba(232,201,119,0.45)' : 'rgba(255,255,255,0.1)'}`,
-                background: showOffsetBar ? 'rgba(232,201,119,0.12)' : 'rgba(255,255,255,0.04)',
-                color: showOffsetBar ? 'var(--yellow)' : 'rgba(255,255,255,0.7)',
-                borderRadius: 7,
-                padding: '6px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                fontSize: 10,
-                fontFamily: '"DM Mono", monospace',
-                cursor: 'pointer',
-                fontWeight: 600,
-                transition: 'all .15s',
-              }}
-              title="Cân chỉnh độ trễ lời bài hát"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                showOffsetBar
+                  ? 'bg-orange-500/15 border-orange-500/40 text-orange-400'
+                  : 'bg-[#141417] border-white/[0.08] text-zinc-300 hover:bg-[#1A1A1F]'
+              }`}
+              title="Cân chỉnh độ trễ đồng bộ lời"
             >
-              <SlidersHorizontal size={12} />
-              <span>{manualOffsetMs !== 0 ? `${manualOffsetMs > 0 ? '+' : ''}${(manualOffsetMs / 1000).toFixed(1)}s` : 'BÙ TRỄ'}</span>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>
+                {manualOffsetMs !== 0
+                  ? `${manualOffsetMs > 0 ? '+' : ''}${(manualOffsetMs / 1000).toFixed(1)}s`
+                  : 'BÙ TRỄ'}
+              </span>
             </button>
           )}
 
@@ -515,18 +373,11 @@ export default function KaraokeFullscreenModal({
           {hasSynced && (
             <button
               onClick={() => setAutoScroll((p) => !p)}
-              style={{
-                border: `1px solid ${autoScroll ? 'rgba(232,201,119,0.45)' : 'rgba(255,255,255,0.1)'}`,
-                background: autoScroll ? 'rgba(232,201,119,0.12)' : 'rgba(255,255,255,0.04)',
-                color: autoScroll ? 'var(--yellow)' : 'rgba(255,255,255,0.6)',
-                borderRadius: 7,
-                padding: '6px 10px',
-                fontSize: 10,
-                fontFamily: '"DM Mono", monospace',
-                cursor: 'pointer',
-                fontWeight: 600,
-                transition: 'all .15s',
-              }}
+              className={`hidden sm:flex items-center px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
+                autoScroll
+                  ? 'bg-orange-500/15 border-orange-500/40 text-orange-400'
+                  : 'bg-[#141417] border-white/[0.08] text-zinc-400 hover:text-zinc-200'
+              }`}
             >
               {autoScroll ? 'TỰ CUỘN: BẬT' : 'TỰ CUỘN: TẮT'}
             </button>
@@ -535,81 +386,39 @@ export default function KaraokeFullscreenModal({
           {/* Exit button */}
           <button
             onClick={onClose}
-            style={{
-              border: '1px solid rgba(239,120,100,0.4)',
-              background: 'rgba(239,120,100,0.1)',
-              color: 'var(--coral)',
-              borderRadius: 7,
-              padding: '6px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 10,
-              fontFamily: '"DM Mono", monospace',
-              letterSpacing: '0.04em',
-              transition: 'all .15s',
-            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 border border-white/[0.1] text-zinc-200 text-xs font-mono font-medium transition-all"
             title="Đóng toàn màn hình (ESC)"
           >
-            <Minimize2 size={12} />
-            <span>THOÁT (ESC)</span>
+            <Minimize2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">ESC</span>
           </button>
         </div>
       </header>
 
       {/* ── Offset Calibration Sub-bar ── */}
       {showOffsetBar && hasSynced && (
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 20,
-            background: 'rgba(14,17,22,0.97)',
-            borderBottom: '1px solid rgba(255,255,255,0.07)',
-            padding: '8px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-            flexWrap: 'wrap',
-          }}
-        >
-          <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9.5, color: 'var(--muted)', marginRight: 4 }}>
-            BÙ TRỄ:
-          </span>
+        <div className="relative z-20 bg-[#111113] border-b border-white/[0.07] px-4 py-2 flex items-center justify-center gap-1.5 flex-wrap">
+          <span className="font-mono text-xs text-zinc-400 mr-2">BÙ TRỄ ĐỒNG BỘ:</span>
           {[-5000, -2000, -1000, -250].map((ms) => (
             <button
               key={ms}
               onClick={() => onUpdateOffset?.(manualOffsetMs + ms)}
-              style={{
-                padding: '3px 8px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 9.5, cursor: 'pointer',
-                fontFamily: '"DM Mono", monospace',
-              }}
+              className="px-2 py-1 rounded bg-[#16161A] hover:bg-[#202026] border border-white/[0.08] text-zinc-300 text-xs font-mono transition"
             >
               {ms > 0 ? `+${ms / 1000}s` : `${ms / 1000}s`}
             </button>
           ))}
           <button
             onClick={() => onUpdateOffset?.(0)}
-            style={{
-              padding: '3px 10px', borderRadius: 5, border: '1px solid var(--yellow)',
-              background: 'rgba(232,201,119,0.12)', color: 'var(--yellow)', fontSize: 9.5,
-              cursor: 'pointer', fontWeight: 700, fontFamily: '"DM Mono", monospace',
-            }}
+            className="px-3 py-1 rounded bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-400 text-xs font-mono font-bold transition"
           >
-            RESET
+            MẶC ĐỊNH
           </button>
           {[250, 1000, 2000, 5000].map((ms) => (
             <button
               key={ms}
               onClick={() => onUpdateOffset?.(manualOffsetMs + ms)}
-              style={{
-                padding: '3px 8px', borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 9.5, cursor: 'pointer',
-                fontFamily: '"DM Mono", monospace',
-              }}
+              className="px-2 py-1 rounded bg-[#16161A] hover:bg-[#202026] border border-white/[0.08] text-zinc-300 text-xs font-mono transition"
             >
               {ms > 0 ? `+${ms / 1000}s` : `${ms / 1000}s`}
             </button>
@@ -617,139 +426,56 @@ export default function KaraokeFullscreenModal({
         </div>
       )}
 
-      {/* ── Main Body ── */}
-      <main
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          flex: 1,
-          minHeight: 0,
-          display: 'flex',
-          alignItems: 'stretch',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Left: Vinyl turntable */}
-        <div
-          style={{
-            width: 'clamp(200px, 28%, 320px)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px 16px',
-            borderRight: '1px solid rgba(255,255,255,0.05)',
-            gap: 14,
-          }}
-        >
-          {/* Vinyl record */}
-          <div
-            className="kara-vinyl"
-            style={{
-              width: 'min(22vw, 220px)',
-              aspectRatio: '1',
-              borderRadius: '50%',
-              background: `
-                repeating-radial-gradient(
-                  circle,
-                  #090a0c 0px, #090a0c 1.5px,
-                  #181a1f 2px, #0e1013 3.5px
-                )
-              `,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.08), 0 0 30px rgba(232,201,119,0.1)',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'vinylSpin 10s linear infinite',
-              flexShrink: 0,
-            }}
-          >
-            {/* Album art in center */}
-            <div style={{
-              width: '44%',
-              height: '44%',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              boxShadow: '0 0 0 3px #111316, 0 0 0 5px rgba(212,175,55,0.4)',
-            }}>
-              <img
-                src={current?.thumbnail || DEFAULT_TRACK_THUMB}
-                alt="Album"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </div>
-            {/* Spindle */}
-            <div style={{
-              position: 'absolute',
-              width: 14, height: 14,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, #e5c178 0%, #a07832 55%, #4a3612 100%)',
-              border: '1px solid #0a0c10',
-            }}/>
+      {/* ── Main Studio Stage ── */}
+      <main className="relative z-10 flex-1 min-h-0 flex items-stretch overflow-hidden">
+        {/* Left: Modern Square Album Frame (Zero-GPU Lag) */}
+        <div className="w-[280px] lg:w-[360px] hidden md:flex flex-col items-center justify-center p-6 border-r border-white/[0.07] bg-[#0C0C0E]/70 gap-5">
+          <div className="w-56 h-56 lg:w-64 lg:h-64 rounded-2xl overflow-hidden border border-white/[0.1] shadow-2xl bg-zinc-900 relative group flex-shrink-0">
+            <img
+              src={current?.thumbnail || DEFAULT_TRACK_THUMB}
+              alt={current?.title || 'Album Art'}
+              className="w-full h-full object-cover"
+            />
+            {isPlaying && (
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-md bg-black/75 backdrop-blur-sm border border-white/10 flex items-center gap-1.5 shadow-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-mono text-[10px] font-bold text-zinc-200 tracking-wider">LIVE</span>
+              </div>
+            )}
           </div>
 
-          {/* Track title + artist */}
-          <div style={{ textAlign: 'center', maxWidth: 220 }}>
-            <h2 style={{
-              margin: '0 0 4px',
-              fontSize: 15,
-              fontWeight: 700,
-              color: '#fff',
-              lineHeight: 1.35,
-              // Proper Vietnamese text rendering
-              wordBreak: 'break-word',
-              hyphens: 'auto',
-              lang: 'vi',
-            }}>
-              {isLofiCurrent ? '24/7 Lofi Thư Giãn' : (current?.title || 'Chưa có bài hát')}
+          <div className="text-center w-full px-2 max-w-[280px]">
+            <h2
+              className="text-base lg:text-lg font-bold text-zinc-100 line-clamp-2 leading-snug"
+              title={current?.title}
+            >
+              {isLofiCurrent ? '24/7 Lofi Thư Giãn' : current?.title || 'Chưa có bài hát'}
             </h2>
-            <p style={{
-              margin: 0,
-              fontSize: 12,
-              color: 'var(--yellow)',
-              fontWeight: 500,
-            }}>
-              {isLofiCurrent ? 'Chế độ phát nền 24/7' : (current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music')}
+            <p className="text-xs lg:text-sm font-medium text-zinc-400 truncate mt-1">
+              {isLofiCurrent
+                ? 'Chế độ phát nền 24/7'
+                : current?.artist && current.artist !== 'Unknown'
+                ? current.artist
+                : 'Anna Music'}
             </p>
           </div>
 
-          {/* Play status indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: isPlaying ? '#1db954' : 'var(--muted)',
-              boxShadow: isPlaying ? '0 0 6px #1db954' : 'none',
-              transition: 'all .3s',
-              display: 'inline-block',
-              flexShrink: 0,
-            }}/>
-            <span style={{
-              fontFamily: '"DM Mono", monospace',
-              fontSize: 9,
-              color: isPlaying ? 'rgba(255,255,255,0.6)' : 'var(--muted)',
-              letterSpacing: '0.1em',
-            }}>
-              {isPlaying ? 'ĐANG PHÁT' : 'TẠM DỪNG'}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isPlaying ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-zinc-500'
+              }`}
+            />
+            <span className="font-mono text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+              {isPlaying ? 'Đang phát' : 'Tạm dừng'}
             </span>
           </div>
         </div>
 
-        {/* Right: Lyrics area */}
+        {/* Right: Lyrics Area */}
         <div
           ref={scrollRef}
-          className="kara-lyrics-area"
-          style={{
-            position: 'relative',
-            flex: 1,
-            height: '100%',
-            overflowY: 'auto',
-            padding: '40px 28px 45vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            scrollBehavior: 'smooth',
-          }}
+          className="relative flex-1 h-full overflow-y-auto px-6 sm:px-12 py-12 pb-[40vh] flex flex-col items-center scroll-smooth focus:outline-none"
         >
           {hasSynced ? (
             lyricsData.syncedLyrics.map((line, i) => {
@@ -765,160 +491,89 @@ export default function KaraokeFullscreenModal({
                     if (timeMs >= 0 && onAction) {
                       const seekSec = Math.max(0, Math.floor(timeMs / 1000));
                       lastSeekTimeRef.current = Date.now();
-                      progressBaseRef.current = { baseMs: timeMs, snapshotAt: Date.now(), playing: isPlaying };
+                      progressBaseRef.current = {
+                        baseMs: timeMs,
+                        snapshotAt: Date.now(),
+                        playing: isPlaying,
+                      };
                       setLocalProgressMs(timeMs);
                       onAction('seek', seekSec);
                     }
                   }}
                   title={timeMs > 0 ? `Nhảy tới ${formatTime(timeMs)}` : undefined}
                   style={{
-                    margin: '4px 0',
                     padding: fontSizes.linePad,
-                    borderRadius: 14,
-                    // Vietnamese typography: Be Vietnam Pro native support
-                    fontFamily: '"Be Vietnam Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     fontSize: isActive ? fontSizes.active : fontSizes.base,
-                    fontWeight: isActive ? 700 : 500,
-                    color: isActive ? '#ffffff' : isPassed ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.18)',
-                    lineHeight: 1.5,
-                    textAlign: 'center',
-                    cursor: timeMs > 0 ? 'pointer' : 'default',
-                    maxWidth: '90%',
-                    transition: 'font-size 0.25s cubic-bezier(0.2,0.8,0.2,1), color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease',
-                    background: isActive ? 'rgba(232,201,119,0.12)' : 'transparent',
-                    border: isActive ? '1px solid rgba(232,201,119,0.3)' : '1px solid transparent',
-                    boxShadow: isActive ? '0 6px 22px rgba(0,0,0,0.4), 0 0 16px rgba(232,201,119,0.15)' : 'none',
-                    textShadow: isActive ? '0 0 16px rgba(232,201,119,0.4), 0 2px 6px rgba(0,0,0,0.8)' : 'none',
-                    transform: isActive ? 'scale(1.02)' : 'scale(1)',
-                    userSelect: 'none',
-                    wordBreak: 'keep-all',
-                    overflowWrap: 'break-word',
                   }}
+                  className={`my-1 text-center max-w-3xl rounded-xl transition-all duration-200 cursor-pointer select-none leading-relaxed ${
+                    isActive
+                      ? 'font-bold text-zinc-100 bg-orange-500/10 border border-orange-500/30 shadow-lg shadow-black/40 scale-[1.02]'
+                      : isPassed
+                      ? 'font-medium text-zinc-500 hover:text-zinc-300'
+                      : 'font-normal text-zinc-600 hover:text-zinc-400'
+                  }`}
                 >
                   {line.text}
                 </div>
               );
             })
           ) : lyricsData?.lyrics ? (
-            <div style={{ maxWidth: 680, textAlign: 'center', padding: '16px 0' }}>
-              <div style={{
-                fontFamily: '"DM Mono", monospace',
-                fontSize: 10, color: 'var(--yellow)',
-                background: 'rgba(232,201,119,0.08)',
-                padding: '4px 14px', borderRadius: 999, display: 'inline-block',
-                marginBottom: 22, border: '1px solid rgba(232,201,119,0.25)',
-              }}>
-                LỜI BÀI HÁT
-              </div>
-              <p style={{
-                whiteSpace: 'pre-line',
-                fontFamily: '"Be Vietnam Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                fontSize: fontSizes.base,
-                lineHeight: 2.1,
-                color: 'rgba(255,255,255,0.85)',
-                margin: 0,
-              }}>
+            <div className="max-w-2xl text-center py-6">
+              <span className="font-mono text-xs uppercase tracking-wider text-orange-400 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full inline-block mb-6">
+                Lời bài hát không đồng bộ
+              </span>
+              <p
+                style={{ fontSize: fontSizes.base }}
+                className="whitespace-pre-line text-zinc-300 leading-loose"
+              >
                 {lyricsData.lyrics}
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60%', textAlign: 'center', color: 'var(--muted)' }}>
-              <Mic2 size={36} style={{ color: 'var(--yellow)', marginBottom: 14, opacity: 0.5 }} />
-              <p style={{ fontSize: 17, fontWeight: 600, color: '#fff', margin: '0 0 8px' }}>Chưa có lời bài hát</p>
-              <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>Thư giãn và thưởng thức giai điệu cùng Anna Music ♪</p>
+            <div className="flex flex-col items-center justify-center h-2/3 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-500 mb-4 shadow-xl">
+                <Mic2 className="w-7 h-7" />
+              </div>
+              <h3 className="text-base font-semibold text-zinc-200">Chưa có lời bài hát</h3>
+              <p className="text-xs text-zinc-500 mt-1">
+                Thư giãn và thưởng thức giai điệu cùng Anna Music ♪
+              </p>
             </div>
           )}
         </div>
       </main>
 
-      {/* ── Bottom Player Bar ── */}
-      <footer
-        style={{
-          position: 'relative',
-          zIndex: 30,
-          padding: '12px 24px 16px',
-          background: 'rgba(10,13,18,0.9)',
-          borderTop: '1px solid rgba(255,255,255,0.07)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-        }}
-      >
-        {/* Seek row */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 12,
-          maxWidth: 900, width: '100%', margin: '0 auto',
-        }}>
-          <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 11, color: 'var(--yellow)', minWidth: 40, textAlign: 'right' }}>
+      {/* ── Docked Bottom Player Bar ── */}
+      <footer className="relative z-30 px-4 sm:px-8 py-3.5 bg-[#111113] border-t border-white/[0.08] flex flex-col gap-2.5">
+        {/* Seek timeline row */}
+        <div className="flex items-center gap-3 max-w-4xl w-full mx-auto">
+          <span className="font-mono text-xs text-orange-400 min-w-[42px] text-right font-medium">
             {formatTime(currentDisplayMs)}
           </span>
 
-          {/* Seek bar */}
           <div
             ref={progressBarRef}
             onMouseDown={handleSeekMouseDown}
             onClick={handleSeekClick}
-            className="kara-seek-bar"
-            style={{
-              flex: 1, height: 20, display: 'flex', alignItems: 'center',
-              cursor: 'pointer', position: 'relative',
-            }}
+            className="group flex-1 h-5 flex items-center cursor-pointer relative"
           >
-            <div style={{
-              width: '100%', height: 4, borderRadius: 4,
-              background: 'rgba(255,255,255,0.12)',
-              overflow: 'visible', position: 'relative',
-            }}>
-              {/* Progress fill */}
-              <div style={{
-                height: '100%', width: `${percent}%`,
-                background: 'var(--yellow)', borderRadius: 4,
-                boxShadow: '0 0 8px rgba(232,201,119,0.45)',
-                position: 'relative',
-              }}>
-                {/* Thumb */}
-                <div
-                  className="kara-seek-thumb"
-                  style={{
-                    position: 'absolute', right: -6, top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: 12, height: 12, borderRadius: '50%',
-                    background: '#fff',
-                    boxShadow: '0 0 6px rgba(232,201,119,0.6)',
-                    opacity: isDraggingSeek ? 1 : 0,
-                    transition: 'opacity .15s',
-                    pointerEvents: 'none',
-                  }}
-                />
-              </div>
+            <div className="w-full h-1.5 rounded-full bg-zinc-800 relative overflow-hidden group-hover:h-2 transition-all">
+              <div
+                className="h-full bg-orange-500 rounded-full relative"
+                style={{ width: `${percent}%` }}
+              />
             </div>
           </div>
 
-          <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 11, color: 'rgba(255,255,255,0.35)', minWidth: 40 }}>
+          <span className="font-mono text-xs text-zinc-500 min-w-[42px] font-medium">
             {formatTime(totalMs)}
           </span>
         </div>
 
-        {/* Controls row */}
-        <div style={{
-          maxWidth: 960, width: '100%', margin: '0 auto',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
+        {/* Transport row */}
+        <div className="max-w-4xl w-full mx-auto flex items-center justify-between">
           {/* Left: Like & Requester Info */}
-          <div
-            className="kara-footer-left"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              width: 240,
-              minWidth: 240,
-              justifyContent: 'flex-start',
-            }}
-          >
-            {/* Like / Favorite Button */}
+          <div className="flex items-center gap-3 w-48 sm:w-60 justify-start">
             {!isLofiCurrent && (
               <button
                 onClick={() => {
@@ -927,230 +582,119 @@ export default function KaraokeFullscreenModal({
                   setTimeout(() => setHeartPopping(false), 500);
                   onAction?.('toggleFavorite', current);
                 }}
-                style={{
-                  border: isFav ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid rgba(255, 255, 255, 0.12)',
-                  background: isFav ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                  color: isFav ? '#ef4444' : 'rgba(255, 255, 255, 0.75)',
-                  borderRadius: 20,
-                  padding: '6px 13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 7,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  transform: heartPopping ? 'scale(1.18)' : 'scale(1)',
-                  boxShadow: isFav ? '0 0 14px rgba(239, 68, 68, 0.3)' : 'none',
-                  userSelect: 'none',
-                  flexShrink: 0,
-                }}
-                title={isFav ? 'Xóa khỏi danh sách yêu thích' : 'Thêm vào danh sách yêu thích ❤️'}
-                onMouseEnter={(e) => {
-                  if (!isFav) {
-                    e.currentTarget.style.color = '#f87171';
-                    e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isFav) {
-                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                  }
-                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                  isFav
+                    ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
+                    : 'bg-[#16161A] border-white/[0.07] text-zinc-400 hover:text-zinc-200'
+                } ${heartPopping ? 'scale-110' : 'scale-100'}`}
+                title={isFav ? 'Bỏ thích' : 'Yêu thích'}
               >
                 <Heart
-                  size={16}
-                  fill={isFav ? '#ef4444' : 'none'}
-                  color={isFav ? '#ef4444' : 'currentColor'}
-                  strokeWidth={isFav ? 0 : 2}
+                  className="w-4 h-4"
+                  fill={isFav ? 'currentColor' : 'none'}
                 />
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fontFamily: '"Be Vietnam Pro", sans-serif',
-                  letterSpacing: '0.02em',
-                }}>
-                  {isFav ? 'Đã thích' : 'Yêu thích'}
-                </span>
+                <span className="hidden sm:inline">{isFav ? 'Đã thích' : 'Thích'}</span>
               </button>
             )}
 
-            {/* Requester info badge (if available) */}
             {current?.requestedBy && (
               <div
-                className="kara-requester"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 16,
-                  padding: '5px 10px',
-                  color: 'rgba(255, 255, 255, 0.55)',
-                  fontSize: 11.5,
-                  maxWidth: 130,
-                  overflow: 'hidden',
-                  userSelect: 'none',
-                  flexShrink: 1,
-                }}
-                title={`Người yêu cầu: ${current.requestedBy ? current.requestedBy.replace(/^<@!?\d+>$/, 'Discord User') : ''}`}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#16161A] border border-white/[0.07] text-zinc-400 text-xs max-w-[140px] truncate"
+                title={`Yêu cầu bởi: ${current.requestedBy.replace(/^<@!?\d+>$/, 'Discord User')}`}
               >
                 {current.requestedByAvatar ? (
                   <img
                     src={current.requestedByAvatar}
                     alt=""
-                    style={{ width: 14, height: 14, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                    className="w-3.5 h-3.5 rounded-full object-cover flex-shrink-0"
                   />
                 ) : (
-                  <User size={12} style={{ opacity: 0.6, flexShrink: 0 }} />
+                  <User className="w-3.5 h-3.5 opacity-60 flex-shrink-0" />
                 )}
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {current.requestedBy?.replace(/^<@!?\d+>$/, 'Discord User')}
+                <span className="truncate">
+                  {current.requestedBy.replace(/^<@!?\d+>$/, 'Discord User')}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Center transport */}
-          <div
-            className="kara-footer-center"
-            style={{ display: 'flex', alignItems: 'center', gap: 14 }}
-          >
+          {/* Center: Playback Controls */}
+          <div className="flex items-center gap-3 sm:gap-5">
             {/* Shuffle */}
             <button
               onClick={() => onAction?.('shuffle')}
-              style={{
-                border: 0,
-                background: isShuffle ? 'rgba(232, 201, 119, 0.15)' : 'transparent',
-                color: isShuffle ? 'var(--yellow)' : 'rgba(255,255,255,0.65)',
-                cursor: 'pointer',
-                padding: 8,
-                borderRadius: 10,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all .15s',
-              }}
-              title={isShuffle ? 'Xáo trộn: ĐANG BẬT' : 'Xáo trộn hàng chờ'}
-              onMouseEnter={(e) => { if (!isShuffle) e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { if (!isShuffle) e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
+              className={`p-2 rounded-lg transition ${
+                isShuffle
+                  ? 'text-orange-400 bg-orange-500/10'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title={isShuffle ? 'Xáo trộn: Đang bật' : 'Xáo trộn hàng chờ'}
             >
-              <Shuffle size={18} />
+              <Shuffle className="w-4 h-4" />
             </button>
 
             {/* Previous */}
             <button
               onClick={handlePrevious}
-              style={{
-                border: 0,
-                background: 'transparent',
-                color: 'rgba(255,255,255,0.75)',
-                cursor: 'pointer',
-                padding: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'color .15s',
-              }}
+              className="p-2 text-zinc-400 hover:text-zinc-200 transition"
               title="Bài trước"
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.75)'; }}
             >
-              <SkipBack size={22} />
+              <SkipBack className="w-5 h-5" />
             </button>
 
-            {/* Play/Pause */}
+            {/* High-Contrast White Play/Pause Button */}
             <button
               onClick={handlePlayPause}
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                border: 0,
-                background: 'var(--yellow)',
-                color: '#111316',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: '0 4px 20px rgba(232,201,119,0.4)',
-                transition: 'transform .15s, box-shadow .15s',
-              }}
+              className="w-11 h-11 rounded-full bg-zinc-100 hover:bg-white text-zinc-950 flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform"
               title={isPlaying ? 'Tạm dừng (Space)' : 'Phát (Space)'}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.07)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
             >
-              {isPlaying
-                ? <Pause size={22} fill="#111316" />
-                : <Play size={22} fill="#111316" style={{ marginLeft: 2 }} />
-              }
+              {isPlaying ? (
+                <Pause className="w-5 h-5 fill-zinc-950" />
+              ) : (
+                <Play className="w-5 h-5 fill-zinc-950 ml-0.5" />
+              )}
             </button>
 
-            {/* Skip */}
+            {/* Next */}
             <button
               onClick={handleSkip}
-              style={{
-                border: 0,
-                background: 'transparent',
-                color: 'rgba(255,255,255,0.75)',
-                cursor: 'pointer',
-                padding: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'color .15s',
-              }}
+              className="p-2 text-zinc-400 hover:text-zinc-200 transition"
               title="Bài kế tiếp"
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.75)'; }}
             >
-              <SkipForward size={22} />
+              <SkipForward className="w-5 h-5" />
             </button>
 
-            {/* Repeat / Loop */}
+            {/* Loop */}
             <button
               onClick={() => !isLofiCurrent && onAction?.('loop')}
               disabled={isLofiCurrent}
-              style={{
-                border: 0,
-                background: loopMode !== 'off' && !isLofiCurrent ? 'rgba(232, 201, 119, 0.15)' : 'transparent',
-                color: isLofiCurrent ? 'rgba(255,255,255,0.25)' : (loopMode !== 'off' ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'),
-                cursor: isLofiCurrent ? 'not-allowed' : 'pointer',
-                opacity: isLofiCurrent ? 0.35 : 1,
-                padding: 8,
-                borderRadius: 10,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                transition: 'all .15s',
-              }}
-              title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
-              onMouseEnter={(e) => { if (!isLofiCurrent && loopMode === 'off') e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { if (!isLofiCurrent && loopMode === 'off') e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
+              className={`p-2 rounded-lg relative transition ${
+                isLofiCurrent
+                  ? 'text-zinc-600 opacity-40 cursor-not-allowed'
+                  : loopMode !== 'off'
+                  ? 'text-orange-400 bg-orange-500/10'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+              title={
+                isLofiCurrent
+                  ? 'Chế độ Lofi phát liên tục, không hỗ trợ lặp'
+                  : `Lặp lại: ${
+                      loopMode === 'song'
+                        ? '1 bài'
+                        : loopMode === 'queue'
+                        ? 'Cả danh sách'
+                        : 'Tắt'
+                    }`
+              }
             >
-              <Repeat size={18} />
+              <Repeat className="w-4 h-4" />
               {loopMode === 'song' && (
-                <span style={{
-                  position: 'absolute', top: 1, right: 1,
-                  fontSize: 8, fontWeight: 700,
-                  background: 'var(--yellow)', color: '#111316',
-                  borderRadius: '50%', width: 13, height: 13,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-orange-500 text-zinc-950 text-[9px] font-bold flex items-center justify-center">
                   1
                 </span>
               )}
               {loopMode === 'queue' && (
-                <span style={{
-                  position: 'absolute', top: 1, right: 1,
-                  fontSize: 8, fontWeight: 700,
-                  background: 'var(--coral)', color: '#fff',
-                  borderRadius: '50%', width: 13, height: 13,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-zinc-200 text-zinc-950 text-[9px] font-bold flex items-center justify-center">
                   ∞
                 </span>
               )}
@@ -1158,44 +702,29 @@ export default function KaraokeFullscreenModal({
           </div>
 
           {/* Right: Volume */}
-          <div
-            className="kara-footer-right"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              width: 240,
-              minWidth: 240,
-              justifyContent: 'flex-end',
-            }}
-          >
+          <div className="flex items-center justify-end gap-2 w-48 sm:w-60">
             <button
               onClick={handleToggleMute}
-              style={{
-                border: 0,
-                background: 'transparent',
-                color: 'rgba(255,255,255,0.6)',
-                cursor: 'pointer',
-                padding: 6,
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'color .15s',
-              }}
+              className="p-1.5 text-zinc-400 hover:text-zinc-200 transition"
               title={localVolume > 0 ? 'Tắt tiếng' : 'Bật tiếng'}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
             >
-              {localVolume > 0 ? <Volume2 size={17} /> : <VolumeX size={17} style={{ color: 'var(--coral)' }} />}
+              {localVolume > 0 ? (
+                <Volume2 className="w-4 h-4" />
+              ) : (
+                <VolumeX className="w-4 h-4 text-rose-400" />
+              )}
             </button>
+
             <input
               type="range"
               min={0}
               max={100}
               value={localVolume}
               onChange={(e) => handleVolume(Number(e.target.value))}
-              style={{ width: 85, accentColor: 'var(--yellow)', height: 3, cursor: 'pointer' }}
+              className="w-16 sm:w-20 h-1.5 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-orange-500"
             />
-            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10.5, color: 'rgba(255,255,255,0.5)', minWidth: 32 }}>
+
+            <span className="font-mono text-xs text-zinc-500 min-w-[32px] text-right">
               {localVolume}%
             </span>
           </div>

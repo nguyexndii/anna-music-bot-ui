@@ -7,23 +7,23 @@
     <link rel="icon" type="image/gif" href="/logo.gif" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet">
   </head>
-  <body>
+  <body class="bg-[#09090B] text-zinc-100 antialiased selection:bg-orange-500/20 selection:text-orange-400">
     <div id="root">
-      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #111316; color: #777b80; font-family: 'DM Sans', sans-serif; text-align: center; padding: 20px;">
-        <div style="position: relative; width: 92px; height: 92px; margin: 0 auto 20px;">
-          <img src="/logo.gif" alt="Anna Music Logo" style="width: 92px; height: 92px; border-radius: 24px; object-fit: cover; border: 2px solid rgba(232, 201, 119, 0.45); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 28px rgba(232, 201, 119, 0.2); image-rendering: pixelated; display: block;" />
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #09090B; color: #a1a1aa; font-family: 'Be Vietnam Pro', sans-serif; text-align: center; padding: 20px;">
+        <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 20px;">
+          <img src="/logo.gif" alt="Anna Music Logo" style="width: 80px; height: 80px; border-radius: 18px; object-fit: cover; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(249, 115, 22, 0.25); image-rendering: pixelated; display: block;" />
         </div>
-        <div style="font-family: Georgia, serif; font-size: 38px; letter-spacing: -4px; padding-right: 4px; line-height: 0.85; margin-bottom: 10px;">
-          <span style="color: #e8c977;">an</span><span style="color: #ef7864;">na</span>
+        <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 6px; color: #f4f4f5;">
+          <span>an</span><span style="color: #f97316;">na</span>
         </div>
-        <p style="font-family: 'DM Mono', monospace; font-size: 9.5px; letter-spacing: 0.18em; color: #777b80; margin: 0 0 22px;">MUSIC WEB PLAYER</p>
-        <div style="width: 80px; height: 3px; background: #23262a; border-radius: 3px; overflow: hidden; margin: 0 auto 16px;">
-          <div style="height: 100%; width: 45%; background: #e8c977; border-radius: 3px; animation: slide 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; color: #71717a; margin: 0 0 20px; text-transform: uppercase;">STUDIO WEB PLAYER</p>
+        <div style="width: 96px; height: 3px; background: #18181b; border-radius: 3px; overflow: hidden; margin: 0 auto 16px;">
+          <div style="height: 100%; width: 45%; background: #f97316; border-radius: 3px; animation: studioSlide 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
         </div>
-        <p style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.18em; color: #777b80; margin: 0;">ĐANG KHỞI TẠO...</p>
-        <style>@keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }</style>
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #71717a; margin: 0;">ĐANG KHỞI TẠO...</p>
+        <style>@keyframes studioSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }</style>
       </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>

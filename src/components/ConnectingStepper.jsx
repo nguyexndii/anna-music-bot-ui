@@ -2,61 +2,58 @@ import React from 'react';
 
 export default function ConnectingStepper({ text = 'ĐANG KHỞI TẠO...' }) {
   return (
-    <main className="auth-shell">
-      <div className="auth-brand" style={{ marginBottom: 24 }}>
-        <div style={{
-          position: 'relative',
-          width: 92,
-          height: 92,
-          margin: '0 auto 20px',
-        }}>
+    <main
+      className="min-h-screen w-full bg-[#09090B] flex flex-col items-center justify-center p-6 text-zinc-100 select-none relative overflow-hidden"
+      style={{
+        fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      }}
+    >
+      {/* Subtle top vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: 'radial-gradient(ellipse 60% 40% at 50% 30%, rgba(234, 88, 12, 0.07), transparent 70%)',
+        }}
+      />
+
+      <div className="relative z-10 flex flex-col items-center text-center max-w-sm">
+        {/* Brand Logo */}
+        <div className="w-20 h-20 rounded-2xl overflow-hidden ring-1 ring-orange-500/30 border border-white/[0.08] shadow-2xl shadow-black/80 bg-zinc-900 mb-5">
           <img
             src="/logo.gif"
             alt="Anna Music Logo"
-            style={{
-              width: 92,
-              height: 92,
-              borderRadius: 24,
-              objectFit: 'cover',
-              border: '2px solid rgba(232, 201, 119, 0.45)',
-              boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6), 0 0 28px rgba(232, 201, 119, 0.2)',
-              imageRendering: 'pixelated',
-              display: 'block',
-            }}
+            className="w-full h-full object-cover"
           />
         </div>
-        <div className="brand-name"><span className="y">an</span><b className="c">na</b></div>
-        <div className="brand-subtitle">MUSIC WEB PLAYER</div>
-      </div>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{
-          width: 80,
-          height: 3,
-          background: 'var(--border)',
-          borderRadius: 3,
-          overflow: 'hidden',
-          margin: '0 auto 16px',
-        }}>
-          <div style={{
-            height: '100%',
-            width: '45%',
-            background: 'var(--yellow)',
-            borderRadius: 3,
-            animation: 'stepperSlide 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite',
-          }} />
+
+        {/* Brand Title */}
+        <h1 className="text-xl font-bold tracking-tight text-zinc-100 mb-1">
+          ANNA MUSIC
+        </h1>
+        <p className="font-mono text-[11px] tracking-widest text-zinc-500 uppercase mb-8">
+          STUDIO WEB PLAYER
+        </p>
+
+        {/* Minimal Progress Bar */}
+        <div className="w-48 h-1 bg-zinc-800 rounded-full overflow-hidden mb-4 relative">
+          <div className="h-full w-1/3 bg-orange-500 rounded-full animate-progress-indeterminate" />
         </div>
-        <p style={{
-          fontFamily: '"DM Mono", monospace',
-          fontSize: 11,
-          letterSpacing: '0.18em',
-          color: 'var(--muted)',
-          margin: 0,
-        }}>
+
+        {/* Status Text */}
+        <p className="font-mono text-xs tracking-widest text-zinc-400">
           {text}
         </p>
       </div>
-      <style>{`@keyframes stepperSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }`}</style>
-      <footer className="auth-footer" style={{ marginTop: 28 }}>ANNA MUSIC</footer>
+
+      <style>{`
+        @keyframes progressIndeterminate {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(350%); }
+        }
+        .animate-progress-indeterminate {
+          animation: progressIndeterminate 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+      `}</style>
     </main>
   );
 }

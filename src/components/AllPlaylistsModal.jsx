@@ -15,7 +15,7 @@ function getPlaylistPreviewImage(url) {
 export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onSelectPlaylist }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Đóng modal khi nhấn phím ESC
+  // Close modal on ESC key
   useEffect(() => {
     if (!isOpen) return;
     setSearchQuery('');
@@ -44,241 +44,89 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        background: 'rgba(0, 0, 0, 0.78)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        animation: 'fadeIn 0.18s ease-out'
-      }}
+      className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
       <div
+        className="w-full max-w-3xl max-h-[85vh] rounded-2xl bg-[#141417] border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
         style={{
-          width: '100%',
-          maxWidth: 720,
-          maxHeight: '88vh',
-          borderRadius: 20,
-          background: 'var(--paper)',
-          border: '1px solid var(--border)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
       >
         {/* Header */}
-        <div
-          style={{
-            padding: '18px 24px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-            background: 'rgba(255, 255, 255, 0.015)',
-            gap: 12
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: 'rgba(232, 201, 119, 0.12)',
-                border: '1px solid rgba(232, 201, 119, 0.25)',
-                display: 'grid',
-                placeItems: 'center',
-                color: 'var(--yellow)',
-                flexShrink: 0
-              }}
-            >
-              <ListMusic size={18} />
+        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113] gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 flex-shrink-0">
+              <ListMusic className="w-4 h-4" />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: 'var(--ink)',
-                    letterSpacing: '-0.02em'
-                  }}
-                >
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-sm sm:text-base font-bold text-zinc-100 tracking-tight">
                   Tất Cả Danh Sách Phát
                 </h3>
-                <span
-                  style={{
-                    fontFamily: '"DM Mono", monospace',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    padding: '2px 8px',
-                    borderRadius: 6,
-                    background: 'rgba(232, 201, 119, 0.12)',
-                    color: 'var(--yellow)',
-                    border: '1px solid rgba(232, 201, 119, 0.25)'
-                  }}
-                >
+                <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">
                   {playlists.length} PLAYLIST
                 </span>
               </div>
-              <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--muted)', fontFamily: '"DM Mono", monospace' }}>
-                Nhấn vào playlist để xem danh sách bài hát và phát nhạc
+              <p className="text-[11px] text-zinc-400 mt-0.5 font-sans">
+                Nhấn vào playlist để xem bài hát và phát nhạc
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--muted)',
-              display: 'grid',
-              placeItems: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--ink)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--muted)';
-              e.currentTarget.style.borderColor = 'var(--border)';
-            }}
+            className="w-8 h-8 rounded-lg border border-white/[0.07] bg-[#18181C] hover:bg-[#222228] text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition flex-shrink-0"
+            title="Đóng (ESC)"
           >
-            <X size={16} />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Search Filter */}
-        <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.15)' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '8px 12px',
-              borderRadius: 10,
-              background: 'var(--bg)',
-              border: '1px solid var(--border)'
-            }}
-          >
-            <Search size={15} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+        <div className="px-6 py-3 border-b border-white/[0.07] bg-[#111113]/60">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[#0E0E11] border border-white/[0.08] focus-within:border-orange-500/50 transition">
+            <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
             <input
               type="text"
               placeholder="Tìm theo tên playlist hoặc người thêm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--ink)',
-                fontSize: 13,
-                width: '100%',
-                fontFamily: 'inherit'
-              }}
+              className="bg-transparent border-none outline-none text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 w-full"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--muted)',
-                  cursor: 'pointer',
-                  padding: 2,
-                  display: 'grid',
-                  placeItems: 'center'
-                }}
+                className="text-zinc-500 hover:text-zinc-300 p-0.5"
               >
-                <X size={13} />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
 
         {/* Playlist Grid */}
-        <div
-          style={{
-            padding: '20px 24px',
-            overflowY: 'auto',
-            flex: 1
-          }}
-        >
+        <div className="p-6 overflow-y-auto flex-1">
           {filteredPlaylists.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)' }}>
-              <ListMusic size={32} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
-              <p style={{ margin: 0, fontSize: 13 }}>
-                {searchQuery ? 'Không tìm thấy playlist nào phù hợp!' : 'Chưa có playlist nào được thêm vào máy chủ.'}
+            <div className="text-center py-12 text-zinc-500">
+              <ListMusic className="w-8 h-8 mx-auto mb-2 opacity-40" />
+              <p className="text-xs">
+                {searchQuery
+                  ? 'Không tìm thấy playlist nào phù hợp!'
+                  : 'Chưa có playlist nào được thêm vào máy chủ.'}
               </p>
             </div>
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: 12
-              }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {filteredPlaylists.map((pl, idx) => {
                 const thumb = pl.thumbnail || getPlaylistPreviewImage(pl.url) || pl.firstTrackThumb;
                 return (
                   <div
                     key={idx}
-                    onClick={() => {
-                      onSelectPlaylist?.(pl);
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: 12,
-                      borderRadius: 14,
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px solid var(--border)',
-                      cursor: 'pointer',
-                      transition: 'all 0.18s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'rgba(232, 201, 119, 0.5)';
-                      e.currentTarget.style.background = 'rgba(232, 201, 119, 0.06)';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border)';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-                      e.currentTarget.style.transform = 'none';
-                    }}
+                    onClick={() => onSelectPlaylist?.(pl)}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.06] hover:border-orange-500/30 cursor-pointer transition-all duration-150 group"
                     title="Nhấn để xem các bài hát trong playlist này"
                   >
-                    <div
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 10,
-                        overflow: 'hidden',
-                        background: '#202328',
-                        display: 'grid',
-                        placeItems: 'center',
-                        flexShrink: 0,
-                        border: '1px solid var(--border)',
-                        position: 'relative'
-                      }}
-                    >
+                    <div className="w-13 h-13 rounded-lg overflow-hidden bg-zinc-900 flex-shrink-0 border border-white/[0.08] relative aspect-square">
                       {thumb ? (
                         <img
                           src={thumb}
@@ -286,85 +134,48 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                           onError={(e) => {
                             e.currentTarget.src = DEFAULT_TRACK_THUMB;
                           }}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
-                        <ListMusic size={22} style={{ color: 'var(--yellow)' }} />
+                        <div className="w-full h-full flex items-center justify-center text-orange-400">
+                          <ListMusic className="w-5 h-5" />
+                        </div>
                       )}
                     </div>
 
-                    <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="min-w-0 flex-1">
                       <p
                         title={pl.title || pl.name}
-                        style={{
-                          margin: 0,
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: 'var(--ink)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
+                        className="text-xs sm:text-sm font-semibold text-zinc-100 truncate group-hover:text-orange-400 transition-colors"
                       >
                         {pl.title || pl.name || 'Danh Sách Phát'}
                       </p>
 
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginTop: 4 }}>
-                        <span
-                          style={{
-                            fontFamily: '"DM Mono", monospace',
-                            fontSize: 10,
-                            color: 'var(--yellow)',
-                            fontWeight: 600,
-                            flexShrink: 0,
-                            background: 'rgba(232, 201, 119, 0.1)',
-                            padding: '1px 6px',
-                            borderRadius: 4,
-                            border: '1px solid rgba(232, 201, 119, 0.2)'
-                          }}
-                        >
-                          {pl.trackCount || pl.itemCount ? `${pl.trackCount || pl.itemCount} BÀI` : 'PLAYLIST'}
+                      <div className="flex items-center justify-between gap-2 mt-1.5">
+                        <span className="font-mono text-[10px] font-semibold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-1.5 py-0.5 rounded">
+                          {pl.trackCount || pl.itemCount
+                            ? `${pl.trackCount || pl.itemCount} BÀI`
+                            : 'PLAYLIST'}
                         </span>
 
                         {pl.addedBy && (
                           <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              minWidth: 0,
-                              overflow: 'hidden',
-                              background: 'rgba(255, 255, 255, 0.04)',
-                              padding: '1px 6px',
-                              borderRadius: 4,
-                              border: '1px solid rgba(255, 255, 255, 0.06)'
-                            }}
+                            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[10px] truncate max-w-[120px]"
                             title={`Thêm bởi: ${pl.addedBy}`}
                           >
                             {pl.addedByAvatar ? (
                               <img
                                 src={pl.addedByAvatar}
                                 alt=""
-                                style={{ width: 13, height: 13, borderRadius: '50%', flexShrink: 0, objectFit: 'cover' }}
+                                className="w-3 h-3 rounded-full object-cover flex-shrink-0"
                                 onError={(e) => {
                                   e.currentTarget.style.display = 'none';
                                 }}
                               />
                             ) : (
-                              <User size={10} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+                              <User className="w-2.5 h-2.5 opacity-60 flex-shrink-0" />
                             )}
-                            <span
-                              style={{
-                                fontSize: 10,
-                                color: 'var(--muted)',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                maxWidth: 100
-                              }}
-                            >
-                              @{pl.addedBy}
-                            </span>
+                            <span className="truncate">@{pl.addedBy}</span>
                           </div>
                         )}
                       </div>

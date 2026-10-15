@@ -1,5 +1,6 @@
-﻿import React, { useState, useMemo } from 'react';
-import { Play, Search, X } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Play, Search, X, History as HistoryIcon } from 'lucide-react';
+import { DEFAULT_TRACK_THUMB } from '../config';
 
 function formatRelativeTime(dateString) {
   if (!dateString) return 'Gần đây';
@@ -28,74 +29,79 @@ export default function HistoryTab({ player, onOrderSong }) {
   }, [history, query]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Search box */}
-      <div className="search-box" style={{ marginBottom: 16 }}>
-        <Search size={15} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-orange-500/50 transition-all mb-3.5">
+        <Search size={15} className="text-zinc-500 flex-shrink-0" />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Tìm trong lịch sử phát nhạc..."
+          className="flex-1 bg-transparent border-0 outline-none text-xs sm:text-sm text-zinc-200 placeholder:text-zinc-500 min-w-0"
         />
         {query && (
-          <button onClick={() => setQuery('')} style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--muted)', padding: 0 }}>
+          <button
+            type="button"
+            onClick={() => setQuery('')}
+            className="text-zinc-500 hover:text-zinc-300 p-0 flex items-center"
+          >
             <X size={15} />
           </button>
         )}
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--muted)', textAlign: 'center', padding: '60px 0' }}>
-          <div style={{ display: 'flex', gap: 3 }}>
-            {[10, 18, 24, 18, 10].map((h, i) => (
-              <span key={i} style={{ width: 2.5, height: h, background: 'var(--border)', borderRadius: 2, display: 'block' }} />
-            ))}
-          </div>
-          <div>
-            <p style={{ fontWeight: 500, color: 'var(--ink)', fontSize: 14, margin: '0 0 4px' }}>
-              {query ? 'Không tìm thấy bài hát' : 'Chưa có lịch sử phát nhạc'}
-            </p>
-            <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>
-              {query ? 'Hãy thử tìm bằng từ khóa khác.' : 'Các bài hát đã phát trên Discord sẽ tự động xuất hiện ở đây.'}
-            </p>
-          </div>
+        <div className="flex-1 flex flex-col items-center justify-center py-16 px-4 text-center text-zinc-500">
+          <HistoryIcon size={32} className="mx-auto mb-3 opacity-40 text-zinc-400" />
+          <p className="font-semibold text-zinc-300 text-sm mb-1">
+            {query ? 'Không tìm thấy bài hát' : 'Chưa có lịch sử phát nhạc'}
+          </p>
+          <p className="text-xs text-zinc-500 m-0 max-w-xs">
+            {query ? 'Hãy thử tìm bằng từ khóa khác.' : 'Các bài hát đã phát trên Discord sẽ tự động xuất hiện ở đây để nghe lại.'}
+          </p>
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <div className="section-label">
+        <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+          <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
             <span>{filtered.length} BÀI ĐÃ PHÁT</span>
-            <span style={{ fontSize: 9 }}>BẤM ĐỂ PHÁT LẠI</span>
+            <span className="text-[10px] text-zinc-500">BẤM ĐỂ PHÁT LẠI</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+
+          <div className="flex flex-col gap-1">
             {filtered.map((track, i) => (
               <div
                 key={`${track.title}-${track.playedAt || i}`}
-                className="song-row"
                 onClick={() => onOrderSong?.(track)}
-                style={{ borderRadius: 10 }}
+                className="group flex items-center gap-3 p-2 rounded-xl bg-[#141417] hover:bg-[#18181B] border border-white/[0.05] hover:border-white/[0.09] cursor-pointer transition-all"
               >
-                <div className="song-thumb">
+                <div className="w-9 h-9 rounded-md overflow-hidden bg-[#18181B] border border-white/[0.06] flex-shrink-0 flex items-center justify-center">
                   {track.thumbnail ? (
-                    <img src={track.thumbnail} alt="" />
+                    <img src={track.thumbnail} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
                   ) : (
-                    <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10, color: 'rgba(255,255,255,.6)' }}>{i + 1}</span>
+                    <span className="font-mono text-[10px] text-zinc-500">{i + 1}</span>
                   )}
                 </div>
-                <div className="song-info">
-                  <span className="song-name">{track.title}</span>
-                  <span className="song-sub">{track.artist && track.artist !== 'Unknown' ? track.artist : 'YouTube Music'}</span>
+
+                <div className="flex-1 min-w-0 pr-2">
+                  <p className="text-xs font-medium text-zinc-200 group-hover:text-white truncate m-0" title={track.title}>
+                    {track.title}
+                  </p>
+                  <p className="text-[11px] text-zinc-500 truncate m-0 mt-0.5" title={track.artist}>
+                    {track.artist && track.artist !== 'Unknown' ? track.artist : 'YouTube Music'}
+                  </p>
                 </div>
-                <span className="song-dur">{formatRelativeTime(track.playedAt)}</span>
+
+                <span className="font-mono text-[10px] text-zinc-500 tabular-nums px-2 flex-shrink-0">
+                  {formatRelativeTime(track.playedAt)}
+                </span>
+
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); onOrderSong?.(track); }}
-                  style={{
-                    width: 32, height: 32, borderRadius: 8, border: '1px solid var(--border)',
-                    background: 'var(--soft)', color: 'var(--ink)', display: 'grid', placeItems: 'center',
-                    marginLeft: 6, flexShrink: 0, cursor: 'pointer'
-                  }}
+                  className="w-7 h-7 rounded-lg border border-white/[0.06] bg-[#18181B] hover:bg-[#222226] text-zinc-300 hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
                   title="Phát lại bài này"
                 >
-                  <Play size={13} fill="currentColor" style={{ marginLeft: 1 }} />
+                  <Play size={12} fill="currentColor" className="ml-0.5" />
                 </button>
               </div>
             ))}

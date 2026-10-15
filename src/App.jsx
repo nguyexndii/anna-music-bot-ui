@@ -783,7 +783,7 @@ export default function App() {
                       justifyContent: 'center',
                       padding: '0 3px',
                       boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
-                      fontFamily: '"DM Mono", monospace'
+                      fontFamily: '"JetBrains Mono", monospace'
                     }}>
                       {queueCount > 99 ? '99+' : queueCount}
                     </span>
@@ -868,7 +868,7 @@ export default function App() {
                           display: 'grid',
                           placeItems: 'center',
                           fontSize: 9,
-                          fontFamily: '"DM Mono", monospace',
+                          fontFamily: '"JetBrains Mono", monospace',
                           fontWeight: 700,
                           color: 'var(--yellow)',
                           marginLeft: -8,
@@ -910,7 +910,7 @@ export default function App() {
               <span className="live-dot" title="Đang phát" />
             )}
           </h2>
-          <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, letterSpacing: '0.14em', color: 'var(--muted)', textTransform: 'uppercase' }}>
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: '0.14em', color: 'var(--muted)', textTransform: 'uppercase' }}>
             {guild?.name || user?.guildName || ''}
           </span>
         </header>
@@ -953,7 +953,7 @@ export default function App() {
           {effectiveContentTab === 'lyrics' && lyricsSourceInfo && (
             <span
               style={{
-                fontFamily: '"DM Mono", monospace',
+                fontFamily: '"JetBrains Mono", monospace',
                 fontSize: '9.5px',
                 letterSpacing: '0.12em',
                 color: lyricsSourceInfo.color || 'var(--muted)',

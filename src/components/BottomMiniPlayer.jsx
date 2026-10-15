@@ -6,13 +6,10 @@ import {
   SkipBack,
   Shuffle,
   Repeat,
-  Radio,
   Volume2,
   VolumeX,
-  Maximize2,
   Mic,
   ListMusic,
-  Infinity,
   Heart,
   Loader2
 } from 'lucide-react';
@@ -163,115 +160,114 @@ export default function BottomMiniPlayer({
   return (
     <div
       onClick={onToggleMinimize}
-      title="Nhấp vào bất kỳ đâu trên thanh để mở to Đĩa than"
-      className="w-full flex-shrink-0 z-50 bg-[#0f1016]/95 backdrop-blur-xl border-t border-anna-border/80 hover:border-anna-accent/60 px-3 sm:px-6 py-2.5 shadow-2xl transition-all duration-300 cursor-pointer animate-in slide-in-from-bottom group/bar"
+      title="Nhấp vào thanh để mở màn hình đang phát"
+      className="w-full flex-shrink-0 z-50 bg-[#111113]/95 backdrop-blur-md border-t border-white/[0.08] px-3 sm:px-6 py-2 shadow-2xl transition-all cursor-pointer animate-in slide-in-from-bottom"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-6">
         
-        {/* Left: Track Info & Mini Vinyl Disc */}
+        {/* Left: Track Info */}
         <div className="flex items-center gap-3 min-w-0 w-1/4 sm:w-1/3">
-          <div
-            className="relative group flex-shrink-0 transform group-hover/bar:scale-105 transition duration-300"
-          >
-            {/* Mini Vinyl Disc Shell */}
-            <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#0a0a0a] border-2 border-[#262626] shadow-xl p-1 flex items-center justify-center relative overflow-hidden group-hover/bar:border-anna-accent/80 transition-all ${
-              isPlaying ? 'vinyl-spinning' : 'vinyl-paused'
-            }`}>
-              <div className="absolute inset-1 rounded-full border border-white/10 pointer-events-none"></div>
-              <img
-                src={current?.thumbnail || DEFAULT_TRACK_THUMB}
-                alt={current?.title || 'Ảnh bìa'}
-                onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
-                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover shadow-inner ring-1 ring-black"
-              />
-              <div className="absolute w-2 h-2 rounded-full bg-anna-surface border border-anna-border"></div>
-            </div>
+          <div className="w-10 h-10 rounded-md overflow-hidden bg-[#18181B] border border-white/[0.08] flex-shrink-0">
+            <img
+              src={current?.thumbnail || DEFAULT_TRACK_THUMB}
+              alt={current?.title || 'Ảnh bìa'}
+              onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <h4 className="text-xs sm:text-sm font-bold text-white truncate group-hover/bar:text-anna-accent transition">
+              <h4 className="text-xs sm:text-sm font-semibold text-zinc-100 truncate">
                 {isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || 'Chưa phát bài nào')}
               </h4>
               {current && !isLofi && (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onAction('toggleFavorite', current);
                   }}
-                  title={player?.favorites?.some(f => (f.url && current?.url && f.url === current?.url) || (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())) ? "Xóa khỏi Yêu thích" : "Thêm vào Yêu thích ❤️"}
-                  className="p-1 text-anna-muted hover:text-rose-400 transition"
+                  title={player?.favorites?.some(f => (f.url && current?.url && f.url === current?.url) || (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())) ? "Xóa khỏi Yêu thích" : "Thêm vào Yêu thích"}
+                  className="p-0.5 text-zinc-500 hover:text-orange-400 transition-colors"
                 >
                   <Heart
                     className={`w-3.5 h-3.5 ${
                       player?.favorites?.some(f => (f.url && current?.url && f.url === current?.url) || (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim()))
-                        ? 'fill-rose-500 text-rose-500'
+                        ? 'fill-orange-500 text-orange-500'
                         : ''
                     }`}
                   />
                 </button>
               )}
             </div>
-            <p className="text-[11px] text-anna-muted truncate mt-0.5">
+            <p className="text-[11px] text-zinc-400 truncate mt-0.5">
               {isLofi ? 'Chế độ phát nền 24/7' : (current?.artist && current.artist !== 'Unknown' ? current.artist : 'YouTube Music')}
             </p>
           </div>
         </div>
 
-        {/* Center: Controls & Seek Scrubber */}
+        {/* Center: Controls & Scrubber */}
         <div
           onClick={(e) => e.stopPropagation()}
           className="flex-1 max-w-xl flex flex-col items-center gap-1"
         >
           {/* Button Row */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
+              type="button"
               onClick={() => onAction('shuffle')}
               disabled={!isPlayable || Boolean(pendingAction)}
               title="Xáo trộn hàng chờ"
-              className={`p-1.5 transition active:scale-95 ${!isPlayable ? 'opacity-35 cursor-not-allowed text-anna-muted' : (pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white')}`}
+              className={`p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 transition-colors ${
+                player?.shuffle ? 'text-orange-500' : ''
+              }`}
             >
               <Shuffle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             <button
+              type="button"
               onClick={() => onAction('previous')}
               disabled={!isPlayable || Boolean(pendingAction)}
-              title={pendingAction === 'previous' ? 'Đang quay lại...' : 'Quay lại bài trước đó (Lưu 5 bài)'}
-              className={`p-1.5 transition active:scale-95 ${!isPlayable ? 'opacity-35 cursor-not-allowed text-anna-muted' : (pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white')}`}
+              title={pendingAction === 'previous' ? 'Đang quay lại...' : 'Bài trước'}
+              className="p-1.5 rounded-md text-zinc-300 hover:text-white transition-colors"
             >
               {pendingAction === 'previous' ? (
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
               ) : (
-                <SkipBack className="w-4 h-4" />
+                <SkipBack className="w-4 h-4 fill-currentColor" />
               )}
             </button>
 
+            {/* High-contrast Play/Pause Button */}
             <button
+              type="button"
               onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
               disabled={!isPlayable || Boolean(pendingAction)}
               title={pendingAction === 'playback' ? 'Đang xử lý...' : (isPlaying ? 'Tạm dừng' : 'Tiếp tục phát')}
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white text-black transition shadow-lg flex items-center justify-center ${!isPlayable ? 'opacity-40 cursor-not-allowed grayscale' : (pendingAction ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105 active:scale-95')}`}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-100 text-zinc-950 hover:bg-white hover:scale-105 active:scale-95 transition-all flex items-center justify-center shadow-md"
             >
               {pendingAction === 'playback' ? (
-                <Loader2 className="w-5 h-5 animate-spin text-black" />
+                <Loader2 className="w-4 h-4 animate-spin text-zinc-950" />
               ) : isPlaying ? (
-                <Pause className="w-5 h-5 fill-black" />
+                <Pause className="w-4 h-4 fill-zinc-950" />
               ) : (
-                <Play className="w-5 h-5 fill-black ml-0.5" />
+                <Play className="w-4 h-4 fill-zinc-950 ml-0.5" />
               )}
             </button>
 
             <button
+              type="button"
               onClick={() => onAction('skip')}
               disabled={!isPlayable || Boolean(pendingAction)}
               title={pendingAction === 'skip' ? 'Đang chuyển bài...' : 'Chuyển bài tiếp theo'}
-              className={`p-1.5 transition active:scale-95 ${!isPlayable ? 'opacity-35 cursor-not-allowed text-anna-muted' : (pendingAction ? 'opacity-50 cursor-not-allowed text-anna-muted' : 'text-anna-muted hover:text-white')}`}
+              className="p-1.5 rounded-md text-zinc-300 hover:text-white transition-colors"
             >
               {pendingAction === 'skip' ? (
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
               ) : (
-                <SkipForward className="w-4 h-4" />
+                <SkipForward className="w-4 h-4 fill-currentColor" />
               )}
             </button>
 
@@ -280,23 +276,22 @@ export default function BottomMiniPlayer({
               const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) || Boolean(player?.mode247 && !player?.current);
               return (
                 <button
+                  type="button"
                   onClick={() => onAction('loop')}
                   disabled={!isPlayable || Boolean(pendingAction) || isLofiCurrent}
-                  title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
-                  className={`relative p-1.5 transition active:scale-95 ${(!isPlayable || isLofiCurrent) ? 'opacity-35 cursor-not-allowed grayscale' : (pendingAction ? 'opacity-50 cursor-not-allowed' : '')} ${
-                    loopMode !== 'off'
-                      ? 'text-anna-accent'
-                      : 'text-anna-muted hover:text-white'
+                  title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục' : `Lặp lại: ${loopMode}`}
+                  className={`relative p-1.5 rounded-md transition-colors ${
+                    loopMode !== 'off' ? 'text-orange-500' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   <Repeat className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   {loopMode === 'song' && (
-                    <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-amber-400 text-black rounded-full w-3.5 h-3.5 flex items-center justify-center shadow">
+                    <span className="absolute -top-1 -right-1 font-mono text-[7px] font-bold bg-orange-500 text-zinc-950 rounded-full w-3 h-3 flex items-center justify-center">
                       1
                     </span>
                   )}
                   {loopMode === 'queue' && (
-                    <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-rose-500 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center shadow">
+                    <span className="absolute -top-1 -right-1 font-mono text-[7px] font-bold bg-orange-500 text-zinc-950 rounded-full w-3 h-3 flex items-center justify-center">
                       ∞
                     </span>
                   )}
@@ -306,25 +301,25 @@ export default function BottomMiniPlayer({
           </div>
 
           {/* Scrubber Timeline */}
-          <div className="w-full flex items-center gap-2 text-[10px] font-mono text-anna-muted">
+          <div className="w-full flex items-center gap-2 text-[10px] font-mono text-zinc-500 tabular-nums">
             <span className="w-8 text-right">{formatMsToTime(currentDisplayMs)}</span>
 
             <div
               ref={progressBarRef}
               onMouseDown={(!isPlayable || pendingAction) ? undefined : handlePointerDown}
               onTouchStart={(!isPlayable || pendingAction) ? undefined : handlePointerDown}
-              className={`relative flex-1 h-1.5 bg-white/10 hover:h-2 rounded-full transition-all group select-none flex items-center ${(!isPlayable || pendingAction) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+              className={`relative flex-1 h-1 hover:h-1.5 bg-[#222226] rounded-full transition-all group select-none flex items-center ${(!isPlayable || pendingAction) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <div
-                className="h-full bg-gradient-to-r from-anna-accent to-anna-pink rounded-full transition-all"
+                className="h-full bg-orange-500 rounded-full transition-all"
                 style={{ width: `${percent}%` }}
-              ></div>
+              />
               <div
-                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white shadow-md transition ${
+                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md transition ${
                   isDragging ? 'scale-125' : 'scale-0 group-hover:scale-100'
                 }`}
                 style={{ left: `${percent}%` }}
-              ></div>
+              />
             </div>
 
             <span className="w-8">{current?.duration || '0:00'}</span>
@@ -334,47 +329,50 @@ export default function BottomMiniPlayer({
         {/* Right: Quick Tab Buttons & Volume */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="flex items-center justify-end gap-2 sm:gap-3 w-1/4 sm:w-1/3"
+          className="flex items-center justify-end gap-2 w-1/4 sm:w-1/3"
         >
-          {/* Lời bài hát button */}
+          {/* Lời bài hát */}
           <button
+            type="button"
             onClick={() => setActiveTab('lyrics')}
             title="Xem lời bài hát đồng bộ"
-            className={`p-2 rounded-xl border transition ${
+            className={`p-1.5 rounded-lg border transition-colors ${
               activeTab === 'lyrics'
-                ? 'bg-anna-accent text-white border-anna-accent'
-                : 'bg-anna-card/60 text-anna-muted hover:text-white border-anna-border/60'
+                ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
+                : 'bg-[#18181B] text-zinc-400 hover:text-white border-white/[0.06]'
             }`}
           >
             <Mic className="w-4 h-4" />
           </button>
 
-          {/* Hàng chờ button */}
+          {/* Hàng chờ */}
           <button
+            type="button"
             onClick={() => setActiveTab('queue')}
             title="Xem danh sách hàng chờ"
-            className={`p-2 rounded-xl border transition relative ${
+            className={`p-1.5 rounded-lg border transition-colors relative ${
               activeTab === 'queue'
-                ? 'bg-anna-accent text-white border-anna-accent'
-                : 'bg-anna-card/60 text-anna-muted hover:text-white border-anna-border/60'
+                ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
+                : 'bg-[#18181B] text-zinc-400 hover:text-white border-white/[0.06]'
             }`}
           >
             <ListMusic className="w-4 h-4" />
             {player?.queue?.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-anna-pink text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 font-mono text-[8px] font-bold bg-orange-500 text-zinc-950 rounded-full px-1 py-0.2">
                 {player.queue.length}
               </span>
             )}
           </button>
 
           {/* Volume Control */}
-          <div className="hidden md:flex items-center gap-1.5">
+          <div className="hidden md:flex items-center gap-1.5 ml-2">
             <button
+              type="button"
               onClick={toggleMute}
-              className="text-anna-muted hover:text-white p-1"
+              className="text-zinc-500 hover:text-zinc-300 p-0.5"
               title={localVolume === 0 ? 'Bật âm' : 'Tắt âm'}
             >
-              {localVolume === 0 ? <VolumeX className="w-4 h-4 text-anna-red" /> : <Volume2 className="w-4 h-4" />}
+              {localVolume === 0 ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
             </button>
             <input
               type="range"
@@ -382,7 +380,7 @@ export default function BottomMiniPlayer({
               max="100"
               value={localVolume}
               onChange={handleVolumeChange}
-              className="w-16 h-1 bg-white/10 rounded-lg accent-anna-accent cursor-pointer"
+              className="w-16 h-1 bg-[#222226] rounded-lg accent-orange-500 cursor-pointer"
             />
           </div>
         </div>

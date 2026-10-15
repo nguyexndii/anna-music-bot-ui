@@ -17,7 +17,7 @@ function getTrackThumb(track) {
 }
 
 export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrderSong }) {
-  // Đóng modal khi nhấn phím ESC
+  // Close modal on ESC key
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e) => {
@@ -41,142 +41,58 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        background: 'rgba(0, 0, 0, 0.78)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        animation: 'fadeIn 0.18s ease-out'
-      }}
+      className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
       <div
+        className="w-full max-w-xl max-h-[85vh] rounded-2xl bg-[#141417] border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
         style={{
-          width: '100%',
-          maxWidth: 620,
-          maxHeight: '86vh',
-          borderRadius: 20,
-          background: 'var(--paper)',
-          border: '1px solid var(--border)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
       >
         {/* Header */}
-        <div
-          style={{
-            padding: '18px 24px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-            background: 'rgba(255, 255, 255, 0.015)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: 17,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                letterSpacing: '-0.02em'
-              }}
-            >
-              Bài Hát Yêu Thích
-            </h3>
-            <span
-              style={{
-                fontFamily: '"DM Mono", monospace',
-                fontSize: 11,
-                fontWeight: 600,
-                padding: '2px 8px',
-                borderRadius: 6,
-                background: 'rgba(232, 201, 119, 0.12)',
-                color: 'var(--yellow)',
-                border: '1px solid rgba(232, 201, 119, 0.25)'
-              }}
-            >
-              {favorites.length} BÀI
-            </span>
+        <div className="px-5 py-3.5 border-b border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113] gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 flex-shrink-0">
+              <Heart className="w-4 h-4 fill-rose-500/20" />
+            </div>
+            <div className="flex items-center gap-2.5">
+              <h3 className="text-sm sm:text-base font-bold text-zinc-100 tracking-tight">
+                Bài Hát Yêu Thích
+              </h3>
+              <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                {favorites.length} BÀI
+              </span>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="flex items-center gap-2 flex-shrink-0">
             {favorites.length > 0 && (
               <button
                 onClick={handlePlayAll}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border)',
-                  background: 'var(--soft)',
-                  color: 'var(--yellow)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s'
-                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold shadow-md transition"
                 title="Thêm tất cả bài yêu thích vào hàng chờ"
               >
-                <Play size={12} fill="var(--yellow)" />
+                <Play className="w-3.5 h-3.5 fill-white" />
                 <span>Phát tất cả</span>
               </button>
             )}
 
             <button
               onClick={onClose}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                border: '1px solid var(--border)',
-                background: 'var(--soft)',
-                color: 'var(--muted)',
-                display: 'grid',
-                placeItems: 'center',
-                cursor: 'pointer',
-                transition: 'color 0.15s, border-color 0.15s'
-              }}
+              className="w-8 h-8 rounded-lg border border-white/[0.07] bg-[#18181C] hover:bg-[#222228] text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition"
               aria-label="Đóng popup"
             >
-              <X size={16} />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Body: Danh sách bài hát (Cuộn vô hạn) */}
-        <div
-          style={{
-            padding: '14px 20px',
-            overflowY: 'auto',
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6
-          }}
-        >
+        {/* Tracks List */}
+        <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-1.5 max-h-[62vh]">
           {favorites.length === 0 ? (
-            <div
-              style={{
-                padding: '48px 16px',
-                textAlign: 'center',
-                color: 'var(--muted)',
-                fontSize: 13
-              }}
-            >
-              <Heart size={32} style={{ color: 'var(--border)', margin: '0 auto 12px', display: 'block' }} />
-              Chưa có bài hát nào trong danh sách yêu thích.
+            <div className="flex flex-col items-center justify-center py-16 text-center text-zinc-500">
+              <Heart className="w-8 h-8 mb-3 opacity-30 text-rose-400" />
+              <p className="text-xs">Chưa có bài hát nào trong danh sách yêu thích.</p>
             </div>
           ) : (
             favorites.map((song, idx) => {
@@ -185,115 +101,41 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                 <div
                   key={song.url || idx}
                   onClick={() => onOrderSong?.(song)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '8px 12px',
-                    borderRadius: 12,
-                    background: 'var(--soft)',
-                    border: '1px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'border-color 0.15s, background 0.15s, transform 0.12s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(232, 201, 119, 0.4)';
-                    e.currentTarget.style.background = 'rgba(232, 201, 119, 0.05)';
-                    e.currentTarget.style.transform = 'translateX(2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
-                    e.currentTarget.style.background = 'var(--soft)';
-                    e.currentTarget.style.transform = 'none';
-                  }}
+                  className="flex items-center gap-3 p-2 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.04] hover:border-orange-500/30 cursor-pointer transition-all duration-150 group"
                   title="Nhấn để thêm vào hàng chờ"
                 >
-                  <span
-                    style={{
-                      fontFamily: '"DM Mono", monospace',
-                      fontSize: 11,
-                      color: 'var(--muted)',
-                      width: 22,
-                      textAlign: 'right',
-                      flexShrink: 0
-                    }}
-                  >
-                    #{globalIndex}
+                  <span className="font-mono text-xs text-zinc-500 w-6 text-right tabular-nums flex-shrink-0">
+                    {globalIndex < 10 ? `0${globalIndex}` : globalIndex}
                   </span>
 
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 10,
-                      overflow: 'hidden',
-                      flexShrink: 0,
-                      background: '#22252a',
-                      position: 'relative'
-                    }}
-                  >
+                  <div className="w-9 h-9 rounded-md overflow-hidden flex-shrink-0 bg-zinc-900 border border-white/[0.08] relative">
                     <img
                       src={getTrackThumb(song)}
                       alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="w-full h-full object-cover"
                     />
                   </div>
 
-                  <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="min-w-0 flex-1">
                     <p
-                      style={{
-                        margin: 0,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: 'var(--ink)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
+                      className="text-xs font-semibold text-zinc-200 truncate group-hover:text-orange-400 transition-colors"
                       title={song.title}
                     >
                       {song.title}
                     </p>
-                    <p
-                      style={{
-                        margin: '2px 0 0',
-                        fontSize: 11.5,
-                        color: 'var(--muted)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
+                    <p className="text-[11px] text-zinc-400 truncate mt-0.5">
                       {song.artist || 'YouTube'}
                     </p>
                   </div>
 
-                  <span
-                    style={{
-                      fontFamily: '"DM Mono", monospace',
-                      fontSize: 11,
-                      color: 'var(--muted)',
-                      flexShrink: 0
-                    }}
-                  >
-                    {song.duration || ''}
-                  </span>
+                  {song.duration && (
+                    <span className="font-mono text-xs text-zinc-500 flex-shrink-0 tabular-nums">
+                      {song.duration}
+                    </span>
+                  )}
 
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      background: 'rgba(232, 201, 119, 0.1)',
-                      border: '1px solid rgba(232, 201, 119, 0.2)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      color: 'var(--yellow)',
-                      flexShrink: 0,
-                      marginLeft: 4
-                    }}
-                  >
-                    <Play size={13} fill="var(--yellow)" />
+                  <div className="w-7 h-7 rounded-md bg-[#1F1F24] border border-white/[0.08] text-zinc-400 group-hover:text-orange-400 group-hover:border-orange-500/30 flex items-center justify-center flex-shrink-0 transition">
+                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                   </div>
                 </div>
               );
@@ -301,38 +143,14 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
           )}
         </div>
 
-        {/* Footer: Thông tin cuộn mượt */}
+        {/* Footer */}
         {favorites.length > 0 && (
-          <div
-            style={{
-              padding: '10px 20px',
-              borderTop: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexShrink: 0,
-              background: 'rgba(255, 255, 255, 0.01)',
-              fontFamily: '"DM Mono", monospace',
-              fontSize: 11,
-              color: 'var(--muted)'
-            }}
-          >
-            <span>Tổng số {favorites.length} bài hát yêu thích</span>
-            <span>Cuộn chuột để xem thêm</span>
+          <div className="px-5 py-2.5 border-t border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113] text-zinc-400 font-mono text-xs">
+            <span>Tổng số {favorites.length} bài hát</span>
+            <span>Cuộn để xem thêm</span>
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.96) translateY(8px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
     </div>,
     document.body
   );

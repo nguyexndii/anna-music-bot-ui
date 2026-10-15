@@ -1,6 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, Radio, Lock, Heart, Loader2, Coffee, RotateCcw } from 'lucide-react';
-
+import {
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  Shuffle,
+  Repeat,
+  Volume2,
+  VolumeX,
+  Heart,
+  Loader2,
+  Coffee,
+  Radio,
+  User,
+  Music2
+} from 'lucide-react';
+import { DEFAULT_TRACK_THUMB } from '../config';
 
 function formatTime(ms) {
   if (!ms || isNaN(ms) || ms < 0) return '0:00';
@@ -31,54 +46,46 @@ function getSourceLabel(track) {
   return 'YOUTUBE MUSIC';
 }
 
-export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pendingAction }) {
+function getTrackThumb(track) {
+  if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
+    return track.thumbnail;
+  }
+  if (track?.url) {
+    const match = track.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (match && match[1]) {
+      return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
+    }
+  }
+  return DEFAULT_TRACK_THUMB;
+}
 
+export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pendingAction }) {
   const isPlaying = player?.isPlaying && !player?.isPaused;
-  const current   = player?.current;
-  const isLofi    = Boolean(
+  const current = player?.current;
+  const isLofi = Boolean(
     current?.is247 ||
     current?.requestedBy === 'Auto (24/7)' ||
     current?.requestedBy === 'Auto (24/7 Lofi)' ||
     (player?.mode247 && (!current || current?.requestedBy?.includes?.('Auto')))
   );
   const isPlayable = Boolean(current && (player?.isPlaying || player?.isPaused) && !player?.isPreparing);
-  const isFav     = player?.favorites?.some(f =>
+  const isFav = player?.favorites?.some(f =>
     (f.url && current?.url && f.url === current?.url) ||
     (f.title && current?.title && f.title.toLowerCase().trim() === current?.title.toLowerCase().trim())
   );
 
-  const [progressMs, setProgressMs]   = useState(0);
-  const [isDragging, setIsDragging]   = useState(false);
-  const [dragMs, setDragMs]           = useState(0);
-  const [hoverInfo, setHoverInfo]     = useState(null);
+  const [progressMs, setProgressMs] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragMs, setDragMs] = useState(0);
+  const [hoverInfo, setHoverInfo] = useState(null);
   const [localVolume, setLocalVolume] = useState(player?.volume ?? 80);
   const [previousVolume, setPreviousVolume] = useState(100);
   const [heartPopping, setHeartPopping] = useState(false);
-  const [wasPlaying, setWasPlaying]   = useState(isPlaying);
-  const [lastTrackId, setLastTrackId] = useState(current?.title);
-  const [isSwinging, setIsSwinging]   = useState(false);
 
-  // Detect play state change or track change to trigger mechanical swing
-  useEffect(() => {
-    const playChanged = wasPlaying !== isPlaying;
-    const trackChanged = lastTrackId !== current?.title;
-    if (trackChanged) {
-      setProgressMs(0);
-      progressBaseRef.current = { baseMs: 0, snapshotAt: Date.now(), playing: isPlaying };
-    }
-    if (playChanged || trackChanged) {
-      setWasPlaying(isPlaying);
-      setLastTrackId(current?.title);
-      setIsSwinging(true);
-      const timer = setTimeout(() => setIsSwinging(false), 950);
-      return () => clearTimeout(timer);
-    }
-  }, [isPlaying, wasPlaying, current?.title, lastTrackId]);
-
-  const progressBarRef   = useRef(null);
+  const progressBarRef = useRef(null);
   const progressBaseRef = useRef({ baseMs: 0, snapshotAt: Date.now(), playing: false });
   const volumeDebounceRef = useRef(null);
-  const lastSeekTimeRef  = useRef(0);
+  const lastSeekTimeRef = useRef(0);
 
   const totalMs = parseDurationToMs(current?.duration);
 
@@ -102,7 +109,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     setProgressMs(Math.min(baseMs, totalMs || Infinity));
   }, [current?.title, current?.startTime, current?.playbackDurationMs, current?.serverTime, isPlaying, totalMs, isDragging]);
 
-  // 250ms rAF-driven smooth progress ticker (lockstep with server & seek)
+  // 250ms rAF-driven smooth progress ticker
   useEffect(() => {
     let animId;
     let lastTick = 0;
@@ -132,7 +139,8 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     const s = Math.max(0, Math.min(Math.floor(totalMs / 1000), Math.floor(ms / 1000)));
     lastSeekTimeRef.current = Date.now();
     progressBaseRef.current = { baseMs: ms, snapshotAt: Date.now(), playing: isPlaying };
-    setProgressMs(ms); setIsDragging(false);
+    setProgressMs(ms);
+    setIsDragging(false);
     onAction('seek', s);
   }, [totalMs, onAction, isPlaying]);
 
@@ -140,27 +148,51 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     if (!isPlayable || !current || totalMs <= 0) return;
     const x = e.clientX ?? e.touches?.[0]?.clientX;
     if (x === undefined) return;
-    setIsDragging(true); setDragMs(calculateTimeFromEvent(x));
+    setIsDragging(true);
+    setDragMs(calculateTimeFromEvent(x));
   };
 
   useEffect(() => {
     if (!isDragging) return;
-    const move = (e) => { const x = e.clientX ?? e.touches?.[0]?.clientX; if (x !== undefined) setDragMs(calculateTimeFromEvent(x)); };
-    const up   = (e) => { const x = e.clientX ?? e.changedTouches?.[0]?.clientX; handleSeekCommit(x !== undefined ? calculateTimeFromEvent(x) : dragMs); };
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-    window.addEventListener('touchmove', move); window.addEventListener('touchend', up);
-    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); window.removeEventListener('touchmove', move); window.removeEventListener('touchend', up); };
+    const move = (e) => {
+      const x = e.clientX ?? e.touches?.[0]?.clientX;
+      if (x !== undefined) setDragMs(calculateTimeFromEvent(x));
+    };
+    const up = (e) => {
+      const x = e.clientX ?? e.changedTouches?.[0]?.clientX;
+      handleSeekCommit(x !== undefined ? calculateTimeFromEvent(x) : dragMs);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    window.addEventListener('touchmove', move);
+    window.addEventListener('touchend', up);
+    return () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      window.removeEventListener('touchmove', move);
+      window.removeEventListener('touchmove', move);
+      window.removeEventListener('touchend', up);
+    };
   }, [isDragging, dragMs, calculateTimeFromEvent, handleSeekCommit]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const kd = (e) => {
-      if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
       if (!isPlayable && e.code !== 'KeyM') return;
-      if (e.code === 'Space') { e.preventDefault(); onAction(isPlaying ? 'pause' : 'resume'); }
-      else if (e.code === 'KeyM') { e.preventDefault(); toggleMute(); }
-      else if (e.code === 'ArrowLeft') { e.preventDefault(); if (current && totalMs > 0) handleSeekCommit(Math.max(0, (isDragging ? dragMs : progressMs) - 5000)); }
-      else if (e.code === 'ArrowRight') { e.preventDefault(); if (current && totalMs > 0) handleSeekCommit(Math.min(totalMs, (isDragging ? dragMs : progressMs) + 5000)); }
+      if (e.code === 'Space') {
+        e.preventDefault();
+        onAction(isPlaying ? 'pause' : 'resume');
+      } else if (e.code === 'KeyM') {
+        e.preventDefault();
+        toggleMute();
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        if (current && totalMs > 0) handleSeekCommit(Math.max(0, (isDragging ? dragMs : progressMs) - 5000));
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        if (current && totalMs > 0) handleSeekCommit(Math.min(totalMs, (isDragging ? dragMs : progressMs) + 5000));
+      }
     };
     window.addEventListener('keydown', kd);
     return () => window.removeEventListener('keydown', kd);
@@ -189,240 +221,116 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   const currentDisplayMs = isDragging ? dragMs : progressMs;
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
 
-  // Cần kim mâm than: chỉ quét trong vùng rãnh đen (16.5° -> 33.5°), tuyệt đối không chạm/lấn vào ảnh ở tâm đĩa
-  const tonearmAngle = (isPlaying || isDragging) ? (16.5 + (percent / 100) * 17) : -24;
-  const tonearmTransition = isSwinging
-    ? 'transform 0.9s cubic-bezier(0.34, 1.25, 0.64, 1)'
-    : isDragging
-    ? 'transform 0.08s ease-out'
-    : 'transform 1s linear';
-
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0 }}>
+    <div className="flex-1 flex flex-col justify-between min-h-0 py-1">
 
-      {/* ── Top Upper Section: Vinyl Record + Track Meta ─────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      {/* ── Top Upper Section: Album Art Deck & Metadata ──────── */}
+      <div className="flex flex-col w-full">
         
-        {/* Vinyl Player Deck */}
-        <div className="vinyl-deck">
-          {/* Tonearm (Needle - Phong cách Mâm Đĩa Than Cổ Điển) */}
-          <div
-            className={`tonearm-assembly ${isPlaying ? 'on-record' : ''}`}
-            style={{
-              transform: `rotate(${tonearmAngle}deg)`,
-              transition: tonearmTransition,
-            }}
-            title={isPlaying ? `Kim đĩa than: ${Math.round(percent)}% bài hát` : 'Kim đĩa than đang ở vị trí nghỉ'}
-            aria-hidden="true"
-          >
-            <svg
-              className="tonearm-svg"
-              viewBox="0 0 76 210"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                {/* Antique Champagne Brass Metallic Gradient */}
-                <linearGradient id="vintageBrass" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#fffaea" />
-                  <stop offset="25%" stopColor="#e5c178" />
-                  <stop offset="55%" stopColor="#a07832" />
-                  <stop offset="85%" stopColor="#634714" />
-                  <stop offset="100%" stopColor="#96702c" />
-                </linearGradient>
+        {/* Modern Square Album Art Frame (Zero-GPU Lag, Spotify / Linear style) */}
+        <div className="relative w-full max-w-[260px] sm:max-w-[280px] aspect-square mx-auto my-2 rounded-2xl border border-white/[0.08] shadow-2xl shadow-black/80 overflow-hidden bg-[#141417] group">
+          {isLofi ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1c1815] to-[#121214] text-orange-400 gap-2.5 p-6 text-center select-none">
+              <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shadow-inner">
+                <Coffee size={28} className="text-orange-400" />
+              </div>
+              <span className="font-mono text-xs font-bold tracking-widest text-orange-400 uppercase">
+                24/7 LOFI RADIO
+              </span>
+              <p className="text-[11px] text-zinc-500 leading-relaxed max-w-[180px]">
+                Nhạc không lời thư thái & tập trung
+              </p>
+            </div>
+          ) : current ? (
+            <img
+              src={getTrackThumb(current)}
+              alt={current?.title || 'Album Art'}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+              onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[#141417] text-zinc-600 gap-2">
+              <Music2 size={36} className="text-zinc-700" />
+              <span className="font-mono text-[11px] tracking-wider text-zinc-500">CHƯA PHÁT BÀI HÁT</span>
+            </div>
+          )}
 
-                {/* Gunmetal Base Gradient */}
-                <radialGradient id="baseMetal" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#525866" />
-                  <stop offset="45%" stopColor="#2e323b" />
-                  <stop offset="80%" stopColor="#181a1f" />
-                  <stop offset="100%" stopColor="#0f1013" />
-                </radialGradient>
-
-                {/* Counterweight Knurled Brass */}
-                <linearGradient id="counterweightMetal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#544018" />
-                  <stop offset="20%" stopColor="#d8b265" />
-                  <stop offset="45%" stopColor="#fffaeb" />
-                  <stop offset="65%" stopColor="#ad822e" />
-                  <stop offset="90%" stopColor="#4a3610" />
-                  <stop offset="100%" stopColor="#7a581e" />
-                </linearGradient>
-
-                {/* Cartridge Vintage Gold / Matte Black */}
-                <linearGradient id="cartridgeGold" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#f3d082" />
-                  <stop offset="50%" stopColor="#9c7229" />
-                  <stop offset="100%" stopColor="#3d2a0a" />
-                </linearGradient>
-              </defs>
-
-              {/* 1. Counterweight (Quả đối trọng kim loại phía sau trục) */}
-              <rect x="27" y="6" width="22" height="15" rx="3" fill="url(#counterweightMetal)" stroke="#221808" strokeWidth="0.8" />
-              {/* Calibration Rings (Vạch chia độ cân kim cơ học) */}
-              <line x1="27" y1="10" x2="49" y2="10" stroke="#1c1404" strokeWidth="0.8" />
-              <line x1="27" y1="13.5" x2="49" y2="13.5" stroke="#fffaea" strokeWidth="0.5" opacity="0.6" />
-              <line x1="27" y1="17" x2="49" y2="17" stroke="#1c1404" strokeWidth="0.8" />
-
-              {/* Rear arm stub */}
-              <rect x="36" y="19" width="4" height="12" rx="1.5" fill="url(#vintageBrass)" />
-
-              {/* 2. Base & Gimbal Housing (Bệ trục đỡ cơ khí cổ điển) */}
-              <circle cx="38" cy="40" r="19" fill="url(#baseMetal)" stroke="#666c78" strokeWidth="1.2" />
-              <circle cx="38" cy="40" r="15" fill="#15171b" stroke="#363a42" strokeWidth="0.8" />
-              {/* Pivot Dome / Bearing Screw */}
-              <circle cx="38" cy="40" r="9" fill="url(#vintageBrass)" stroke="#3a2b10" strokeWidth="0.8" />
-              <circle cx="38" cy="40" r="4.5" fill="#2a1f0a" />
-              <circle cx="37" cy="39" r="1.8" fill="#fff5d6" opacity="0.85" />
-
-              {/* 3. Classic S-Shaped Curved Tonearm Tube (Cần kim cong vintage) */}
-              {/* Soft shadow under tube */}
-              <path
-                d="M38 48 Q38 78 35 102 Q32 130 39 155 L42 174"
-                fill="none"
-                stroke="rgba(0,0,0,0.5)"
-                strokeWidth="4.5"
-                strokeLinecap="round"
-              />
-              {/* Main brass tube */}
-              <path
-                d="M38 48 Q38 78 35 102 Q32 130 39 155 L42 174"
-                fill="none"
-                stroke="url(#vintageBrass)"
-                strokeWidth="3.6"
-                strokeLinecap="round"
-              />
-              {/* Highlight along tube */}
-              <path
-                d="M37.3 49 Q37.3 78 34.3 102 Q31.3 130 38.3 155 L41.3 173"
-                fill="none"
-                stroke="#fffef7"
-                strokeWidth="0.8"
-                opacity="0.65"
-                strokeLinecap="round"
-              />
-
-              {/* 4. Headshell Connector Ring */}
-              <rect x="39" y="171" width="6" height="5" rx="1" transform="rotate(-6 42 174)" fill="url(#counterweightMetal)" stroke="#1a1407" strokeWidth="0.5" />
-
-              {/* 5. Vintage Headshell (Máng kim cổ điển có góc nghiêng theo rãnh đĩa) */}
-              <g transform="rotate(-14 42 178)">
-                {/* Headshell body */}
-                <path
-                  d="M37 175 L47 175 L46 200 L38 200 Z"
-                  fill="#181a1e"
-                  stroke="url(#vintageBrass)"
-                  strokeWidth="1.2"
-                />
-                {/* Finger lift (Tay nâng kim uốn cong) */}
-                <path
-                  d="M47 179 C51 179 53 184 50 189"
-                  fill="none"
-                  stroke="url(#vintageBrass)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                {/* Ventilation slots on headshell */}
-                <line x1="40" y1="181" x2="44" y2="181" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
-                <line x1="40" y1="185" x2="44" y2="185" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
-                <line x1="40" y1="189" x2="44" y2="189" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
-
-                {/* Cartridge Gold Badge / Shure-style emblem */}
-                <rect x="38.5" y="193" width="7" height="6" rx="1" fill="url(#cartridgeGold)" stroke="#221808" strokeWidth="0.5" />
-
-                {/* Stylus Cantilever & Needle Tip (Mũi kim đọc đĩa) */}
-                <line x1="42" y1="200" x2="42" y2="206" stroke="#e0e4eb" strokeWidth="1.2" strokeLinecap="round" />
-                {/* Diamond/Ruby Stylus jewel tip */}
-                <circle cx="42" cy="206" r="1.1" fill="#ff4d4d" />
-              </g>
-            </svg>
+          {/* Top Source Pill */}
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm border border-white/[0.08] text-[9.5px] font-mono font-semibold tracking-wider text-zinc-300 uppercase">
+            {isLofi ? 'RADIO 24/7' : getSourceLabel(current)}
           </div>
 
-          {/* Vinyl Disc (Đĩa than cổ điển vân rãnh xoay tròn) */}
-          <div
-            className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
-            aria-label={isLofi ? 'Đĩa nhạc: 24/7 Lofi Thư Giãn' : (current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát')}
-          >
-            <div className="vinyl-grooves" />
-            <div className="vinyl-art">
-              {isLofi ? (
-                <div style={{
-                  width: '100%',
-                  height: '100%',
-                  background: 'radial-gradient(circle, #2d2238 0%, #120e1c 100%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--yellow, #e8c977)',
-                  gap: 3,
-                  userSelect: 'none'
-                }}>
-                  <Coffee size={24} style={{ filter: 'drop-shadow(0 0 6px rgba(232,201,119,0.5))' }} />
-                  <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.12em', fontFamily: '"DM Mono", monospace' }}>
-                    24/7 LOFI
-                  </span>
-                </div>
-              ) : current?.thumbnail ? (
-                <img src={current.thumbnail} alt={`Bìa album: ${current.title}`} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              ) : (
-                <div className="vinyl-art-fallback">
-                  <span>{current?.title?.[0] || '♪'}</span>
-                </div>
-              )}
+          {/* Equalizer Playing Indicator Badge */}
+          {isPlaying && (
+            <div className="absolute bottom-3 right-3 flex items-end gap-0.5 h-3.5 px-1.5 py-1 rounded bg-black/60 backdrop-blur-sm border border-white/[0.08]" aria-hidden="true">
+              <span className="w-0.5 bg-orange-500 rounded-full animate-[bounce_1s_infinite_100ms] h-full" />
+              <span className="w-0.5 bg-orange-500 rounded-full animate-[bounce_1s_infinite_300ms] h-2/3" />
+              <span className="w-0.5 bg-orange-500 rounded-full animate-[bounce_1s_infinite_200ms] h-4/5" />
             </div>
-            {/* Center Spindle Hole */}
-            <div className="vinyl-spindle-hole">
-              <div className="spindle-dot" />
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Track Meta */}
-        <div className="track-meta" style={{ marginTop: 8 }}>
-          <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-            <p className="track-eyebrow">
-              {isLofi ? 'CHẾ ĐỘ PHÁT NỀN 24/7' : getSourceLabel(current)}
-            </p>
-            <h1 className="track-title" title={isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || current?.name || 'Chưa có bài hát')}>
-              {isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || current?.name || (player?.isPlaying ? 'Đang phát âm thanh' : 'Chưa có bài hát'))}
-            </h1>
-            <p className="track-artist" title={isLofi ? 'Tự động phát khi phòng chờ • Thư thái & Tập trung' : current?.artist}>
+        {/* Track Metadata */}
+        <div className="mt-3.5 flex items-start justify-between gap-3 px-1">
+          <div className="min-w-0 flex-1">
+            <h2
+              className="text-base sm:text-lg font-bold text-zinc-100 tracking-tight leading-snug truncate"
+              title={isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || 'Chưa có bài hát')}
+            >
+              {isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || (player?.isPlaying ? 'Đang phát âm thanh' : 'Chưa có bài hát'))}
+            </h2>
+
+            <p
+              className="text-xs sm:text-sm font-medium text-zinc-400 truncate mt-0.5"
+              title={isLofi ? 'Tự động phát khi phòng chờ • Thư thái & Tập trung' : current?.artist}
+            >
               {isLofi ? 'Tự động phát khi phòng chờ • Thư thái & Tập trung' : (current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music')}
             </p>
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {current && !isLofi && (
-              <button
-                className={`fav-btn${isFav ? ' liked' : ''}${heartPopping ? ' heart-pop-anim' : ''}`}
-                onClick={handleFavoriteClick}
-                aria-label={isFav ? 'Bỏ thích' : 'Thích bài hát'}
-                title={isFav ? 'Bỏ thích' : 'Thêm vào yêu thích'}
-              >
-                <Heart size={21} fill={isFav ? 'currentColor' : 'none'} />
-              </button>
+            {/* Requester Badge */}
+            {current?.requestedBy && !isLofi && (
+              <div className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-full bg-[#18181B] border border-white/[0.06] text-[10px] text-zinc-400">
+                {current?.requestedByAvatar ? (
+                  <img src={current.requestedByAvatar} alt="" className="w-3.5 h-3.5 rounded-full object-cover" />
+                ) : (
+                  <User size={10} className="text-zinc-500" />
+                )}
+                <span className="truncate max-w-[150px]">{current.requestedBy}</span>
+              </div>
             )}
           </div>
+
+          {/* Favorite Heart Button */}
+          {current && !isLofi && (
+            <button
+              onClick={handleFavoriteClick}
+              className={`p-2 rounded-lg border border-white/[0.06] bg-[#141417] hover:bg-[#1C1C21] transition-all flex-shrink-0 ${
+                isFav ? 'text-orange-500 border-orange-500/30' : 'text-zinc-400 hover:text-zinc-200'
+              } ${heartPopping ? 'scale-125' : ''}`}
+              aria-label={isFav ? 'Bỏ thích' : 'Thích bài hát'}
+              title={isFav ? 'Bỏ thích' : 'Thêm vào yêu thích'}
+            >
+              <Heart size={18} fill={isFav ? 'currentColor' : 'none'} />
+            </button>
+          )}
         </div>
 
       </div>
 
       {/* ── Bottom Section: Progress + Controls + Volume + Voice ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', marginTop: 'auto', paddingTop: 10 }}>
+      <div className="flex flex-col w-full mt-auto pt-2">
 
-        {/* Progress Bar */}
-        <div className="progress-wrap" style={{ marginTop: 6 }}>
+        {/* Seek Bar */}
+        <div className="w-full">
           <div
             ref={progressBarRef}
-            className="progress-track"
             onMouseDown={handlePointerDown}
             onTouchStart={handlePointerDown}
             onMouseMove={(e) => {
               if (!progressBarRef.current || totalMs <= 0 || !isPlayable) return;
               const r = progressBarRef.current.getBoundingClientRect();
               const x = Math.max(0, Math.min(e.clientX - r.left, r.width));
-              setHoverInfo({ percent: x / r.width * 100, timeStr: formatTime(Math.floor(x / r.width * totalMs)), x });
+              setHoverInfo({ percent: (x / r.width) * 100, timeStr: formatTime(Math.floor((x / r.width) * totalMs)), x });
             }}
             onMouseLeave={() => setHoverInfo(null)}
             role="slider"
@@ -430,145 +338,177 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
             aria-valuemax={Math.floor(totalMs / 1000)}
             aria-valuenow={Math.floor(currentDisplayMs / 1000)}
             aria-label="Tua bài hát"
+            className="group relative h-4 flex items-center cursor-pointer select-none"
             style={{
               cursor: (!isPlayable || pendingAction || totalMs <= 0) ? 'not-allowed' : 'pointer',
               opacity: !isPlayable ? 0.35 : (pendingAction === 'seek' ? 0.65 : 1),
               pointerEvents: (!isPlayable || pendingAction) ? 'none' : 'auto'
             }}
           >
-            <div className="progress-fill" style={{ width: `${percent}%` }} />
+            {/* Track Background */}
+            <div className="w-full h-1 group-hover:h-1.5 rounded-full bg-[#222226] overflow-hidden transition-all relative">
+              <div
+                className="h-full bg-orange-500 rounded-full transition-all"
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+
+            {/* Hover Tooltip */}
             {hoverInfo && totalMs > 0 && !isDragging && isPlayable && (
-              <div style={{
-                position: 'absolute', top: -28, left: `${hoverInfo.percent}%`,
-                transform: 'translateX(-50%)',
-                background: '#0d0f11', border: '1px solid var(--border)',
-                borderRadius: 6, padding: '2px 7px',
-                fontFamily: '"DM Mono", monospace', fontSize: 10, color: 'var(--ink)',
-                pointerEvents: 'none', whiteSpace: 'nowrap',
-              }}>
+              <div
+                className="absolute -top-7 font-mono text-[10px] text-zinc-100 bg-[#18181B] border border-white/[0.1] px-1.5 py-0.5 rounded shadow-lg pointer-events-none -translate-x-1/2 whitespace-nowrap"
+                style={{ left: `${hoverInfo.percent}%` }}
+              >
                 {hoverInfo.timeStr}
               </div>
             )}
           </div>
-          <div className="time-row">
-            <span style={{ color: isDragging ? 'var(--yellow)' : undefined }}>
+
+          {/* Time Labels */}
+          <div className="flex justify-between items-center text-[11px] font-mono text-zinc-500 tabular-nums px-0.5 -mt-0.5">
+            <span className={isDragging ? 'text-orange-400 font-semibold' : ''}>
               {formatTime(totalMs > 0 ? Math.min(currentDisplayMs, totalMs) : (current ? currentDisplayMs : 0))}
             </span>
             <span>{current?.duration || '0:00'}</span>
           </div>
         </div>
 
-        {/* Controls Deck */}
-        <div className="player-controls" style={{ marginTop: 14 }}>
+        {/* Transport Controls Bar (Spotify Desktop style) */}
+        <div className="flex items-center justify-center gap-3 sm:gap-4 my-2.5">
+          {/* Shuffle */}
           <button
-            className={`ctrl-btn${player?.shuffle ? ' active' : ''}`}
             onClick={() => onAction('shuffle')}
             disabled={!isPlayable || Boolean(pendingAction)}
+            className={`p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04] transition-colors relative ${
+              player?.shuffle ? 'text-orange-500' : ''
+            }`}
             aria-label="Xáo trộn"
             title="Xáo trộn hàng chờ"
             style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
           >
             <Shuffle size={17} />
+            {player?.shuffle && <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-orange-500" />}
           </button>
+
+          {/* Previous */}
           <button
-            className="ctrl-btn"
             onClick={() => onAction('previous')}
             disabled={!isPlayable || Boolean(pendingAction)}
+            className="p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.04] transition-colors active:scale-95"
             aria-label="Bài trước"
             title={pendingAction === 'previous' ? 'Đang quay lại...' : 'Bài trước'}
             style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
           >
             {pendingAction === 'previous' ? (
-              <Loader2 size={19} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin text-orange-500" />
             ) : (
-              <SkipBack size={21} fill="currentColor" />
+              <SkipBack size={19} fill="currentColor" />
             )}
           </button>
+
+          {/* High-Contrast Play/Pause Button (Crisp White Round Button) */}
           <button
-            className="ctrl-btn ctrl-play"
             onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
             disabled={!isPlayable || Boolean(pendingAction)}
+            className="w-12 h-12 rounded-full bg-zinc-100 text-zinc-950 hover:bg-white hover:scale-105 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-black/40"
             aria-label={isPlaying ? 'Tạm dừng' : 'Phát'}
             title={pendingAction === 'playback' ? 'Đang xử lý...' : (isPlaying ? 'Tạm dừng' : 'Phát')}
-            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(0.6)' } : (pendingAction ? { opacity: 0.7, cursor: 'not-allowed' } : undefined)}
+            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.7, cursor: 'not-allowed' } : undefined)}
           >
             {pendingAction === 'playback' ? (
-              <Loader2 size={22} className="animate-spin text-black" />
+              <Loader2 size={20} className="animate-spin text-zinc-950" />
             ) : isPlaying ? (
-              <Pause size={22} fill="currentColor" />
+              <Pause size={20} fill="currentColor" />
             ) : (
-              <Play size={22} fill="currentColor" style={{ marginLeft: 2 }} />
+              <Play size={20} fill="currentColor" className="ml-0.5" />
             )}
           </button>
+
+          {/* Skip Next */}
           <button
-            className="ctrl-btn"
             onClick={() => onAction('skip')}
             disabled={!isPlayable || Boolean(pendingAction)}
+            className="p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.04] transition-colors active:scale-95"
             aria-label="Bài tiếp"
             title={pendingAction === 'skip' ? 'Đang chuyển bài...' : 'Bài tiếp'}
             style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
           >
             {pendingAction === 'skip' ? (
-              <Loader2 size={19} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin text-orange-500" />
             ) : (
-              <SkipForward size={21} />
+              <SkipForward size={19} fill="currentColor" />
             )}
           </button>
+
+          {/* Loop Mode */}
           {(() => {
             const loopMode = player?.loopMode || player?.loop || 'off';
             const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) || Boolean(player?.mode247 && !player?.current);
             return (
               <button
-                className={`ctrl-btn${loopMode !== 'off' ? ' active' : ''}`}
                 onClick={() => onAction('loop')}
                 disabled={!isPlayable || Boolean(pendingAction) || isLofiCurrent}
+                className={`p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04] transition-colors relative ${
+                  loopMode !== 'off' ? 'text-orange-500' : ''
+                }`}
                 aria-label="Lặp lại"
                 title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
                 style={{
-                  position: 'relative',
-                  ...((!isPlayable || isLofiCurrent) ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(1)' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : {}))
+                  ...((!isPlayable || isLofiCurrent) ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : {}))
                 }}
               >
                 <Repeat size={17} />
                 {loopMode === 'song' && (
-                  <span style={{ position: 'absolute', top: -4, right: -4, fontSize: 8, fontWeight: 700, background: 'var(--yellow)', color: '#1c1e21', borderRadius: '50%', width: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
+                  <span className="absolute -top-1 -right-1 font-mono text-[8px] font-bold bg-orange-500 text-zinc-950 rounded-full w-3.5 h-3.5 flex items-center justify-center">1</span>
                 )}
                 {loopMode === 'queue' && (
-                  <span style={{ position: 'absolute', top: -4, right: -4, fontSize: 8, fontWeight: 700, background: 'var(--coral)', color: '#ffffff', borderRadius: '50%', width: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>∞</span>
+                  <span className="absolute -top-1 -right-1 font-mono text-[8px] font-bold bg-orange-500 text-zinc-950 rounded-full w-3.5 h-3.5 flex items-center justify-center">∞</span>
                 )}
               </button>
             );
           })()}
         </div>
 
-        {/* Footer: Volume + 24/7 */}
-        <div className="now-footer" style={{ marginTop: 16 }}>
-          <div className="volume-row">
+        {/* Volume & 24/7 Footer */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/[0.06]">
+          {/* Volume Control */}
+          <div className="flex items-center gap-2 flex-1 max-w-[180px]">
             <button
               onClick={toggleMute}
-              style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--muted)', flexShrink: 0 }}
+              className="text-zinc-400 hover:text-zinc-200 p-0 flex items-center transition-colors"
               aria-label={(player?.volume || 0) === 0 ? 'Bật tiếng' : 'Tắt tiếng'}
               title="Tắt/Bật tiếng (M)"
             >
-              {(player?.volume || 0) === 0
-                ? <VolumeX size={15} style={{ color: 'var(--coral)' }} />
-                : <Volume2 size={15} />}
+              {(player?.volume || 0) === 0 ? (
+                <VolumeX size={15} className="text-red-400" />
+              ) : (
+                <Volume2 size={15} />
+              )}
             </button>
             <input
-              type="range" min={0} max={100} value={localVolume}
+              type="range"
+              min={0}
+              max={100}
+              value={localVolume}
               onChange={(e) => {
                 const v = Number(e.target.value);
                 setLocalVolume(v);
                 if (volumeDebounceRef.current) clearTimeout(volumeDebounceRef.current);
-                volumeDebounceRef.current = setTimeout(() => { volumeDebounceRef.current = null; onAction('volume', v); }, 400);
+                volumeDebounceRef.current = setTimeout(() => {
+                  volumeDebounceRef.current = null;
+                  onAction('volume', v);
+                }, 400);
               }}
               aria-label="Âm lượng"
-              style={{ flex: 1, accentColor: 'var(--yellow)', height: 3, cursor: 'pointer' }}
+              className="w-full accent-orange-500 h-1 bg-[#222226] rounded-full cursor-pointer"
             />
-            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)', minWidth: 24 }}>{localVolume}%</span>
+            <span className="font-mono text-[10px] text-zinc-500 min-w-[28px] tabular-nums text-right">
+              {localVolume}%
+            </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* Lofi 24/7 Action Button */}
+          <div>
             {(() => {
               const isRoomEmpty = Boolean(player?.voiceChannel && player.voiceChannel.humanMemberCount === 0);
               const isLofiMode = Boolean(
@@ -580,32 +520,18 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
               let btnLabel = 'VỀ NHẠC LOFI';
               let btnTitle = 'Lưu hàng chờ và chuyển sang nhạc Lofi 24/7';
               let btnIcon = <Coffee size={12} />;
-              let btnStyle = {
-                border: '1px solid rgba(232,201,119,0.35)',
-                background: 'rgba(232,201,119,0.08)',
-                color: 'var(--yellow)'
-              };
+              let btnClasses = 'border-orange-500/25 bg-orange-500/10 text-orange-400 hover:bg-orange-500/15';
 
               if (isRoomEmpty) {
                 btnLabel = 'PHÒNG TRỐNG (24/7)';
                 btnTitle = 'Phòng Voice hiện không có ai, bot duy trì phát Lofi 24/7';
                 btnIcon = <Coffee size={12} />;
-                btnStyle = {
-                  border: '1px solid var(--border)',
-                  background: 'rgba(255,255,255,0.03)',
-                  color: 'var(--muted)',
-                  opacity: 0.65,
-                  cursor: 'not-allowed'
-                };
+                btnClasses = 'border-white/[0.06] bg-white/[0.02] text-zinc-500 cursor-not-allowed opacity-60';
               } else if (isLofiMode) {
-                btnLabel = 'TIẾP TỤC PHÁT NHẠC';
+                btnLabel = 'TIẾP TỤC PHÁT';
                 btnTitle = queueCount > 0 ? `Tiếp tục phát ${queueCount} bài trong hàng chờ` : 'Phát lại bài hát gần nhất';
                 btnIcon = <Play size={11} fill="currentColor" />;
-                btnStyle = {
-                  border: '1px solid rgba(74,222,128,0.5)',
-                  background: 'rgba(74,222,128,0.12)',
-                  color: '#4ade80'
-                };
+                btnClasses = 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/15';
               }
 
               return (
@@ -620,22 +546,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
                   }}
                   disabled={isSwitching}
                   title={btnTitle}
-                  style={{
-                    borderRadius: 9,
-                    padding: '5px 10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    fontFamily: '"DM Mono", monospace',
-                    fontSize: 9.5,
-                    letterSpacing: '0.06em',
-                    fontWeight: 700,
-                    cursor: isRoomEmpty ? 'not-allowed' : (isSwitching ? 'wait' : 'pointer'),
-                    transition: 'all .18s ease',
-                    whiteSpace: 'nowrap',
-                    opacity: isSwitching ? 0.65 : 1,
-                    ...btnStyle
-                  }}
+                  className={`px-2.5 py-1.5 rounded-lg border text-[10px] font-mono font-bold tracking-wider flex items-center gap-1.5 transition-colors ${btnClasses}`}
                 >
                   {isSwitching ? <Loader2 size={11} className="animate-spin" /> : btnIcon}
                   <span>{isSwitching ? 'ĐANG CHUYỂN...' : btnLabel}</span>
@@ -645,32 +556,33 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           </div>
         </div>
 
-        {/* Voice channel info */}
+        {/* Voice Channel Info Card */}
         {player?.voiceChannel?.name && (
-          <div style={{
-            marginTop: 12, padding: '8px 12px',
-            border: '1px solid var(--border)', borderRadius: 10,
-            background: 'var(--paper)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-              <p style={{ margin: 0, fontSize: 12, color: 'var(--ink)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div className="mt-2.5 px-3 py-2 rounded-xl bg-[#141417] border border-white/[0.06] flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-zinc-200 truncate m-0">
                 {player.voiceChannel.name}
               </p>
-              <p style={{ margin: '2px 0 0', fontFamily: '"DM Mono", monospace', fontSize: 8.5, letterSpacing: '0.1em', color: 'var(--muted)' }}>
+              <p className="font-mono text-[9px] tracking-wider text-zinc-500 m-0 mt-0.5 uppercase">
                 {player.voiceChannel.memberCount || 0} THÀNH VIÊN
               </p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: -6, flexShrink: 0 }}>
+            <div className="flex items-center -space-x-1.5 flex-shrink-0">
               {player.voiceChannel.members?.slice(0, 4).map((m, i) => (
-                <img key={i} src={m.avatar} alt={m.name} title={m.name}
-                  style={{ width: 22, height: 22, borderRadius: '50%', border: '2px solid var(--paper)', objectFit: 'cover', marginLeft: i > 0 ? -6 : 0 }} />
+                <img
+                  key={i}
+                  src={m.avatar}
+                  alt={m.name}
+                  title={m.name}
+                  className="w-5 h-5 rounded-full ring-1 ring-[#141417] object-cover"
+                />
               ))}
             </div>
           </div>
         )}
 
       </div>
+
     </div>
   );
 }
