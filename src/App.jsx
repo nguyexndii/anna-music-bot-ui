@@ -284,7 +284,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('search'); // 'search' | 'queue' | 'lyrics' | 'history' | 'settings' | 'player' (mobile)
   const [isVerifying, setIsVerifying] = useState(Boolean(token));
   const [authError, setAuthError] = useState('');
-  const [isNotFound, setIsNotFound] = useState(false);
+  const [isNotFound, setIsNotFound] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const p = window.location.pathname;
+    return p !== '/' && p !== '' && p !== '/index.html';
+  });
   const [toasts, setToasts] = useState([]);
   const [pendingAction, setPendingAction] = useState(null);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
@@ -300,6 +304,31 @@ export default function App() {
   const guildIdRef = useRef(guildId);
   guildIdRef.current = guildId;
 
+  const handleGoHome = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('anna_web_token');
+        localStorage.removeItem('anna_web_guild');
+      } catch {}
+      window.history.pushState({}, '', '/');
+      setIsNotFound(false);
+      setToken(null);
+      setUser(null);
+      setGuildId(null);
+      setGuild(null);
+      setPlayer(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const checkPath = () => {
+      const p = window.location.pathname;
+      setIsNotFound(p !== '/' && p !== '' && p !== '/index.html');
+    };
+    window.addEventListener('popstate', checkPath);
+    return () => window.removeEventListener('popstate', checkPath);
+  }, []);
+
   const showToast = useCallback((message, type = 'success', duration = 3000) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 6);
     setToasts(prev => [...prev, { id, message, type }]);
@@ -313,10 +342,16 @@ export default function App() {
   }, []);
 
   const handleAuthExpired = useCallback(() => {
-    localStorage.removeItem('anna_web_token');
+    try {
+      localStorage.removeItem('anna_web_token');
+      localStorage.removeItem('anna_web_guild');
+    } catch {}
     setToken(null);
+    setGuildId(null);
     setUser(null);
-    setAuthError('Phiên đăng nhập đã hết hạn, vui lòng nhập lại mã PIN từ Discord.');
+    setGuild(null);
+    setPlayer(null);
+    setAuthError('Phiên đăng nhập đã hết hạn hoặc không tìm thấy máy chủ. Vui lòng nhập lại mã PIN từ Discord.');
     showToast('Phiên làm việc đã hết hạn!', 'error');
   }, [showToast]);
 
@@ -344,7 +379,10 @@ export default function App() {
         }
       } else {
         localStorage.removeItem('anna_web_token');
+        localStorage.removeItem('anna_web_guild');
         setToken(null);
+        setGuildId(null);
+        setUser(null);
         setAuthError(data.error || 'Mã PIN không đúng hoặc đã hết hạn.');
       }
     } catch {
@@ -371,22 +409,17 @@ export default function App() {
   const fetchState = useCallback(async (isFull = false) => {
     const ct = tokenRef.current;
     const cg = guildIdRef.current;
-    if (!ct || !cg) return;
+    if (!ct || !cg || !user) return;
     try {
       const res = await fetch(`${API_BASE}/api/guilds/${cg}/state${isFull ? '?full=1' : ''}`, {
         headers: { Authorization: `Bearer ${ct}` },
       });
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 404) {
         handleAuthExpired();
-        return;
-      }
-      if (res.status === 404) {
-        setIsNotFound(true);
         return;
       }
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
-        setIsNotFound(false);
         setPlayer(prev => {
           if (!prev) return data.player;
           return {
@@ -401,14 +434,14 @@ export default function App() {
     } catch {
       // Network hiccup - ignore
     }
-  }, [handleAuthExpired]);
+  }, [user, handleAuthExpired]);
 
   useEffect(() => {
-    if (!token || !guildId) return;
+    if (!token || !guildId || !user) return;
     fetchState(true);
-    const interval = setInterval(() => fetchState(false), 1000);
+    const interval = setInterval(() => fetchState(false), 1500);
     return () => clearInterval(interval);
-  }, [token, guildId, fetchState]);
+  }, [token, guildId, user, fetchState]);
 
   // Order Song (Single or Batch)
   const handleOrderSong = async (track, isBatch = false) => {
@@ -567,7 +600,7 @@ export default function App() {
   };
 
   // Render Screens
-  if (isNotFound) return <NotFoundScreen onGoHome={() => (window.location.href = window.location.origin)} />;
+  if (isNotFound) return <NotFoundScreen onGoHome={handleGoHome} />;
 
   if (isVerifying) {
     return (
