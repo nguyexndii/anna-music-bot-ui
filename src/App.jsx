@@ -1,1734 +1,769 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-
 import HeroPlayer from './components/HeroPlayer';
-
 import BottomMiniPlayer from './components/BottomMiniPlayer';
-
 import LiveSearch from './components/LiveSearch';
-
 import QueueManager from './components/QueueManager';
-
 import SyncedLyrics from './components/SyncedLyrics';
-
 import SettingsTab from './components/SettingsTab';
-
 import HistoryTab from './components/HistoryTab';
-
 import PermissionModal from './components/PermissionModal';
-
 import ConnectingStepper from './components/ConnectingStepper';
-
 import LofiConfirmModal from './components/LofiConfirmModal';
-
 import Toast from './components/Toast';
-
 import DynamicAmbientBackground from './components/DynamicAmbientBackground';
-
 import NotFoundScreen from './components/NotFoundScreen';
-
 import NoVoiceSession from './components/NoVoiceSession';
-
+import KaraokeFullscreenModal from './components/KaraokeFullscreenModal';
 import {
-
   Search,
-
   ListMusic,
-
   Mic2,
-
   Settings,
-
   History,
-
   AlertCircle,
-
   Disc3,
-
   LogOut,
-
   Share2,
-
   Check,
-
   Radio,
-
   Sparkles,
-
-  Headphones
-
+  Headphones,
+  Maximize2,
+  ExternalLink,
+  Volume2
 } from 'lucide-react';
-
 import { API_BASE } from './config';
 
-
-
 // ─── Navigation Items ────────────────────────────────────────────────────────
-
 const TABS = [
-
   { id: 'search',   label: 'Khám Phá',   sub: 'Tìm kiếm & Gợi ý', Icon: Search    },
-
   { id: 'queue',    label: 'Hàng Chờ',   sub: 'Bàn DJ & Danh sách', Icon: ListMusic },
-
   { id: 'lyrics',   label: 'Lời Nhạc',   sub: 'Karaoke Đồng Bộ',   Icon: Mic2      },
-
   { id: 'history',  label: 'Lịch Sử',    sub: 'Bài hát đã phát',   Icon: History   },
-
   { id: 'settings', label: 'Cài Đặt',    sub: 'Cá nhân & Máy chủ', Icon: Settings  },
-
 ];
 
-
-
 // ─── PIN 6-digit Split Input Component ───────────────────────────────────────
-
 function PinCodeInput({ length = 6, value = '', onChange, onComplete, disabled = false, autoFocus = true }) {
-
   const inputRefs = useRef([]);
-
   const digits = Array.from({ length }, (_, i) => value[i] || '');
 
-
-
   const handleChange = (e, index) => {
-
     const rawVal = e.target.value;
-
     const char = rawVal.replace(/[^0-9]/g, '').slice(-1);
-
     const newDigits = [...digits];
-
     newDigits[index] = char;
-
     const newValue = newDigits.join('');
-
     onChange(newValue);
 
-
-
     if (char && index < length - 1) {
-
       inputRefs.current[index + 1]?.focus();
-
     }
-
     if (newValue.length === length && onComplete) {
-
       onComplete(newValue);
-
     }
-
   };
-
-
 
   const handleKeyDown = (e, index) => {
-
     if (e.key === 'Backspace') {
-
       if (!digits[index] && index > 0) {
-
         inputRefs.current[index - 1]?.focus();
-
         const newDigits = [...digits];
-
         newDigits[index - 1] = '';
-
         onChange(newDigits.join(''));
-
+      } else {
+        const newDigits = [...digits];
+        newDigits[index] = '';
+        onChange(newDigits.join(''));
       }
-
     } else if (e.key === 'ArrowLeft' && index > 0) {
-
       inputRefs.current[index - 1]?.focus();
-
     } else if (e.key === 'ArrowRight' && index < length - 1) {
-
       inputRefs.current[index + 1]?.focus();
-
     }
-
   };
-
-
 
   const handlePaste = (e) => {
-
     e.preventDefault();
-
-    const pasteData = e.clipboardData.getData('text');
-
-    let extracted = pasteData.replace(/[^0-9]/g, '').slice(0, length);
-
-    if (pasteData.includes('token=')) {
-
-      const m = pasteData.match(/token=([0-9]{6})/);
-
-      if (m) extracted = m[1];
-
+    const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, length);
+    if (!pasted) return;
+    onChange(pasted);
+    const nextIdx = Math.min(pasted.length, length - 1);
+    inputRefs.current[nextIdx]?.focus();
+    if (pasted.length === length && onComplete) {
+      onComplete(pasted);
     }
-
-    if (extracted) {
-
-      onChange(extracted);
-
-      const focusIndex = Math.min(extracted.length, length - 1);
-
-      inputRefs.current[focusIndex]?.focus();
-
-      if (extracted.length === length && onComplete) {
-
-        onComplete(extracted);
-
-      }
-
-    }
-
   };
 
-
+  useEffect(() => {
+    if (autoFocus && inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, [autoFocus]);
 
   return (
-
-    <div className="flex gap-2 sm:gap-3 justify-between mt-3" onPaste={handlePaste}>
-
-      {Array.from({ length }, (_, i) => (
-
+    <div className="flex items-center justify-center gap-2 sm:gap-2.5 my-3" onPaste={handlePaste}>
+      {Array.from({ length }).map((_, i) => (
         <input
-
           key={i}
-
           ref={(el) => (inputRefs.current[i] = el)}
-
           type="text"
-
           inputMode="numeric"
-
-          pattern="[0-9]*"
-
           maxLength={1}
-
-          autoFocus={autoFocus && i === 0}
-
-          disabled={disabled}
-
           value={digits[i] || ''}
-
           onChange={(e) => handleChange(e, i)}
-
           onKeyDown={(e) => handleKeyDown(e, i)}
-
-          className={`w-11 sm:w-12 h-14 rounded-2xl bg-[#0B0F19] border text-center font-mono text-xl font-bold outline-none transition-all ${
-
+          disabled={disabled}
+          className={`w-10 h-13 sm:w-12 sm:h-14 text-center font-mono text-xl sm:text-2xl font-bold rounded-xl transition-all outline-none border ${
             digits[i]
-
-              ? 'border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-
-              : 'border-white/10 text-white focus:border-cyan-400 focus:-translate-y-0.5'
-
-          }`}
-
-          aria-label={`Mã PIN số ${i + 1}`}
-
+              ? 'bg-[#1c1e22] text-[#ffe6a9] border-[#e8c977] shadow-[0_0_12px_rgba(232,201,119,0.2)]'
+              : 'bg-[#141619] text-[#e2e2e6] border-white/10 hover:border-white/20 focus:border-[#e8c977]'
+          } ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
         />
-
       ))}
-
     </div>
-
   );
-
 }
 
-
-
-// ─── New Cyber-Glass Auth Screen ─────────────────────────────────────────────
-
+// ─── Audiophile Auth Screen (Google Stitch 2-Column Design) ─────────────────
 function AuthScreen({ onVerify, authError, isVerifying }) {
-
   const [pin, setPin] = useState('');
-
   const [localError, setLocalError] = useState('');
-
   const error = localError || authError;
 
-
-
   const handleComplete = (completedPin) => {
-
     if (isVerifying || completedPin.length !== 6) return;
-
     setLocalError('');
-
     localStorage.removeItem('anna_web_token');
-
     onVerify(completedPin, true);
-
   };
-
-
 
   const submit = (e) => {
-
     e?.preventDefault();
-
     setLocalError('');
-
     const val = pin.trim();
-
     if (!val || val.length < 6) {
-
       setLocalError('Vui lòng nhập đủ 6 chữ số mã PIN.');
-
       return;
-
     }
-
     localStorage.removeItem('anna_web_token');
-
     onVerify(val, true);
-
   };
 
-
-
   return (
+    <main className="min-h-screen w-full bg-[#111316] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden select-none">
+      {/* Subtle warm ambient bloom */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#e8c977]/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#ef7864]/5 rounded-full blur-[140px] pointer-events-none" />
 
-    <main className="min-h-screen w-full bg-[#06080F] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden select-none">
-
-      {/* Aurora Ambient Glows */}
-
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-cyan-500/15 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-500/15 rounded-full blur-[120px] pointer-events-none" />
-
-
-
-      <div className="relative z-10 w-full max-w-md rounded-3xl bg-[#0D1322]/90 backdrop-blur-2xl border border-white/10 p-7 sm:p-9 shadow-[0_24px_80px_rgba(0,0,0,0.85)]">
-
-        <div className="flex flex-col items-center text-center mb-7">
-
-          <div className="relative mb-4">
-
-            <img
-
-              src="/logo.gif"
-
-              alt="Anna Music"
-
-              className="w-20 h-20 rounded-3xl object-cover border border-cyan-400/40 shadow-[0_0_30px_rgba(6,182,212,0.25)]"
-
-              style={{ imageRendering: 'pixelated' }}
-
-            />
-
-            <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 font-mono text-[9px] font-extrabold">
-
-              24/7
-
-            </span>
-
-          </div>
-
-
-
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">
-
-            ANNA <span className="text-cyan-400">PULSE</span>
-
-          </h1>
-
-          <p className="font-mono text-[10px] tracking-[0.2em] text-slate-400 uppercase mt-1">
-
-            DISCORD WEB CONSOLE
-
-          </p>
-
-        </div>
-
-
-
-        <form onSubmit={submit}>
-
-          <div className="text-center mb-5">
-
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-
-              Gõ lệnh <code className="px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono font-bold">/web</code> trong kênh Discord để lấy mã PIN 6 số.
-
-            </p>
-
-          </div>
-
-
-
-          <div className="my-5">
-
-            <label className="block font-mono text-[10px] uppercase tracking-widest text-slate-400 text-center">
-
-              NHẬP MÃ PIN KẾT NỐI
-
-            </label>
-
-            <PinCodeInput
-              length={6}
-              value={pin}
-              onChange={(val) => {
-                setPin(val);
-                setLocalError('');
-              }}
-              onComplete={handleComplete}
-              disabled={isVerifying}
-
-              autoFocus={true}
-
-            />
-
-          </div>
-
-
-
-          {error && (
-
-            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-
-              <AlertCircle className="flex-shrink-0 text-rose-400" size={15}/>
-
-              <span>{error}</span>
-
+      <div className="grid grid-cols-1 lg:grid-cols-12 w-full max-w-4xl shadow-2xl rounded-2xl overflow-hidden bg-[#16181b] border border-white/5 relative z-10">
+        
+        {/* CỘT TRÁI: Khối thương hiệu Audiophile Lounge */}
+        <div className="lg:col-span-5 flex flex-col justify-between p-6 sm:p-8 bg-[#0c0e11] border-b lg:border-b-0 lg:border-r border-white/5 relative overflow-hidden">
+          <div className="relative z-10 flex flex-col gap-4">
+            {/* Logo Glyph */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-[#1c1e22] flex items-center justify-center shadow-md border border-white/10">
+                  <Disc3 size={24} className="text-[#e8c977]" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-mono text-[9px] tracking-widest text-[#7f786c] uppercase">Boutique Soundbot</span>
+                  <span className="font-mono text-xs text-[#9bfcc0] flex items-center gap-1.5 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#9bfcc0] inline-block animate-pulse"></span>
+                    Lossless 384kbps
+                  </span>
+                </div>
+              </div>
+              {/* 5 Equalizer Wave Bars */}
+              <div className="flex items-end gap-1 h-6 px-2.5 py-1 bg-[#1c1e22] rounded-lg border border-white/5">
+                <span className="w-1 bg-[#e8c977] rounded-full eq-bar-1" />
+                <span className="w-1 bg-[#ef7864] rounded-full eq-bar-2" />
+                <span className="w-1 bg-[#e8c977] rounded-full eq-bar-3" />
+                <span className="w-1 bg-[#9bfcc0] rounded-full eq-bar-4" />
+                <span className="w-1 bg-[#e8c977] rounded-full eq-bar-2" />
+              </div>
             </div>
 
-          )}
+            {/* Brand Title */}
+            <div className="pt-2">
+              <div className="flex items-baseline gap-1">
+                <span className="font-brand text-3xl font-bold text-[#e8c977] leading-none">an</span>
+                <span className="font-brand text-3xl font-bold text-[#f5a192] leading-none">na</span>
+                <span className="font-sans text-xs font-semibold text-[#aba395] ml-2 tracking-widest uppercase">Vinyl Lounge</span>
+              </div>
+              <p className="text-xs text-[#aba395] mt-2 leading-relaxed font-sans">
+                Không gian điều khiển âm nhạc Discord cao cấp, kết hợp cơ cấu đĩa than cơ học và âm thanh phòng thu trung thực.
+              </p>
+            </div>
+          </div>
 
+          {/* Discord Instruction Box */}
+          <div className="p-3.5 rounded-xl bg-[#141619] border border-white/5 mt-6">
+            <span className="font-mono text-[10px] text-[#7f786c] uppercase tracking-wider block mb-1">Cách lấy mã PIN:</span>
+            <p className="text-xs text-[#e2e2e6] leading-relaxed">
+              Vào kênh Discord gõ lệnh <code className="px-2 py-0.5 rounded bg-[#e8c977]/15 border border-[#e8c977]/30 text-[#ffe6a9] font-mono font-bold">/web</code> để nhận mã PIN 6 số dùng 1 lần.
+            </p>
+          </div>
+        </div>
 
+        {/* CỘT PHẢI: Khối nhập PIN 6 số */}
+        <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-10 bg-[#16181b]">
+          <form onSubmit={submit} className="w-full max-w-sm mx-auto flex flex-col gap-4">
+            <div className="text-center mb-1">
+              <h2 className="text-xl font-bold text-[#e2e2e6] font-sans">Xác Thực Phiên Phát Nhạc</h2>
+              <p className="font-mono text-xs text-[#aba395] mt-1">Nhập 6 chữ số từ Discord bot</p>
+            </div>
 
-          <button
+            <div>
+              <PinCodeInput
+                length={6}
+                value={pin}
+                onChange={(val) => {
+                  setPin(val);
+                  setLocalError('');
+                }}
+                onComplete={handleComplete}
+                disabled={isVerifying}
+                autoFocus={true}
+              />
+            </div>
 
-            type="submit"
+            {error && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle size={15} className="flex-shrink-0 text-rose-400" />
+                <span>{error}</span>
+              </div>
+            )}
 
-            disabled={isVerifying || pin.length < 6}
+            <button
+              type="submit"
+              disabled={isVerifying || pin.length < 6}
+              className="w-full h-12 rounded-xl bg-[#e8c977] hover:bg-[#ffe6a9] text-[#111316] font-bold text-sm shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 size={18} className="animate-spin text-[#111316]" />
+                  <span>ĐANG XÁC THỰC KẾT NỐI...</span>
+                </>
+              ) : (
+                <span>MỞ BẢNG ĐIỀU KHIỂN</span>
+              )}
+            </button>
 
-            className="w-full h-12 rounded-2xl bg-gradient-to-r from-cyan-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-cyan-500/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
-
-          >
-
-            {isVerifying ? 'Đang xác thực kết nối...' : 'Mở Bảng Điều Khiển'}
-
-          </button>
-
-
-
-          <p className="text-[11px] text-slate-500 text-center mt-4">
-
-            Mã PIN dùng 1 lần và tự động đồng bộ với phòng thoại Discord của bạn.
-
-          </p>
-
-        </form>
+            <p className="text-[11px] text-[#7f786c] text-center mt-2 font-mono">
+              Phiên bảo mật mã hóa • Tự động đồng bộ với phòng Voice
+            </p>
+          </form>
+        </div>
 
       </div>
-
     </main>
-
   );
-
 }
 
-
-
-// ─── Main App ────────────────────────────────────────────────────────────────
-
+// ─── MAIN APP COMPONENT ──────────────────────────────────────────────────────
 export default function App() {
-
   const [token, setToken] = useState(() => {
-
     const u = new URLSearchParams(window.location.search);
-
     return u.get('token') || localStorage.getItem('anna_web_token') || null;
-
   });
 
   const [guildId, setGuildId] = useState(() => {
-
     const u = new URLSearchParams(window.location.search);
-
-    return u.get('guild') || localStorage.getItem('anna_guild_id') || null;
-
+    return u.get('guild') || localStorage.getItem('anna_web_guild') || null;
   });
 
-
-
-  const [user, setUser]                     = useState(null);
-
-  const [guild, setGuild]                   = useState(null);
-
-  const [player, setPlayer]                 = useState(null);
-
-  const [activeWebUsers, setActiveWebUsers] = useState([]);
-
-  const [activeTab, setActiveTab]           = useState('search');
-
-  const [copiedLink, setCopiedLink]         = useState(false);
-
-
-
-  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
-
-  const [isLofiConfirmOpen, setIsLofiConfirmOpen]         = useState(false);
-
-  const [authError, setAuthError]                         = useState(null);
-
-  const [isInitialLoading, setIsInitialLoading]           = useState(true);
-
-  const [isVerifying, setIsVerifying]                     = useState(true);
-
-  const [isRefreshingVoice, setIsRefreshingVoice]         = useState(false);
-
-  const [toasts, setToasts]                               = useState([]);
-
-  const [lyricsSourceInfo, setLyricsSourceInfo]           = useState(null);
-
-  const [isNotFound, setIsNotFound] = useState(() => {
-
-    if (typeof window === 'undefined') return false;
-
-    const p = window.location.pathname;
-
-    return p !== '/' && p !== '' && p !== '/index.html';
-
-  });
-
-
-
-  useEffect(() => {
-
-    const checkPath = () => {
-
-      const p = window.location.pathname;
-
-      setIsNotFound(p !== '/' && p !== '' && p !== '/index.html');
-
-    };
-
-    window.addEventListener('popstate', checkPath);
-
-    return () => window.removeEventListener('popstate', checkPath);
-
-  }, []);
-
-
-
-  const handleGoHome = useCallback(() => {
-
-    if (typeof window !== 'undefined') {
-
-      window.history.pushState({}, '', '/');
-
-      setIsNotFound(false);
-
-    }
-
-  }, []);
-
-
-
+  const [user, setUser] = useState(null);
+  const [guild, setGuild] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [activeTab, setActiveTab] = useState('search'); // 'search' | 'queue' | 'lyrics' | 'history' | 'settings' | 'player' (mobile)
+  const [isVerifying, setIsVerifying] = useState(Boolean(token));
+  const [authError, setAuthError] = useState('');
+  const [isNotFound, setIsNotFound] = useState(false);
+  const [toasts, setToasts] = useState([]);
   const [pendingAction, setPendingAction] = useState(null);
+  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+  const [isLofiConfirmOpen, setIsLofiConfirmOpen] = useState(false);
+  const [isKaraokeOpen, setIsKaraokeOpen] = useState(false);
+  const [lyricsSourceInfo, setLyricsSourceInfo] = useState(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [isRefreshingVoice, setIsRefreshingVoice] = useState(false);
 
   const pendingTimerRef = useRef(null);
+  const tokenRef = useRef(token);
+  tokenRef.current = token;
+  const guildIdRef = useRef(guildId);
+  guildIdRef.current = guildId;
 
-  const lastTrackUrlRef = useRef(player?.current?.url);
-
-
-
-  useEffect(() => {
-
-    if (!pendingAction) return;
-
-    const currUrl = player?.current?.url;
-
-    const isNowPlaying = player?.isPlaying && !player?.isPaused;
-
-
-
-    if (['skip', 'previous', 'playNow', 'switchTo247', 'toggleLofiMode'].includes(pendingAction)) {
-
-      if (currUrl && currUrl !== lastTrackUrlRef.current && isNowPlaying) {
-
-        lastTrackUrlRef.current = currUrl;
-
-        setPendingAction(null);
-
-        if (pendingTimerRef.current) clearTimeout(pendingTimerRef.current);
-
-      }
-
-    } else if (pendingAction === 'playback') {
-
-      setPendingAction(null);
-
-      if (pendingTimerRef.current) clearTimeout(pendingTimerRef.current);
-
-    }
-
-  }, [player?.current?.url, player?.isPlaying, player?.isPaused, pendingAction]);
-
-
-
-  useEffect(() => {
-
-    lastTrackUrlRef.current = player?.current?.url;
-
-  }, [player?.current?.url]);
-
-
-
-  useEffect(() => {
-
-    const timer = setTimeout(() => {
-
-      setIsInitialLoading(false);
-
-    }, 1500);
-
-    return () => clearTimeout(timer);
-
+  const showToast = useCallback((message, type = 'success', duration = 3000) => {
+    const id = Date.now() + Math.random().toString(36).substring(2, 6);
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, duration);
   }, []);
-
-
-
-  const showToast = useCallback((message, type = 'success') => {
-
-    if (!message) return;
-
-    setToasts(prev => {
-
-      if (prev.some(t => t.message === message)) return prev;
-
-      const id = Date.now() + Math.random().toString(36).substring(2, 6);
-
-      setTimeout(() => {
-
-        setToasts(p => p.filter(t => t.id !== id));
-
-      }, 2500);
-
-      return [...prev.slice(-2), { id, message, type }];
-
-    });
-
-  }, []);
-
-
 
   const handleDismissToast = useCallback((id) => {
-
     setToasts(prev => prev.filter(t => t.id !== id));
-
   }, []);
 
-
-
-  const handleAuthExpired = useCallback((msg = 'Phiên làm việc đã hết hạn. Vui lòng kết nối lại!') => {
-
-    setUser(null); setToken(null);
-
+  const handleAuthExpired = useCallback(() => {
     localStorage.removeItem('anna_web_token');
-
-    showToast(msg, 'error');
-
-    setAuthError(msg);
-
+    setToken(null);
+    setUser(null);
+    setAuthError('Phiên đăng nhập đã hết hạn, vui lòng nhập lại mã PIN từ Discord.');
+    showToast('Phiên làm việc đã hết hạn!', 'error');
   }, [showToast]);
 
-
-
-  const handleLogout = () => {
-
-    setUser(null); setToken(null);
-
-    localStorage.removeItem('anna_web_token');
-
-    localStorage.removeItem('anna_guild_id');
-
-    setAuthError(null);
-
-  };
-
-
-
-  const handleCopySessionLink = () => {
-
-    const tok = localStorage.getItem('anna_web_token');
-
-    const gld = localStorage.getItem('anna_guild_id');
-
-    const link = tok && gld ? `${window.location.origin}/?token=${tok}&guild=${gld}` : window.location.href;
-
-    navigator.clipboard.writeText(link).then(() => {
-
-      setCopiedLink(true);
-
-      showToast('Đã sao chép liên kết phiên Web!');
-
-      setTimeout(() => setCopiedLink(false), 2500);
-
-    });
-
-  };
-
-
-
-  // 1. Verify token/PIN
-
-  const verifyToken = useCallback((tokenToVerify, isUserInitiated = false) => {
-
-    if (!tokenToVerify) { setIsVerifying(false); return; }
-
+  // Verify PIN / Token
+  const verifyToken = useCallback(async (tokenVal, fromUserSubmit = false) => {
+    if (!tokenVal) return;
     setIsVerifying(true);
-
-    if (isUserInitiated) setAuthError(null);
-
-    const startTime = Date.now();
-
-    const controller = new AbortController();
-
-    const tid = setTimeout(() => controller.abort(), 7000);
-
-    fetch(`${API_BASE}/api/auth/verify`, {
-
-      method: 'POST',
-
-      headers: { 'Content-Type': 'application/json' },
-
-      body: JSON.stringify({ token: tokenToVerify }),
-
-      signal: controller.signal,
-
-    })
-
-      .then(async res => {
-
-        clearTimeout(tid);
-
-        const data = await res.json().catch(() => ({}));
-
-        const elapsed = Date.now() - startTime;
-
-        const delay = Math.max(0, 600 - elapsed);
-
-        setTimeout(() => {
-
-          setIsVerifying(false);
-
-          if (res.ok && data.success && data.user) {
-
-            const sess = data.token || tokenToVerify;
-
-            setUser(data.user); setGuildId(data.user.guildId); setToken(sess);
-
-            localStorage.setItem('anna_web_token', sess);
-
-            localStorage.setItem('anna_guild_id', data.user.guildId);
-
-            setAuthError(null);
-
-          } else {
-
-            setUser(null); setToken(null);
-
-            localStorage.removeItem('anna_web_token');
-
-            localStorage.removeItem('anna_guild_id');
-
-            if (isUserInitiated) setAuthError(data.error || 'Mã PIN không đúng hoặc đã hết hạn.');
-
-            else setAuthError(null);
-
-          }
-
-        }, delay);
-
-      })
-
-      .catch(err => {
-
-        clearTimeout(tid);
-
-        setIsVerifying(false);
-
-        setUser(null); setToken(null);
-
-        localStorage.removeItem('anna_web_token');
-
-        localStorage.removeItem('anna_guild_id');
-
-        if (isUserInitiated)
-
-          setAuthError(err.name === 'AbortError' ? 'Kết nối quá thời gian!' : 'Không thể kết nối đến máy chủ bot!');
-
-        else setAuthError(null);
-
+    setAuthError('');
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: tokenVal }),
       });
-
-  }, []);
-
-
-
-  // 2. URL token on mount
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setToken(data.token);
+        setGuildId(data.guildId);
+        setUser(data.user);
+        setGuild({ id: data.guildId, name: data.user?.guildName });
+        localStorage.setItem('anna_web_token', data.token);
+        localStorage.setItem('anna_web_guild', data.guildId);
+        if (fromUserSubmit) {
+          showToast(`Chào mừng ${data.user?.displayName || data.user?.username || 'bạn'} đến với Anna Lounge! ☕`);
+        }
+      } else {
+        localStorage.removeItem('anna_web_token');
+        setToken(null);
+        setAuthError(data.error || 'Mã PIN không đúng hoặc đã hết hạn.');
+      }
+    } catch {
+      setAuthError('Không thể kết nối đến máy chủ bot.');
+    } finally {
+      setIsVerifying(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
-
     const u = new URLSearchParams(window.location.search);
-
-    const tok = u.get('token'); const gld = u.get('guild');
-
-    if (tok) {
-
-      setToken(tok); localStorage.setItem('anna_web_token', tok);
-
-      if (gld) { setGuildId(gld); localStorage.setItem('anna_guild_id', gld); }
-
-      verifyToken(tok, true);
-
-      window.history.replaceState({}, document.title, window.location.pathname);
-
+    const urlToken = u.get('token');
+    const savedToken = localStorage.getItem('anna_web_token');
+    if (urlToken) {
+      verifyToken(urlToken);
+    } else if (savedToken) {
+      verifyToken(savedToken);
     } else {
-
-      const saved = localStorage.getItem('anna_web_token');
-
-      if (saved) {
-
-        verifyToken(saved, false);
-
-      } else {
-
-        setTimeout(() => setIsVerifying(false), 400);
-
-      }
-
+      setIsVerifying(false);
     }
-
   }, [verifyToken]);
 
-
-
-  // 3. Refresh voice session
-
-  const handleRefreshVoice = () => {
-
-    const tok = token || localStorage.getItem('anna_web_token');
-
-    if (!tok) return;
-
-    setIsRefreshingVoice(true);
-
-    fetch(`${API_BASE}/api/auth/verify`, {
-
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-
-      body: JSON.stringify({ token: tok }),
-
-    })
-
-      .then(async res => {
-
-        if (res.status === 401) { setIsRefreshingVoice(false); handleAuthExpired('Phiên kết nối đã hết hạn!'); return; }
-
-        const data = await res.json().catch(() => ({}));
-
-        setIsRefreshingVoice(false);
-
-        if (res.ok && data.success && data.user) {
-
-          setUser(data.user);
-
-          if (data.user.isInVoice) showToast('Đã kết nối phòng Voice thành công!');
-
-          else showToast('Bạn chưa tham gia kênh Voice!', 'error');
-
-        } else {
-
-          setUser(null); setToken(null);
-
-          localStorage.removeItem('anna_web_token');
-
-          showToast(data.error || 'Phiên kết nối đã hết hạn!', 'error');
-
-        }
-
-      })
-
-      .catch(() => { setIsRefreshingVoice(false); showToast('Không thể kết nối đến máy chủ bot!', 'error'); });
-
-  };
-
-
-
-  // 4. Poll state
-
-  const fetchState = useCallback((isFull = false) => {
-
-    const cg = guildId || user?.guildId;
-
-    const ct = token || localStorage.getItem('anna_web_token');
-
-    if (!cg || !user) return;
-
-    fetch(`${API_BASE}/api/guilds/${cg}/state${isFull ? '?full=1' : ''}`, {
-
-      headers: ct ? { 'Authorization': `Bearer ${ct}` } : {},
-
-    })
-
-      .then(async res => {
-
-        if (res.status === 401) { handleAuthExpired(); return; }
-
-        const data = await res.json().catch(() => ({}));
-
-        if (data.success) {
-
-          if (data.guild) setGuild(data.guild);
-
-          if (data.player) {
-
-            setPlayer(prev => {
-
-              if (!prev) return data.player;
-
-              return {
-
-                ...prev,
-
-                ...data.player,
-
-                favorites: data.player.favorites !== undefined ? data.player.favorites : (prev.favorites || []),
-
-                history: data.player.history !== undefined ? data.player.history : (prev.history || []),
-
-                topTracks: data.player.topTracks !== undefined ? data.player.topTracks : (prev.topTracks || []),
-
-                recentPlaylists: data.player.recentPlaylists !== undefined ? data.player.recentPlaylists : (prev.recentPlaylists || [])
-
-              };
-
-            });
-
-          }
-
-          if (data.activeWebUsers) setActiveWebUsers(data.activeWebUsers);
-
-        }
-
-      })
-
-      .catch(() => {});
-
-  }, [guildId, token, user, handleAuthExpired]);
-
-
+  // Polling State
+  const fetchState = useCallback(async (isFull = false) => {
+    const ct = tokenRef.current;
+    const cg = guildIdRef.current;
+    if (!ct || !cg) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/guilds/${cg}/state${isFull ? '?full=1' : ''}`, {
+        headers: { Authorization: `Bearer ${ct}` },
+      });
+      if (res.status === 401) {
+        handleAuthExpired();
+        return;
+      }
+      if (res.status === 404) {
+        setIsNotFound(true);
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setIsNotFound(false);
+        setPlayer(prev => {
+          if (!prev) return data.player;
+          return {
+            ...prev,
+            ...data.player,
+            queue: data.player?.queue !== undefined ? data.player.queue : prev.queue,
+            favorites: data.player?.favorites !== undefined ? data.player.favorites : prev.favorites,
+          };
+        });
+        if (data.guild) setGuild(data.guild);
+      }
+    } catch {
+      // Network hiccup - ignore
+    }
+  }, [handleAuthExpired]);
 
   useEffect(() => {
-
-    if (!user) return;
-
+    if (!token || !guildId) return;
     fetchState(true);
+    const interval = setInterval(() => fetchState(false), 1000);
+    return () => clearInterval(interval);
+  }, [token, guildId, fetchState]);
 
-    let iv = null;
-
-    const startPolling = (intervalMs) => {
-
-      if (iv) clearInterval(iv);
-
-      iv = setInterval(() => fetchState(false), intervalMs);
-
-    };
-
-    startPolling(2500);
-
-
-
-    const handleVisibilityChange = () => {
-
-      if (document.hidden) startPolling(12000);
-
-      else {
-
-        fetchState(false);
-
-        startPolling(2500);
-
-      }
-
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-
-      if (iv) clearInterval(iv);
-
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-
-    };
-
-  }, [user, fetchState]);
-
-
-
-  // 5. Order song
-
-  const handleOrderSong = async (track) => {
-
-    const cg = guildId || user?.guildId;
-
-    const ct = token || localStorage.getItem('anna_web_token');
-
-    if (!cg || !ct) return;
-
-    const isBatch = Array.isArray(track?.tracks) && track.tracks.length > 0;
-
-    const title = track?.title || track?.name || (track?.isPlaylist ? 'Danh sách phát' : 'bài hát');
+  // Order Song (Single or Batch)
+  const handleOrderSong = async (track, isBatch = false) => {
+    const ct = tokenRef.current;
+    const cg = guildIdRef.current;
+    if (!ct || !cg) return;
 
     try {
-
-      showToast(`Đang thêm "${title}"...`, 'info');
-
-      const payload = isBatch ? { tracks: track.tracks, token: ct } : { track, token: ct };
-
+      const payload = isBatch ? { tracks: track, token: ct } : { track, token: ct };
       const res = await fetch(`${API_BASE}/api/guilds/${cg}/play`, {
-
         method: 'POST',
-
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ct}` },
-
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ct}` },
         body: JSON.stringify(payload),
-
-      });
-
-      if (res.status === 401) { handleAuthExpired(); return; }
-
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok && data.success) {
-
-        if (isBatch || data.isPlaylist || data.addedCount || track?.isPlaylist) {
-
-          const c = data.addedCount || (track?.tracks ? track.tracks.length : '');
-
-          showToast(`Đã thêm ${c ? `${c} bài hát` : 'Playlist'} vào hàng chờ!`);
-
-        } else {
-
-          showToast(`Đã thêm "${data.track?.title || title}" vào hàng chờ!`);
-
-        }
-
-        if (!isBatch && data.track && (!player?.current || player.current.is247 || player.current.requestedBy === 'Auto (24/7)')) {
-
-          setPlayer(prev => prev ? {
-
-            ...prev,
-
-            current: {
-
-              ...data.track,
-
-              is247: false,
-
-              requestedBy: user?.displayName || user?.username || 'User'
-
-            }
-
-          } : prev);
-
-        }
-
-        fetchState(true);
-
-      } else {
-
-        showToast(data.error || 'Lỗi thêm bài hát', 'error');
-
-        if (data.error?.includes('Voice')) handleRefreshVoice();
-
-      }
-
-    } catch {
-
-      showToast('Không thể gửi yêu cầu đến bot!', 'error');
-
-    }
-
-  };
-
-
-
-  // 6. Player action
-
-  const handlePlayerAction = async (action, value = null) => {
-
-    const cg = guildId || user?.guildId;
-
-    const ct = token || localStorage.getItem('anna_web_token');
-
-    if (!cg || !ct) return;
-
-
-
-    if (action === 'notifyEmptyRoom') {
-
-      showToast('Phòng Voice hiện đang trống, bot duy trì phát Lofi 24/7 ☕', 'info');
-
-      return;
-
-    }
-
-    if (action === 'notifyAlreadyLofi') {
-
-      showToast('Bot hiện đang phát nhạc nền Lofi thư giãn rồi nhé ☕', 'info');
-
-      return;
-
-    }
-
-
-
-    const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)'));
-
-    if (action === 'toggleLofiMode' && !isLofiCurrent && value !== 'confirmed') {
-
-      setIsLofiConfirmOpen(true);
-
-      return;
-
-    }
-
-
-
-    if (pendingAction) {
-
-      showToast('Đang xử lý bài hát, vui lòng chờ chút nhé...', 'info');
-
-      return;
-
-    }
-
-
-
-    const actionKey = (action === 'pause' || action === 'resume') ? 'playback' : action;
-
-    const isHeavyAction = ['skip', 'previous', 'playNow', 'seek', 'playback', 'switchTo247', 'toggleLofiMode'].includes(actionKey);
-
-
-
-    if (isHeavyAction) {
-
-      setPendingAction(actionKey);
-
-      if (pendingTimerRef.current) clearTimeout(pendingTimerRef.current);
-
-      const timeoutMs = ['skip', 'previous', 'playNow', 'switchTo247', 'toggleLofiMode'].includes(actionKey) ? 7500 : (actionKey === 'seek' ? 2000 : 1200);
-
-      pendingTimerRef.current = setTimeout(() => {
-
-        setPendingAction(null);
-
-      }, timeoutMs);
-
-    }
-
-
-
-    if (action === 'skip') showToast('Đang chuyển bài tiếp theo... ⏭️', 'info');
-
-    else if (action === 'previous') showToast('Đang quay lại bài trước... ⏮️', 'info');
-
-    else if (action === 'seek') {
-
-      const sec = Math.max(0, Math.floor(Number(value) || 0));
-
-      const m = Math.floor(sec / 60);
-
-      const s = sec % 60;
-
-      showToast(`Đang chuyển đến ${m}:${s < 10 ? '0' : ''}${s}... ⏱️`, 'info');
-
-    } else if (action === 'playNow') showToast('Đang phát ngay bài được chọn... ▶️', 'info');
-
-    else if (action === 'toggleLofiMode') {
-
-      if (isLofiCurrent) showToast('Đang chuyển về phát bài hát của bạn... 🎵', 'info');
-
-      else {
-
-        showToast('Đang lưu hàng chờ và chuyển sang nhạc Lofi thư giãn... ☕', 'info');
-
-        window.dispatchEvent(new CustomEvent('anna_switch_lofi'));
-
-      }
-
-    } else if (action === 'switchTo247') {
-
-      showToast('Đang chuyển sang nhạc nền Lofi 24/7 thư giãn... ☕', 'info');
-
-      window.dispatchEvent(new CustomEvent('anna_switch_lofi'));
-
-      setPlayer(prev => prev ? {
-
-        ...prev,
-
-        mode247: true,
-
-        current: {
-
-          ...prev.current,
-
-          title: 'Đang tải nhạc Lofi 24/7 thư giãn...',
-
-          artist: 'Anna Pulse',
-
-          is247: true,
-
-          requestedBy: 'Auto (24/7)'
-
-        }
-
-      } : prev);
-
-    }
-
-
-
-    const adminOnly = ['toggle247','set247','toggleAutoplay','setAutoplay','settings','updateSettings'];
-
-    if (adminOnly.includes(action) && !user?.isAdmin) {
-
-      setPendingAction(null);
-
-      setIsPermissionModalOpen(true);
-
-      return;
-
-    }
-
-
-
-    try {
-
-      const res = await fetch(`${API_BASE}/api/guilds/${cg}/action`, {
-
-        method: 'POST',
-
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ct}` },
-
-        body: JSON.stringify({ action, value, token: ct }),
-
       });
 
       if (res.status === 401) {
-
-        setPendingAction(null);
-
         handleAuthExpired();
-
         return;
-
       }
-
       const data = await res.json().catch(() => ({}));
-
-      if (res.status === 403 || data.code === 'PERMISSION_DENIED') {
-
-        setPendingAction(null);
-
-        setIsPermissionModalOpen(true);
-
-        return;
-
-      }
-
       if (res.ok && data.success) {
-
-        if (data.message) showToast(data.message);
-
-        const shouldFull = ['toggleFavorite', 'clear', 'remove', 'removeBatch', 'switchTo247', 'toggleLofiMode'].includes(action);
-
-        fetchState(shouldFull);
-
+        if (isBatch) {
+          const c = Array.isArray(track) ? track.length : 0;
+          showToast(`Đã thêm ${c ? `${c} bài hát` : 'Playlist'} vào hàng chờ!`);
+        } else {
+          showToast(data.message || `Đã thêm "${track.title}" vào hàng chờ!`);
+        }
+        fetchState(true);
       } else {
-
-        setPendingAction(null);
-
-        showToast(data.error || 'Lỗi thao tác!', 'error');
-
+        showToast(data.error || 'Lỗi thêm bài hát', 'error');
+        if (data.error?.includes('Voice')) handleRefreshVoice();
       }
-
     } catch {
-
-      setPendingAction(null);
-
-      showToast('Lỗi gửi lệnh điều khiển!', 'error');
-
+      showToast('Không thể gửi yêu cầu đến bot!', 'error');
     }
-
   };
 
+  // Player Actions
+  const handlePlayerAction = async (action, value = null) => {
+    const ct = tokenRef.current;
+    const cg = guildIdRef.current;
+    if (!ct || !cg) return;
 
-
-  if (isNotFound) return <NotFoundScreen onGoHome={handleGoHome} />;
-
-
-
-  if (isInitialLoading || isVerifying) {
-
-    return (
-
-      <ConnectingStepper text={isVerifying ? (token ? 'ĐANG XÁC THỰC KẾT NỐI...' : 'ĐANG KHỞI TẠO VOICE...') : 'ĐANG KẾT NỐI DISCORD CONSOLE...'} />
-
+    const isLofiCurrent = Boolean(
+      player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')
     );
 
+    if (action === 'notifyEmptyRoom') {
+      showToast('Phòng Voice hiện đang trống, bot duy trì phát Lofi 24/7 ☕', 'info');
+      return;
+    }
+
+    if (action === 'toggleLofiMode' && !isLofiCurrent && value !== 'confirmed') {
+      setIsLofiConfirmOpen(true);
+      return;
+    }
+
+    if (pendingAction) {
+      showToast('Đang xử lý bài hát, vui lòng chờ chút nhé...', 'info');
+      return;
+    }
+
+    const actionKey = (action === 'pause' || action === 'resume') ? 'playback' : action;
+    const isHeavyAction = ['skip', 'previous', 'playNow', 'seek', 'playback', 'switchTo247', 'toggleLofiMode'].includes(actionKey);
+
+    if (isHeavyAction) {
+      setPendingAction(actionKey);
+      if (pendingTimerRef.current) clearTimeout(pendingTimerRef.current);
+      const timeoutMs = ['skip', 'previous', 'playNow', 'switchTo247', 'toggleLofiMode'].includes(actionKey) ? 7500 : (actionKey === 'seek' ? 2000 : 1200);
+      pendingTimerRef.current = setTimeout(() => {
+        setPendingAction(null);
+      }, timeoutMs);
+    }
+
+    if (action === 'skip') showToast('Đang chuyển bài tiếp theo... ⏭️', 'info');
+    else if (action === 'previous') showToast('Đang quay lại bài trước... ⏮️', 'info');
+    else if (action === 'seek') {
+      const sec = Math.max(0, Math.floor(Number(value) || 0));
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      showToast(`Đang chuyển đến ${m}:${s < 10 ? '0' : ''}${s}... ⏱️`, 'info');
+    } else if (action === 'playNow') showToast('Đang phát ngay bài được chọn... ▶️', 'info');
+    else if (action === 'toggleLofiMode') {
+      if (isLofiCurrent) showToast('Đang chuyển về phát bài hát của bạn... 🎵', 'info');
+      else {
+        showToast('Đang lưu hàng chờ và chuyển sang nhạc Lofi thư giãn... ☕', 'info');
+        window.dispatchEvent(new CustomEvent('anna_switch_lofi'));
+      }
+    }
+
+    const adminOnly = ['toggle247', 'set247', 'toggleAutoplay', 'setAutoplay', 'settings', 'updateSettings'];
+    if (adminOnly.includes(action) && !user?.isAdmin) {
+      setPendingAction(null);
+      setIsPermissionModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/guilds/${cg}/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ct}` },
+        body: JSON.stringify({ action, value, token: ct }),
+      });
+      if (res.status === 401) {
+        setPendingAction(null);
+        handleAuthExpired();
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 403 || data.code === 'PERMISSION_DENIED') {
+        setPendingAction(null);
+        setIsPermissionModalOpen(true);
+        return;
+      }
+      if (res.ok && data.success) {
+        if (data.message) showToast(data.message);
+        const shouldFull = ['toggleFavorite', 'clear', 'remove', 'removeBatch', 'switchTo247', 'toggleLofiMode'].includes(action);
+        fetchState(shouldFull);
+      } else {
+        setPendingAction(null);
+        showToast(data.error || 'Lỗi thao tác!', 'error');
+      }
+    } catch {
+      setPendingAction(null);
+      showToast('Lỗi gửi lệnh điều khiển!', 'error');
+    }
+  };
+
+  const handleRefreshVoice = async () => {
+    setIsRefreshingVoice(true);
+    await fetchState(true);
+    setTimeout(() => setIsRefreshingVoice(false), 800);
+    showToast('Đã làm mới thông tin phòng voice!', 'info');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('anna_web_token');
+    localStorage.removeItem('anna_web_guild');
+    setToken(null);
+    setGuildId(null);
+    setUser(null);
+    setGuild(null);
+    setPlayer(null);
+    window.location.href = window.location.origin;
+  };
+
+  const handleShareLink = () => {
+    const tok = tokenRef.current;
+    const gld = guildIdRef.current;
+    const link = tok && gld ? `${window.location.origin}/?token=${tok}&guild=${gld}` : window.location.href;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedLink(true);
+      showToast('Đã sao chép liên kết nghe nhạc trực tiếp! 🔗');
+      setTimeout(() => setCopiedLink(false), 2500);
+    });
+  };
+
+  // Render Screens
+  if (isNotFound) return <NotFoundScreen onGoHome={() => (window.location.href = window.location.origin)} />;
+
+  if (isVerifying) {
+    return (
+      <ConnectingStepper text={token ? 'ĐANG XÁC THỰC KẾT NỐI VỚI BOT...' : 'ĐANG KẾT NỐI DISCORD CONSOLE...'} />
+    );
   }
 
-
-
-  if (!user) {
-
+  if (!token || !user) {
     return <AuthScreen onVerify={verifyToken} authError={authError} isVerifying={isVerifying} />;
-
   }
 
-
-
-  if (!user.isInVoice || (!user.isSameVoice && user.botVoice)) {
-
+  const inSameVoice = user?.isInVoice && (!player?.voiceChannel || user.voiceChannelId === player.voiceChannel.id);
+  if (!inSameVoice && !user?.isAdmin) {
     return (
-
-      <NoVoiceSession user={user} guildName={guild?.name || user?.guildName} isRefreshing={isRefreshingVoice} onRefresh={handleRefreshVoice} onLogout={handleLogout} />
-
+      <NoVoiceSession
+        user={user}
+        guildName={guild?.name || user?.guildName}
+        isRefreshing={isRefreshingVoice}
+        onRefresh={handleRefreshVoice}
+        onLogout={handleLogout}
+      />
     );
-
   }
-
-
-
-  const voiceChannelName = player?.voiceChannel?.name || user?.botVoice?.name || user?.userVoice?.name || 'Voice Channel';
 
   const queueCount = player?.queue?.length || 0;
 
-
-
   return (
-
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#06080F] text-slate-100 relative select-none">
-
-      {/* Dynamic Aurora Ambient Background */}
-
+    <div className="h-screen h-[100dvh] w-full flex flex-col bg-[#111316] text-[#e2e2e6] overflow-hidden select-none relative font-sans">
+      {/* Dynamic Ambient Background theo ảnh bìa */}
       <DynamicAmbientBackground currentTrack={player?.current} isPlaying={player?.isPlaying} />
 
+      {/* ── TOP APP WRAPPER: STRICT 100vh - (Header + Body + MiniPlayer) ──── */}
+      <div className="flex-1 flex overflow-hidden w-full h-[calc(100vh-68px)]">
 
-
-      {/* ── 1. TOP COMMAND HEADER BAR ─────────────────────────────────── */}
-
-      <header className="relative z-30 h-16 px-4 lg:px-6 bg-[#080B14]/85 backdrop-blur-xl border-b border-white/[0.07] flex items-center justify-between gap-4 flex-shrink-0">
-
-        {/* Left: Brand + Server & Voice Pill */}
-
-        <div className="flex items-center gap-3 min-w-0">
-
-          <button
-
-            type="button"
-
-            onClick={() => setActiveTab('search')}
-
-            className="flex items-center gap-2.5 group focus:outline-none"
-
-          >
-
-            <img
-
-              src="/logo.gif"
-
-              alt="Anna Logo"
-
-              className="w-9 h-9 rounded-xl object-cover border border-cyan-400/40 shadow-md group-hover:scale-105 transition-transform"
-
-              style={{ imageRendering: 'pixelated' }}
-
-            />
-
-            <div className="text-left hidden sm:block">
-
-              <div className="text-sm font-extrabold tracking-tight text-white flex items-center gap-1">
-
-                <span>ANNA</span>
-
-                <span className="text-cyan-400">PULSE</span>
-
+        {/* ── 1. LEFT SIDEBAR (GỌN GÀNG, 210px CỐ ĐỊNH TRÊN DESKTOP) ──────── */}
+        <aside className="w-[210px] shrink-0 bg-[#16181b] border-r border-white/5 hidden lg:flex flex-col justify-between p-3 select-none z-20">
+          <div className="flex flex-col gap-3">
+            {/* Logo Brand */}
+            <div className="px-2 pt-1 pb-1 flex flex-col cursor-pointer" onClick={() => setActiveTab('search')}>
+              <div className="flex items-baseline gap-1">
+                <span className="font-brand text-2xl font-bold text-[#e8c977] leading-none">an</span>
+                <span className="font-brand text-2xl font-bold text-[#f5a192] leading-none">na</span>
               </div>
+              <span className="font-mono text-[9px] tracking-widest text-[#7f786c] uppercase mt-1">MUSIC WEB PLAYER</span>
+            </div>
 
-              <div className="font-mono text-[9px] tracking-widest text-slate-400 uppercase">
-
-                {guild?.name || user?.guildName || 'DISCORD SERVER'}
-
+            {/* Room Live Badge */}
+            <div className="px-2.5 py-1.5 rounded-lg bg-[#1c1e22] border border-white/5 flex items-center gap-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#9bfcc0] animate-pulse shrink-0"></span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] font-bold text-[#9bfcc0] uppercase tracking-wider truncate">
+                  {player?.isPlaying ? 'Phòng Thoại Đang Phát' : 'Phòng Thoại Chờ'}
+                </span>
+                <span className="font-mono text-[10px] text-[#e2e2e6] truncate">
+                  {player?.voiceChannel?.name || 'Lounge VC'} • 384k
+                </span>
               </div>
-
             </div>
 
-          </button>
-
-
-
-          <span className="text-slate-700 hidden md:inline">/</span>
-
-
-
-          {/* Active Voice Channel Pill */}
-
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-xs font-medium text-emerald-300 truncate max-w-[180px] sm:max-w-[260px]">
-
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
-
-            <Headphones className="flex-shrink-0" size={13}/>
-
-            <span className="truncate font-semibold">{voiceChannelName}</span>
-
-          </div>
-
-        </div>
-
-
-
-        {/* Right: Online Listeners + Share Link + User Profile + Logout */}
-
-        <div className="flex items-center gap-2.5 flex-shrink-0">
-
-          {/* Online Avatar Stack */}
-
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.07]">
-
-            <div className="flex items-center -space-x-2">
-
-              {(() => {
-
-                const myId = String(user?.userId || user?.id || '');
-
-                const myUser = user ? [{ ...user, isMe: true, userId: myId }] : [];
-
-                const otherOnline = (activeWebUsers || []).filter(u => String(u.userId || u.id) !== myId);
-
-                const allOnline = [...myUser, ...otherOnline];
-
-                return allOnline.slice(0, 4).map((u, i) => (
-
-                  <img
-
-                    key={u.userId || i}
-
-                    src={u.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
-
-                    alt={u.displayName || u.username}
-
-                    title={`${u.displayName || u.username}${u.isMe ? ' (Bạn)' : ''}`}
-
-                    className={`w-6 h-6 rounded-full object-cover ring-2 ${u.isMe ? 'ring-cyan-400 z-10' : 'ring-[#080B14]'}`}
-
-                  />
-
-                ));
-
-              })()}
-
-            </div>
-
-            <span className="font-mono text-[10px] font-bold text-cyan-400">
-
-              {Math.max(1, (activeWebUsers?.length || 0))} ONLINE
-
-            </span>
-
-          </div>
-
-
-
-          {/* Share Link Button */}
-
-          <button
-
-            type="button"
-
-            onClick={handleCopySessionLink}
-
-            className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition"
-
-            title="Sao chép liên kết phiên Web"
-
-          >
-
-            {copiedLink ? (
-
-              <>
-
-                <Check className="text-emerald-400" size={14}/>
-
-                <span className="hidden md:inline text-emerald-400">Đã chép</span>
-
-              </>
-
-            ) : (
-
-              <>
-
-                <Share2 className="text-cyan-400" size={14}/>
-
-                <span className="hidden md:inline">Chia sẻ</span>
-
-              </>
-
-            )}
-
-          </button>
-
-
-
-          {/* Logout Button */}
-
-          <button
-
-            type="button"
-
-            onClick={handleLogout}
-
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-rose-500/15 border border-white/[0.08] hover:border-rose-500/30 text-slate-400 hover:text-rose-400 transition"
-
-            title="Đăng xuất phiên Web"
-
-          >
-
-            <LogOut size={15}/>
-
-          </button>
-
-        </div>
-
-      </header>
-
-
-
-      {/* ── 2. MIDDLE WORKSPACE (SIDEBAR + MAIN STAGE) ────────────────── */}
-
-      <div className="relative z-10 flex-1 min-h-0 flex overflow-hidden">
-
-        {/* Left Navigation Sidebar (Desktop) */}
-
-        <aside className="hidden lg:flex w-60 flex-col justify-between p-4 border-r border-white/[0.07] bg-[#080B14]/65 backdrop-blur-xl flex-shrink-0">
-
-          <nav className="space-y-1.5">
-
-            <div className="px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-slate-500">
-
-              ĐIỀU HƯỚNG STUDIO
-
-            </div>
-
-            {TABS.map(({ id, label, sub, Icon }) => {
-
-              const isActive = activeTab === id;
-
-              const badge = id === 'queue' ? queueCount : 0;
-
-              return (
-
-                <button
-
-                  key={id}
-
-                  type="button"
-
-                  onClick={() => setActiveTab(id)}
-
-                  className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-all ${
-
-                    isActive
-
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-indigo-500/15 border border-cyan-500/35 text-white shadow-lg'
-
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04] border border-transparent'
-
-                  }`}
-
-                >
-
-                  <div className="flex items-center gap-3 min-w-0">
-
-                    <div className={`p-2 rounded-xl ${isActive ? 'bg-cyan-400 text-slate-950' : 'bg-white/[0.04] text-slate-400'}`}>
-
-                      <Icon size={16}/>
-
+            {/* Navigation Tabs */}
+            <nav className="flex flex-col gap-1 mt-1 text-xs font-medium">
+              {TABS.map(({ id, label, Icon }) => {
+                const isActive = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
+                      isActive
+                        ? 'bg-[#e8c977]/15 text-[#e8c977] font-semibold border border-[#e8c977]/25'
+                        : 'text-[#aba395] hover:bg-[#1c1e22] hover:text-[#e2e2e6] border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon size={17} className={isActive ? 'text-[#e8c977]' : 'text-[#aba395]'} />
+                      <span className="truncate">{label}</span>
                     </div>
-
-                    <div className="min-w-0">
-
-                      <div className="text-xs font-bold truncate">{label}</div>
-
-                      <div className="text-[10px] text-slate-500 truncate">{sub}</div>
-
-                    </div>
-
-                  </div>
-
-                  {badge > 0 && (
-
-                    <span className="px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950 font-mono text-[10px] font-extrabold">
-
-                      {badge > 99 ? '99+' : badge}
-
-                    </span>
-
-                  )}
-
-                </button>
-
-              );
-
-            })}
-
-          </nav>
-
-
-
-          {/* Quick Server Telemetry Card in Sidebar */}
-
-          <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.07] space-y-2.5">
-
-            <div className="flex items-center justify-between">
-
-              <span className="font-mono text-[10px] text-slate-400 uppercase">TRẠNG THÁI BOT</span>
-
-              <span className="inline-flex items-center gap-1 font-mono text-[10px] text-emerald-400 font-bold">
-
-                <Radio size={11}/> LIVE
-
-              </span>
-
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5 font-mono text-[10px]">
-
-              <div className="p-2 rounded-xl bg-black/40 border border-white/[0.05]">
-
-                <div className="text-slate-500">HÀNG CHỜ</div>
-
-                <div className="text-cyan-300 font-bold mt-0.5">{queueCount} BÀI</div>
-
-              </div>
-
-              <div className="p-2 rounded-xl bg-black/40 border border-white/[0.05]">
-
-                <div className="text-slate-500">CHẾ ĐỘ 24/7</div>
-
-                <div className="text-indigo-300 font-bold mt-0.5">{player?.mode247 ? 'ĐANG BẬT' : 'TẮT'}</div>
-
-              </div>
-
-            </div>
-
-            {lyricsSourceInfo && (
-
-              <div className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-mono text-[9.5px] text-cyan-300 truncate text-center">
-
-                {lyricsSourceInfo.text}
-
-              </div>
-
-            )}
-
+                    {id === 'queue' && queueCount > 0 && (
+                      <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-[#2e3137] text-[#e8c977] font-bold">
+                        {queueCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
+          {/* User Profile & Action Widget Ở Đáy Sidebar */}
+          <div className="p-2.5 bg-[#0c0e11] rounded-xl border border-white/5 flex flex-col gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <img
+                src={user.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                alt={user.displayName}
+                className="w-7 h-7 rounded-full object-cover ring-1 ring-white/10 shrink-0"
+              />
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-xs font-bold text-[#e2e2e6] truncate" title={user.displayName || user.username}>
+                  {user.displayName || user.username}
+                </span>
+                <span className="font-mono text-[9px] text-[#7f786c] truncate">
+                  {user.isAdmin ? 'Server Admin' : 'Thành viên'}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/5">
+              <button
+                onClick={handleShareLink}
+                className="flex items-center justify-center gap-1 py-1 rounded bg-[#1c1e22] hover:bg-[#24272c] text-[10px] font-mono text-[#aba395] hover:text-[#e8c977] transition-colors"
+                title="Sao chép link chia sẻ"
+              >
+                {copiedLink ? <Check size={11} className="text-emerald-400" /> : <Share2 size={11} />}
+                <span>{copiedLink ? 'ĐÃ COPY' : 'SHARE'}</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-1 py-1 rounded bg-[#1c1e22] hover:bg-rose-500/15 text-[10px] font-mono text-[#aba395] hover:text-rose-400 transition-colors"
+                title="Đăng xuất khỏi phiên"
+              >
+                <LogOut size={11} />
+                <span>THOÁT</span>
+              </button>
+            </div>
+          </div>
         </aside>
 
-
-
-        {/* Main Content Canvas */}
-
-        <main className="flex-1 min-w-0 h-full overflow-y-auto p-4 sm:p-6 lg:p-7 pb-24 lg:pb-8 flex flex-col">
-
-          {/* TAB 1: KHÁM PHÁ (Kèm Widescreen Now Playing Hero Banner ở trên đầu) */}
-
-          {activeTab === 'search' && (
-
-            <div className="tab-enter flex-1 flex flex-col min-h-0 max-w-6xl w-full mx-auto">
-
-              <HeroPlayer
-                player={player}
-                onAction={handlePlayerAction}
-                user={user}
-                onRequireAdmin={() => setIsPermissionModalOpen(true)}
-                pendingAction={pendingAction}
-                compact={true}
-              />
-
-              <LiveSearch token={token} guildId={guildId} player={player} onOrderSong={handleOrderSong} />
-
+        {/* ── 2. MAIN CENTER AREA (TOP HEADER + WORKSPACE) ─────────────────── */}
+        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#111316]">
+          
+          {/* Top Fixed Header Bar (48px) */}
+          <header className="h-12 border-b border-white/5 px-4 flex items-center justify-between gap-3 shrink-0 bg-[#0c0e11]/80 backdrop-blur-md z-10">
+            {/* Live Search Quick Trigger Input */}
+            <div
+              onClick={() => setActiveTab('search')}
+              className="flex items-center gap-2.5 px-3 py-1.5 bg-[#141619] border border-white/5 hover:border-[#e8c977]/40 rounded-xl cursor-pointer w-full max-w-sm transition-all"
+            >
+              <Search size={14} className="text-[#aba395] shrink-0" />
+              <span className="text-xs text-[#7f786c] truncate">Tìm bài hát, nghệ sĩ hoặc dán link...</span>
+              <kbd className="hidden sm:inline font-mono text-[9px] text-[#7f786c] bg-[#1c1e22] px-1.5 py-0.5 rounded ml-auto">
+                /
+              </kbd>
             </div>
 
-          )}
-
-
-
-          {/* TAB 2: HÀNG CHỜ & BÀN DJ (Split 2 cột: Trái là Studio Deck, Phải là Danh sách Hàng chờ) */}
-
-          {activeTab === 'queue' && (
-
-            <div className="tab-enter flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-0 max-w-7xl w-full mx-auto">
-
-              <div className="xl:col-span-5 flex flex-col min-h-0">
-
-                <HeroPlayer
-                  player={player}
-                  onAction={handlePlayerAction}
-                  user={user}
-                  onRequireAdmin={() => setIsPermissionModalOpen(true)}
-                  pendingAction={pendingAction}
-                  compact={false}
-                />
-
+            {/* Header Right Actions */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              {/* Hi-Fi Lossless Chip */}
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#16181b] border border-white/5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-mono text-[10px] text-emerald-400 font-bold">LOSSLESS 384K</span>
               </div>
 
-              <div className="xl:col-span-7 glass-card rounded-3xl p-5 flex flex-col min-h-0">
-
-                <QueueManager player={player} queue={player?.queue} onAction={handlePlayerAction} pendingAction={pendingAction} />
-
+              {/* Discord Voice Room Listener Avatars */}
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#16181b] border border-white/5">
+                <Headphones size={13} className="text-[#aba395]" />
+                <span className="font-mono text-[11px] text-[#e2e2e6] font-semibold">
+                  {player?.voiceChannel?.humanMemberCount ?? player?.voiceChannel?.memberCount ?? 1}
+                </span>
               </div>
 
+              {/* Karaoke Fullscreen Launcher Button */}
+              <button
+                onClick={() => setIsKaraokeOpen(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#e8c977]/10 hover:bg-[#e8c977]/20 border border-[#e8c977]/30 text-[#e8c977] text-xs font-mono font-bold transition-all"
+                title="Mở toàn màn hình Karaoke"
+              >
+                <Maximize2 size={13} />
+                <span className="hidden md:inline">KARAOKE</span>
+              </button>
             </div>
+          </header>
 
-          )}
-
-
-
-          {/* TAB 3: LỜI NHẠC KARAOKE */}
-
-          {activeTab === 'lyrics' && (
-
-            <div className="tab-enter flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-0 max-w-7xl w-full mx-auto">
-
-              <div className="hidden xl:flex xl:col-span-5 flex-col min-h-0">
-
-                <HeroPlayer
+          {/* Workspace Body: Render Current Tab */}
+          <main className="flex-1 p-3.5 flex flex-col gap-3 min-h-0 overflow-hidden relative">
+            
+            {/* Desktop & Mobile Tab Views */}
+            {activeTab === 'search' && (
+              <div className="tab-enter flex-1 flex flex-col min-h-0 w-full h-full">
+                <LiveSearch
+                  token={token}
+                  guildId={guildId}
                   player={player}
-                  onAction={handlePlayerAction}
-                  user={user}
-                  onRequireAdmin={() => setIsPermissionModalOpen(true)}
-                  pendingAction={pendingAction}
-                  compact={false}
+                  onOrderSong={handleOrderSong}
                 />
-
               </div>
+            )}
 
-              <div className="xl:col-span-7 glass-card rounded-3xl p-5 flex flex-col min-h-0">
+            {activeTab === 'queue' && (
+              <div className="tab-enter flex-1 flex flex-col min-h-0 w-full h-full">
+                <QueueManager
+                  player={player}
+                  queue={player?.queue}
+                  onAction={handlePlayerAction}
+                  pendingAction={pendingAction}
+                />
+              </div>
+            )}
 
+            {activeTab === 'lyrics' && (
+              <div className="tab-enter flex-1 flex flex-col min-h-0 w-full h-full">
                 <SyncedLyrics
                   player={player}
                   onAction={handlePlayerAction}
@@ -1737,121 +772,158 @@ export default function App() {
                   isActive={activeTab === 'lyrics'}
                   onSourceChange={setLyricsSourceInfo}
                 />
-
               </div>
+            )}
 
-            </div>
+            {activeTab === 'history' && (
+              <div className="tab-enter flex-1 flex flex-col min-h-0 w-full h-full">
+                <HistoryTab
+                  player={player}
+                  onOrderSong={handleOrderSong}
+                />
+              </div>
+            )}
 
-          )}
+            {activeTab === 'settings' && (
+              <div className="tab-enter flex-1 overflow-y-auto w-full h-full pr-1">
+                <SettingsTab
+                  token={token}
+                  guildId={guildId}
+                  guildName={guild?.name}
+                  player={player}
+                  user={user}
+                  onAction={handlePlayerAction}
+                  onRequireAdmin={() => setIsPermissionModalOpen(true)}
+                />
+              </div>
+            )}
 
+            {/* Mobile Specialized 'player' Tab View (Mâm đĩa than lớn ở trung tâm) */}
+            {activeTab === 'player' && (
+              <div className="tab-enter lg:hidden flex-1 flex flex-col justify-center items-center w-full h-full overflow-hidden py-2">
+                <div className="w-full max-w-sm h-full flex flex-col justify-between">
+                  <HeroPlayer
+                    player={player}
+                    onAction={handlePlayerAction}
+                    user={user}
+                    onRequireAdmin={() => setIsPermissionModalOpen(true)}
+                    pendingAction={pendingAction}
+                    compact={false}
+                    onOpenKaraoke={() => setIsKaraokeOpen(true)}
+                  />
+                </div>
+              </div>
+            )}
 
+          </main>
+        </div>
 
-          {/* TAB 4: LỊCH SỬ PHÁT NHẠC */}
-
-          {activeTab === 'history' && (
-
-            <div className="tab-enter flex-1 glass-card rounded-3xl p-5 sm:p-6 flex flex-col min-h-0 max-w-5xl w-full mx-auto">
-
-              <HistoryTab player={player} onOrderSong={handleOrderSong} />
-
-            </div>
-
-          )}
-
-
-
-          {/* TAB 5: CÀI ĐẶT HỆ THỐNG */}
-
-          {activeTab === 'settings' && (
-
-            <div className="tab-enter flex-1 max-w-5xl w-full mx-auto">
-
-              <SettingsTab
-                token={token}
-                guildId={guildId}
-                guildName={guild?.name}
-                player={player}
-                user={user}
-                onAction={handlePlayerAction}
-                onRequireAdmin={() => setIsPermissionModalOpen(true)}
-              />
-
-            </div>
-
-          )}
-
-        </main>
+        {/* ── 3. RIGHT PANEL: NOW PLAYING DECK (340px CỐ ĐỊNH TRÊN DESKTOP) ── */}
+        <div className="w-[340px] shrink-0 h-full hidden lg:block overflow-hidden">
+          <HeroPlayer
+            player={player}
+            onAction={handlePlayerAction}
+            user={user}
+            onRequireAdmin={() => setIsPermissionModalOpen(true)}
+            pendingAction={pendingAction}
+            compact={false}
+            onOpenKaraoke={() => setIsKaraokeOpen(true)}
+          />
+        </div>
 
       </div>
 
+      {/* ── 4. PERSISTENT BOTTOM MINI PLAYER (68px BOTTOM BAR TRÊN DESKTOP) ─── */}
+      <div className="hidden lg:block w-full shrink-0">
+        <BottomMiniPlayer
+          player={player}
+          onAction={handlePlayerAction}
+          pendingAction={pendingAction}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onOpenKaraoke={() => setIsKaraokeOpen(true)}
+        />
+      </div>
 
-
-      {/* ── 3. PERSISTENT BOTTOM TRANSPORT DOCK (LUÔN HIỂN THỊ) ───────── */}
-
-      <BottomMiniPlayer
-        player={player}
-        onAction={handlePlayerAction}
-        pendingAction={pendingAction}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
-
-
-
-      {/* ── 4. MOBILE BOTTOM NAVIGATION BAR (< 1024px) ────────────────── */}
-
-      <nav className="lg:hidden h-14 bg-[#06080F]/95 border-t border-white/[0.07] flex items-center justify-around px-2 z-40 flex-shrink-0">
-
-        {TABS.map(({ id, label, Icon }) => {
-
-          const isActive = activeTab === id;
-
-          const badge = id === 'queue' ? queueCount : 0;
-
-          return (
-
-            <button
-
-              key={id}
-
-              type="button"
-
-              onClick={() => setActiveTab(id)}
-
-              className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition ${
-
-                isActive ? 'text-cyan-400 font-bold' : 'text-slate-400'
-
-              }`}
-
+      {/* ── 5. MOBILE BOTTOM DOCK & NAVIGATION BAR (< 1024px) ─────────────── */}
+      <div className="lg:hidden fixed bottom-0 w-full flex flex-col z-40 bg-[#111316]">
+        {/* Mobile Mini Player Dock (Khi không ở tab 'player') */}
+        {activeTab !== 'player' && (
+          <div className="w-full h-14 bg-[#0c0e11] border-t border-white/5 px-3 flex items-center justify-between shadow-xl">
+            <div
+              onClick={() => setActiveTab('player')}
+              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
             >
-
-              <Icon size={18}/>
-
-              <span className="text-[10px] mt-0.5">{label}</span>
-
-              {badge > 0 && (
-
-                <span className="absolute top-0.5 right-1.5 px-1.5 rounded-full bg-cyan-400 text-slate-950 font-mono text-[8px] font-extrabold">
-
-                  {badge}
-
+              <div className="w-9 h-9 rounded-lg overflow-hidden bg-[#1c1e22] border border-white/10 shrink-0">
+                <img
+                  src={player?.current?.thumbnail || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                  alt="Thumb"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold text-[#e2e2e6] truncate">
+                  {player?.current?.title || (player?.mode247 ? '24/7 Lofi Thư Giãn' : 'Chưa có bài hát')}
                 </span>
+                <span className="text-[10px] text-[#aba395] truncate">
+                  {player?.current?.artist || 'Anna Music'}
+                </span>
+              </div>
+            </div>
 
-              )}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => handlePlayerAction(player?.isPlaying && !player?.isPaused ? 'pause' : 'resume')}
+                className="w-8 h-8 rounded-full bg-[#e8c977] text-[#111316] font-bold flex items-center justify-center shadow"
+              >
+                {player?.isPlaying && !player?.isPaused ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
+              </button>
+              <button
+                onClick={() => handlePlayerAction('skip')}
+                className="p-1.5 text-[#aba395] hover:text-[#e2e2e6]"
+              >
+                <SkipForward size={18} />
+              </button>
+            </div>
+          </div>
+        )}
 
-            </button>
+        {/* Mobile 5-Tab Navigation Bar */}
+        <nav className="h-14 pb-safe bg-[#16181b]/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-1 z-50">
+          {TABS.map(({ id, label, Icon }) => {
+            const isActive = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex flex-col items-center justify-center py-1 px-2 relative transition-all ${
+                  isActive ? 'text-[#e8c977] font-bold scale-105' : 'text-[#aba395] hover:text-[#e2e2e6]'
+                }`}
+              >
+                <Icon size={18} />
+                <span className="text-[10px] mt-0.5">{label}</span>
+                {id === 'queue' && queueCount > 0 && (
+                  <span className="absolute top-0.5 right-2 w-3.5 h-3.5 rounded-full bg-[#e8c977] text-[#111316] text-[8px] font-bold flex items-center justify-center">
+                    {queueCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          {/* Nút Tab Đĩa Than chuyên biệt trên mobile */}
+          <button
+            onClick={() => setActiveTab('player')}
+            className={`flex flex-col items-center justify-center py-1 px-2 relative transition-all ${
+              activeTab === 'player' ? 'text-[#e8c977] font-bold scale-105' : 'text-[#aba395] hover:text-[#e2e2e6]'
+            }`}
+          >
+            <Disc3 size={18} className={player?.isPlaying && !player?.isPaused ? 'animate-spin' : ''} />
+            <span className="text-[10px] mt-0.5">Đĩa Than</span>
+          </button>
+        </nav>
+      </div>
 
-          );
-
-        })}
-
-      </nav>
-
-
-
-      {/* ── Modals & Toasts ───────────────────────────────────────────── */}
-
+      {/* ── 6. Modals & Notifications ─────────────────────────────────────── */}
       <PermissionModal
         isOpen={isPermissionModalOpen}
         onClose={() => setIsPermissionModalOpen(false)}
@@ -1865,10 +937,17 @@ export default function App() {
         queueCount={player?.queue?.length || 0}
       />
 
+      <KaraokeFullscreenModal
+        isOpen={isKaraokeOpen}
+        onClose={() => setIsKaraokeOpen(false)}
+        player={player}
+        lyricsData={lyricsSourceInfo}
+        onAction={handlePlayerAction}
+        lyricsSourceInfo={lyricsSourceInfo}
+      />
+
       <Toast toasts={toasts} onDismiss={handleDismissToast} />
 
     </div>
-
   );
-
 }

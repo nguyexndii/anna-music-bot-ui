@@ -32,7 +32,7 @@ export default function PermissionModal({ isOpen, onClose, user }) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-100 p-1.5 rounded-lg hover:bg-white/[0.06] transition"
+          className="absolute top-4 right-4 text-on-surface-variant hover:text-zinc-100 p-1.5 rounded-lg hover:bg-white/[0.06] transition"
           aria-label="Đóng thông báo"
         >
           <X className="w-4 h-4" />
@@ -53,11 +53,11 @@ export default function PermissionModal({ isOpen, onClose, user }) {
           Yêu Cầu Quyền Quản Trị Viên
         </h3>
 
-        <p className="text-xs text-zinc-400 mt-2 leading-relaxed px-2">
+        <p className="text-xs text-on-surface-variant mt-2 leading-relaxed px-2">
           Bạn không có quyền chỉnh sửa mục này. Chỉ{' '}
-          <span className="text-zinc-200 font-semibold">Chủ sở hữu máy chủ (Server Owner)</span> hoặc
+          <span className="text-on-surface font-semibold">Chủ sở hữu máy chủ (Server Owner)</span> hoặc
           thành viên có quyền{' '}
-          <span className="text-cyan-400 font-semibold">
+          <span className="text-primary-container font-semibold">
             Quản trị viên (Administrator / Manage Server)
           </span>{' '}
           mới có thể thay đổi Cài Đặt Phát Nhạc của Server.
@@ -71,13 +71,13 @@ export default function PermissionModal({ isOpen, onClose, user }) {
             className="w-9 h-9 rounded-lg object-cover border border-white/[0.08]"
           />
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold text-zinc-200 truncate">
+            <div className="text-xs font-bold text-on-surface truncate">
               {user?.displayName || user?.username || 'Thành viên'}
             </div>
-            <div className="text-[11px] text-zinc-400 flex items-center gap-1.5 mt-0.5">
+            <div className="text-[11px] text-on-surface-variant flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
               <span>
-                Vai trò: <b className="text-zinc-300 font-medium">Thành viên thường</b>
+                Vai trò: <b className="text-on-surface font-medium">Thành viên thường</b>
               </span>
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function PermissionModal({ isOpen, onClose, user }) {
         {/* Action Button */}
         <button
           onClick={onClose}
-          className="w-full mt-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition active:scale-95"
+          className="w-full mt-5 py-2.5 rounded-xl bg-primary-container hover:bg-cyan-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-primary-container/20 transition active:scale-95"
         >
           <Check className="w-4 h-4 stroke-[2.5]" />
           <span>Đã hiểu</span>

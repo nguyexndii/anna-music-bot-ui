@@ -24,9 +24,9 @@ export default function Toast({ toasts, toast, onDismiss }) {
               {isError ? (
                 <AlertCircle size={15} className="text-rose-400" />
               ) : isActionLoading ? (
-                <Loader2 size={15} className="animate-spin text-cyan-400" />
+                <Loader2 size={15} className="animate-spin text-primary-container" />
               ) : isInfo ? (
-                <Sparkles size={15} className="text-cyan-400" />
+                <Sparkles size={15} className="text-primary-container" />
               ) : (
                 <CheckCircle2 size={15} className="text-emerald-400" />
               )}

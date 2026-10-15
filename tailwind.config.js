@@ -1,85 +1,89 @@
 /** @type {import('tailwindcss').Config} */
-
 export default {
-
   content: [
-
     "./index.html",
-
     "./src/**/*.{js,ts,jsx,tsx}",
-
   ],
-
+  darkMode: "class",
   theme: {
-
     extend: {
-
       fontFamily: {
-
+        brand: ['"Playfair Display"', 'serif'],
         sans: ['"Be Vietnam Pro"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-
+        body: ['"Be Vietnam Pro"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
-
       },
-
       colors: {
-
-        studio: {
-
-          base: '#06080f',
-
-          surface: '#0b0f19',
-
-          card: '#111726',
-
-          elevated: '#171f32',
-
-          input: '#1e293b',
-
-          border: 'rgba(255, 255, 255, 0.08)',
-
-          accent: '#06b6d4',
-
-          accentHover: '#0891b2',
-
+        // Stitch Boutique Vinyl Lounge Palette
+        surface: {
+          DEFAULT: '#111316',
+          dim: '#111316',
+          bright: '#37393d',
+          'container-lowest': '#0c0e11',
+          'container-low': '#16181b',
+          container: '#1c1e22',
+          'container-high': '#24272c',
+          'container-highest': '#2e3137',
+        },
+        'on-surface': {
+          DEFAULT: '#e2e2e6',
+          variant: '#aba395',
+        },
+        outline: {
+          DEFAULT: '#7f786c',
+          variant: '#37342e',
+        },
+        primary: {
+          DEFAULT: '#ffe6a9',
+          container: '#e8c977',
+        },
+        'on-primary': {
+          DEFAULT: '#3d2e00',
+          container: '#4a3b05',
+        },
+        secondary: {
+          DEFAULT: '#ef7864',
+          container: '#7a2b1f',
+        },
+        'on-secondary': {
+          container: '#ffc1b8',
+        },
+        tertiary: {
+          DEFAULT: '#9bfcc0',
+          container: '#205739',
+        },
+        'on-tertiary': {
+          container: '#bbfce0',
         },
 
+        // Backward compatibility aliases
+        studio: {
+          base: '#111316',
+          surface: '#16181b',
+          card: '#1c1e22',
+          elevated: '#24272c',
+          input: '#141619',
+          border: 'rgba(255, 255, 255, 0.07)',
+          accent: '#e8c977',
+          accentHover: '#ffe6a9',
+        },
         anna: {
-
-          bg: '#06080f',
-
-          surface: '#0b0f19',
-
-          card: '#111726',
-
-          hover: '#171f32',
-
-          border: 'rgba(255, 255, 255, 0.08)',
-
-          accent: '#06b6d4',
-
-          accentHover: '#0891b2',
-
-          pink: '#8b5cf6',
-
-          green: '#10b981',
-
-          yellow: '#06b6d4',
-
-          red: '#f43f5e',
-
-          text: '#f8fafc',
-
-          muted: '#94a3b8',
-
+          bg: '#111316',
+          surface: '#16181b',
+          card: '#1c1e22',
+          hover: '#24272c',
+          border: 'rgba(255, 255, 255, 0.07)',
+          accent: '#e8c977',
+          accentHover: '#ffe6a9',
+          pink: '#ef7864',
+          green: '#9bfcc0',
+          yellow: '#e8c977',
+          red: '#ef7864',
+          text: '#e2e2e6',
+          muted: '#aba395',
         }
-
       },
-
     },
-
   },
-
   plugins: [],
-
 }

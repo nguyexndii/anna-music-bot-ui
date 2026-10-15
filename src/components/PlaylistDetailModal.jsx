@@ -131,7 +131,7 @@ export default function PlaylistDetailModal({
       className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
       <div
-        className="w-full max-w-2xl max-h-[86vh] rounded-2xl bg-[#141417] border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
+        className="w-full max-w-2xl max-h-[86vh] rounded-2xl bg-surface-container-low border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
         style={{
           fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
@@ -143,7 +143,7 @@ export default function PlaylistDetailModal({
               {thumb ? (
                 <img src={thumb} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-cyan-400">
+                <div className="w-full h-full flex items-center justify-center text-primary-container">
                   <Music className="w-5 h-5" />
                 </div>
               )}
@@ -158,15 +158,15 @@ export default function PlaylistDetailModal({
                   {displayTitle}
                 </h3>
                 {totalCount > 0 && (
-                  <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex-shrink-0">
+                  <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded bg-primary-container/10 text-primary-container border border-primary-container/20 flex-shrink-0">
                     {totalCount} BÀI
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-400 truncate">
+              <div className="flex items-center gap-2 mt-0.5 text-xs text-on-surface-variant truncate">
                 <span className="truncate">Nhấn để thêm lẻ, hoặc phát toàn bộ</span>
                 {playlist?.addedBy && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-zinc-400 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-on-surface-variant bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06]">
                     @{playlist.addedBy}
                   </span>
                 )}
@@ -177,7 +177,7 @@ export default function PlaylistDetailModal({
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={handlePlayAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold shadow-md transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container hover:bg-cyan-600 text-white text-xs font-semibold shadow-md transition"
               title="Thêm toàn bộ bài hát trong danh sách vào hàng chờ"
             >
               <ListPlus className="w-4 h-4" />
@@ -186,7 +186,7 @@ export default function PlaylistDetailModal({
 
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-lg border border-white/[0.07] bg-[#18181C] hover:bg-[#222228] text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition"
+              className="w-8 h-8 rounded-lg border border-white/[0.07] bg-surface-container-high hover:bg-[#222228] text-on-surface-variant hover:text-zinc-100 flex items-center justify-center transition"
               aria-label="Đóng"
             >
               <X className="w-4 h-4" />
@@ -197,18 +197,18 @@ export default function PlaylistDetailModal({
         {/* Search inside playlist */}
         {tracks.length > 5 && (
           <div className="px-5 py-2.5 border-b border-white/[0.07] bg-[#111113]/60 flex items-center gap-2">
-            <Search className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+            <Search className="w-3.5 h-3.5 text-outline flex-shrink-0" />
             <input
               type="text"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               placeholder={`Lọc trong ${tracks.length} bài hát...`}
-              className="flex-1 bg-transparent border-none outline-none text-xs text-zinc-100 placeholder:text-zinc-500"
+              className="flex-1 bg-transparent border-none outline-none text-xs text-zinc-100 placeholder:text-outline"
             />
             {filterQuery && (
               <button
                 onClick={() => setFilterQuery('')}
-                className="text-zinc-500 hover:text-zinc-300 p-0.5"
+                className="text-outline hover:text-on-surface p-0.5"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -219,8 +219,8 @@ export default function PlaylistDetailModal({
         {/* Tracks List */}
         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-1.5 max-h-[62vh]">
           {loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-12 text-zinc-400 gap-3">
-              <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+            <div className="flex-1 flex flex-col items-center justify-center py-12 text-on-surface-variant gap-3">
+              <Loader2 className="w-6 h-6 animate-spin text-primary-container" />
               <span className="text-xs">Đang tải danh sách bài hát từ playlist...</span>
             </div>
           ) : error ? (
@@ -228,13 +228,13 @@ export default function PlaylistDetailModal({
               <p className="text-xs text-rose-400">{error}</p>
               <button
                 onClick={handlePlayAll}
-                className="px-4 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold"
+                className="px-4 py-1.5 rounded-lg bg-primary-container hover:bg-cyan-600 text-white text-xs font-semibold"
               >
                 Phát toàn bộ bằng liên kết
               </button>
             </div>
           ) : tracks.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center py-12 text-zinc-500 text-xs">
+            <div className="flex-1 flex items-center justify-center py-12 text-outline text-xs">
               Không tìm thấy bài hát nào trong playlist.
             </div>
           ) : (
@@ -246,10 +246,10 @@ export default function PlaylistDetailModal({
                 <div
                   key={song.url || idx}
                   onClick={(e) => handleAddSingleTrack(song, e)}
-                  className="flex items-center gap-3 p-2 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.04] hover:border-cyan-500/30 cursor-pointer transition-all duration-150 group"
+                  className="flex items-center gap-3 p-2 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.04] hover:border-primary-container/30 cursor-pointer transition-all duration-150 group"
                   title="Nhấn để thêm bài này vào hàng chờ"
                 >
-                  <span className="font-mono text-xs text-zinc-500 w-6 text-right tabular-nums flex-shrink-0">
+                  <span className="font-mono text-xs text-outline w-6 text-right tabular-nums flex-shrink-0">
                     {globalIndex < 10 ? `0${globalIndex}` : globalIndex}
                   </span>
 
@@ -263,18 +263,18 @@ export default function PlaylistDetailModal({
 
                   <div className="min-w-0 flex-1">
                     <p
-                      className="text-xs font-semibold text-zinc-200 truncate group-hover:text-cyan-400 transition-colors"
+                      className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors"
                       title={song.title}
                     >
                       {song.title}
                     </p>
-                    <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                    <p className="text-[11px] text-on-surface-variant truncate mt-0.5">
                       {song.artist || 'YouTube'}
                     </p>
                   </div>
 
                   {song.duration && (
-                    <span className="font-mono text-xs text-zinc-500 flex-shrink-0 tabular-nums">
+                    <span className="font-mono text-xs text-outline flex-shrink-0 tabular-nums">
                       {song.duration}
                     </span>
                   )}
@@ -284,7 +284,7 @@ export default function PlaylistDetailModal({
                     className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition ${
                       isAdded
                         ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
-                        : 'bg-[#1F1F24] border border-white/[0.08] text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40'
+                        : 'bg-[#1F1F24] border border-white/[0.08] text-on-surface-variant hover:text-primary-container hover:border-primary-container/40'
                     }`}
                     title={isAdded ? 'Đã thêm' : 'Thêm vào hàng chờ'}
                   >
@@ -299,7 +299,7 @@ export default function PlaylistDetailModal({
         {/* Footer */}
         {!loading && tracks.length > 0 && (
           <div className="px-5 py-2.5 border-t border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113]">
-            <span className="font-mono text-xs text-zinc-400">
+            <span className="font-mono text-xs text-on-surface-variant">
               {filterQuery
                 ? `Tìm thấy ${filteredTracks.length} / ${tracks.length} bài hát`
                 : `${tracks.length} bài hát · Cuộn để xem tất cả`}
@@ -307,7 +307,7 @@ export default function PlaylistDetailModal({
 
             <button
               onClick={handlePlayAll}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/25 text-xs font-medium transition"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-container/15 border border-primary-container/30 text-primary-container hover:bg-primary-container/25 text-xs font-medium transition"
             >
               <ListPlus className="w-3.5 h-3.5" />
               <span>Phát cả bộ</span>

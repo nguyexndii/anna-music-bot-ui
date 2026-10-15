@@ -47,7 +47,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
       className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
       <div
-        className="w-full max-w-3xl max-h-[85vh] rounded-2xl bg-[#141417] border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
+        className="w-full max-w-3xl max-h-[85vh] rounded-2xl bg-surface-container-low border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
         style={{
           fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
@@ -55,7 +55,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
         {/* Header */}
         <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113] gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary-container/10 border border-primary-container/20 flex items-center justify-center text-primary-container flex-shrink-0">
               <ListMusic className="w-4 h-4" />
             </div>
             <div>
@@ -63,11 +63,11 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                 <h3 className="text-sm sm:text-base font-bold text-zinc-100 tracking-tight">
                   Tất Cả Danh Sách Phát
                 </h3>
-                <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-primary-container/10 text-primary-container border border-primary-container/20">
                   {playlists.length} PLAYLIST
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 mt-0.5 font-sans">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 font-sans">
                 Nhấn vào playlist để xem bài hát và phát nhạc
               </p>
             </div>
@@ -75,7 +75,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg border border-white/[0.07] bg-[#18181C] hover:bg-[#222228] text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition flex-shrink-0"
+            className="w-8 h-8 rounded-lg border border-white/[0.07] bg-surface-container-high hover:bg-[#222228] text-on-surface-variant hover:text-zinc-100 flex items-center justify-center transition flex-shrink-0"
             title="Đóng (ESC)"
           >
             <X className="w-4 h-4" />
@@ -84,19 +84,19 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
 
         {/* Search Filter */}
         <div className="px-6 py-3 border-b border-white/[0.07] bg-[#111113]/60">
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[#0E0E11] border border-white/[0.08] focus-within:border-cyan-500/50 transition">
-            <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[#0E0E11] border border-white/[0.08] focus-within:border-primary-container/50 transition">
+            <Search className="w-4 h-4 text-outline flex-shrink-0" />
             <input
               type="text"
               placeholder="Tìm theo tên playlist hoặc người thêm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs sm:text-sm text-zinc-100 placeholder:text-zinc-500 w-full"
+              className="bg-transparent border-none outline-none text-xs sm:text-sm text-zinc-100 placeholder:text-outline w-full"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="text-zinc-500 hover:text-zinc-300 p-0.5"
+                className="text-outline hover:text-on-surface p-0.5"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -107,7 +107,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
         {/* Playlist Grid */}
         <div className="p-6 overflow-y-auto flex-1">
           {filteredPlaylists.length === 0 ? (
-            <div className="text-center py-12 text-zinc-500">
+            <div className="text-center py-12 text-outline">
               <ListMusic className="w-8 h-8 mx-auto mb-2 opacity-40" />
               <p className="text-xs">
                 {searchQuery
@@ -123,7 +123,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                   <div
                     key={idx}
                     onClick={() => onSelectPlaylist?.(pl)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.06] hover:border-cyan-500/30 cursor-pointer transition-all duration-150 group"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.06] hover:border-primary-container/30 cursor-pointer transition-all duration-150 group"
                     title="Nhấn để xem các bài hát trong playlist này"
                   >
                     <div className="w-13 h-13 rounded-lg overflow-hidden bg-zinc-900 flex-shrink-0 border border-white/[0.08] relative aspect-square">
@@ -137,7 +137,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-cyan-400">
+                        <div className="w-full h-full flex items-center justify-center text-primary-container">
                           <ListMusic className="w-5 h-5" />
                         </div>
                       )}
@@ -146,13 +146,13 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
                     <div className="min-w-0 flex-1">
                       <p
                         title={pl.title || pl.name}
-                        className="text-xs sm:text-sm font-semibold text-zinc-100 truncate group-hover:text-cyan-400 transition-colors"
+                        className="text-xs sm:text-sm font-semibold text-zinc-100 truncate group-hover:text-primary-container transition-colors"
                       >
                         {pl.title || pl.name || 'Danh Sách Phát'}
                       </p>
 
                       <div className="flex items-center justify-between gap-2 mt-1.5">
-                        <span className="font-mono text-[10px] font-semibold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-1.5 py-0.5 rounded">
+                        <span className="font-mono text-[10px] font-semibold text-primary-container bg-primary-container/10 border border-primary-container/20 px-1.5 py-0.5 rounded">
                           {pl.trackCount || pl.itemCount
                             ? `${pl.trackCount || pl.itemCount} BÀI`
                             : 'PLAYLIST'}
@@ -160,7 +160,7 @@ export default function AllPlaylistsModal({ isOpen, onClose, playlists = [], onS
 
                         {pl.addedBy && (
                           <div
-                            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] text-zinc-400 text-[10px] truncate max-w-[120px]"
+                            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] text-on-surface-variant text-[10px] truncate max-w-[120px]"
                             title={`Thêm bởi: ${pl.addedBy}`}
                           >
                             {pl.addedByAvatar ? (

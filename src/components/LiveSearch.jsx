@@ -232,17 +232,17 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* ── Command Bar Search Input ──────────────────────── */}
-      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-cyan-500/50 focus-within:bg-[#151519] transition-all mb-4">
+      <div className="relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-white/[0.08] focus-within:border-primary-container/50 focus-within:bg-[#151519] transition-all mb-4">
         <button
           type="button"
           onClick={() => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
             executeSearch(query.trim(), searchMode);
           }}
-          className="text-zinc-400 hover:text-zinc-200 p-0 flex items-center justify-center transition-colors"
+          className="text-on-surface-variant hover:text-on-surface p-0 flex items-center justify-center transition-colors"
           title="Tìm kiếm bài hát"
         >
-          {loading ? <Loader2 size={16} className="animate-spin text-cyan-500" /> : <Search size={16} />}
+          {loading ? <Loader2 size={16} className="animate-spin text-primary-container" /> : <Search size={16} />}
         </button>
 
         <input
@@ -259,7 +259,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           onKeyDown={handleKeyDown}
           placeholder="Tìm bài hát, ca sĩ, dán link YouTube / Spotify..."
           autoFocus
-          className="flex-1 bg-transparent border-0 outline-none text-zinc-100 placeholder:text-zinc-500 text-xs sm:text-sm font-normal min-w-0"
+          className="flex-1 bg-transparent border-0 outline-none text-zinc-100 placeholder:text-outline text-xs sm:text-sm font-normal min-w-0"
         />
 
         {/* Nâng Cao Toggle Pill */}
@@ -268,8 +268,8 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           onClick={() => handleModeChange(searchMode === 'all' ? 'official' : 'all')}
           className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-mono tracking-wider transition-colors flex-shrink-0 ${
             searchMode === 'all'
-              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 font-bold'
-              : 'bg-[#18181B] text-zinc-400 hover:text-zinc-200 border border-white/[0.06]'
+              ? 'bg-primary-container/10 text-primary-container border border-primary-container/25 font-bold'
+              : 'bg-surface-container text-on-surface-variant hover:text-on-surface border border-white/[0.06]'
           }`}
           title={searchMode === 'all' ? 'Đang bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)' : 'Bật tìm kiếm nâng cao (Mở rộng Remix, Cover, Live...)'}
         >
@@ -281,13 +281,13 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           <button
             type="button"
             onClick={handleClear}
-            className="text-zinc-400 hover:text-zinc-100 p-1 rounded-md transition-colors"
+            className="text-on-surface-variant hover:text-zinc-100 p-1 rounded-md transition-colors"
             aria-label="Xóa tìm kiếm"
           >
             <X size={15} />
           </button>
         ) : (
-          <span className="hidden sm:inline-block font-mono text-[9px] text-zinc-500 bg-[#18181B] px-1.5 py-0.5 rounded border border-white/[0.06]">
+          <span className="hidden sm:inline-block font-mono text-[9px] text-outline bg-surface-container px-1.5 py-0.5 rounded border border-white/[0.06]">
             ENTER
           </span>
         )}
@@ -295,22 +295,22 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
 
       {/* ── Playlist Detection Banner ─────────────────────── */}
       {detected?.isPlaylist && (
-        <div className="flex items-center justify-between gap-3 p-3.5 mb-4 rounded-xl bg-[#141417] border border-cyan-500/25 shadow-lg">
+        <div className="flex items-center justify-between gap-3 p-3.5 mb-4 rounded-xl bg-surface-container-low border border-primary-container/25 shadow-lg">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#18181B] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container border border-white/[0.08] flex items-center justify-center flex-shrink-0">
               {playlistPreviewThumb ? (
                 <img src={playlistPreviewThumb} alt="Playlist" className="w-full h-full object-cover" onError={() => setPlaylistPreviewThumb(null)} />
               ) : getPlaylistPreviewImage(query) ? (
                 <img src={getPlaylistPreviewImage(query)} alt="Playlist" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
-                <Disc3 size={18} className="text-cyan-500" />
+                <Disc3 size={18} className="text-primary-container" />
               )}
             </div>
             <div className="min-w-0">
-              <span className="font-mono text-[10px] font-bold text-cyan-400 tracking-wider uppercase">
+              <span className="font-mono text-[10px] font-bold text-primary-container tracking-wider uppercase">
                 {detected.label}
               </span>
-              <p className="text-xs text-zinc-400 truncate max-w-sm m-0">
+              <p className="text-xs text-on-surface-variant truncate max-w-sm m-0">
                 {query}
               </p>
             </div>
@@ -319,7 +319,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           <button
             type="button"
             onClick={() => handleAddPlaylistUrl(detected?.cleanUrl || query.trim())}
-            className="h-8 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-bold text-xs flex items-center gap-1.5 flex-shrink-0 transition-colors shadow-sm"
+            className="h-8 px-3 rounded-lg bg-primary-container hover:bg-cyan-600 text-zinc-950 font-bold text-xs flex items-center gap-1.5 flex-shrink-0 transition-colors shadow-sm"
           >
             <ListPlus size={14} />
             <span>Thêm Playlist</span>
@@ -332,24 +332,24 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
         
         {/* Loading Spinner */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-14 gap-2 text-zinc-400">
-            <Loader2 size={22} className="animate-spin text-cyan-500" />
-            <span className="font-mono text-[10px] tracking-widest text-zinc-500">ĐANG TÌM KIẾM...</span>
+          <div className="flex flex-col items-center justify-center py-14 gap-2 text-on-surface-variant">
+            <Loader2 size={22} className="animate-spin text-primary-container" />
+            <span className="font-mono text-[10px] tracking-widest text-outline">ĐANG TÌM KIẾM...</span>
           </div>
         )}
 
         {/* 1. Results List when Query is Typed */}
         {query.trim() && !detected?.isPlaylist && !loading && (
           <div>
-            <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+            <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-on-surface-variant mb-2 px-1">
               <span>KẾT QUẢ TÌM KIẾM ({results.length})</span>
-              <span className="text-[10px] text-zinc-500">BẤM ĐỂ PHÁT</span>
+              <span className="text-[10px] text-outline">BẤM ĐỂ PHÁT</span>
             </div>
 
             {results.length === 0 ? (
-              <div className="py-14 px-4 text-center text-zinc-400">
-                <p className="font-medium text-zinc-200 text-sm mb-1.5">Không tìm thấy bài hát</p>
-                <p className="text-xs text-zinc-500">Hãy thử tìm với từ khóa khác hoặc dán link YouTube/Spotify nhé.</p>
+              <div className="py-14 px-4 text-center text-on-surface-variant">
+                <p className="font-medium text-on-surface text-sm mb-1.5">Không tìm thấy bài hát</p>
+                <p className="text-xs text-outline">Hãy thử tìm với từ khóa khác hoặc dán link YouTube/Spotify nhé.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-1">
@@ -359,37 +359,37 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                     <div
                       key={song.id || song.url || i}
                       onClick={() => handleOrderTrack(song)}
-                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
                     >
-                      <div className="w-10 h-10 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 relative border border-white/[0.06]">
+                      <div className="w-10 h-10 rounded-md overflow-hidden bg-surface-container flex-shrink-0 relative border border-white/[0.06]">
                         <img src={getTrackThumb(song)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate" title={song.title}>
+                          <span className="text-xs font-medium text-on-surface group-hover:text-white truncate" title={song.title}>
                             {song.title}
                           </span>
                           {isPlaylist && (
-                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold flex-shrink-0">
+                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-primary-container/10 text-primary-container border border-primary-container/20 font-semibold flex-shrink-0">
                               PLAYLIST
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-zinc-400 truncate block mt-0.5" title={song.artist}>
+                        <span className="text-[11px] text-on-surface-variant truncate block mt-0.5" title={song.artist}>
                           {song.artist && song.artist !== 'Unknown' ? song.artist : getSourceLabel(song)}
                           {song.itemCount ? ` • ${song.itemCount} bài` : ''}
                         </span>
                       </div>
 
-                      <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
+                      <span className="font-mono text-[11px] text-outline tabular-nums px-2">
                         {song.duration || ''}
                       </span>
 
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); handleOrderTrack(song); }}
-                        className="w-8 h-8 rounded-lg border border-white/[0.06] bg-[#18181B] hover:bg-[#222226] text-zinc-300 hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
+                        className="w-8 h-8 rounded-lg border border-white/[0.06] bg-surface-container hover:bg-[#222226] text-on-surface hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
                         title="Thêm vào hàng chờ"
                       >
                         <Plus size={14} />
@@ -409,7 +409,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
             {/* Recently Played */}
             {history.length > 0 && (
               <div>
-                <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+                <div className="text-[11px] font-mono uppercase tracking-wider text-on-surface-variant mb-2 px-1">
                   NGHE GẦN ĐÂY
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 pt-1 no-scrollbar">
@@ -417,15 +417,15 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                     <div
                       key={idx}
                       onClick={() => handleOrderTrack(item)}
-                      className="w-32 flex-shrink-0 p-2.5 rounded-xl bg-[#141417] hover:bg-[#18181C] border border-white/[0.06] hover:border-white/[0.12] cursor-pointer transition-all"
+                      className="w-32 flex-shrink-0 p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container-high border border-white/[0.06] hover:border-white/[0.12] cursor-pointer transition-all"
                     >
-                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-[#18181B] mb-2 border border-white/[0.06]">
+                      <div className="w-full aspect-square rounded-lg overflow-hidden bg-surface-container mb-2 border border-white/[0.06]">
                         <img src={getTrackThumb(item)} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} className="w-full h-full object-cover" />
                       </div>
-                      <p title={item.title} className="text-xs font-medium text-zinc-200 truncate m-0 mb-0.5">
+                      <p title={item.title} className="text-xs font-medium text-on-surface truncate m-0 mb-0.5">
                         {item.title}
                       </p>
-                      <p title={item.artist} className="text-[11px] text-zinc-500 truncate m-0">
+                      <p title={item.artist} className="text-[11px] text-outline truncate m-0">
                         {item.artist && item.artist !== 'Unknown' ? item.artist : getSourceLabel(item)}
                       </p>
                     </div>
@@ -437,16 +437,16 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
             {/* Playlists Gần Đây */}
             {recentPlaylists.length > 0 && (
               <div>
-                <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+                <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-on-surface-variant mb-2 px-1">
                   <div className="flex items-center gap-1.5">
                     <span>DANH SÁCH PHÁT GẦN ĐÂY</span>
-                    <ListMusic size={12} className="text-cyan-500" />
+                    <ListMusic size={12} className="text-primary-container" />
                   </div>
                   {recentPlaylists.length > 0 && (
                     <button
                       type="button"
                       onClick={() => setIsAllPlaylistsModalOpen(true)}
-                      className="text-cyan-400 hover:text-cyan-300 font-mono text-[10px] tracking-wider transition-colors"
+                      className="text-primary-container hover:text-primary font-mono text-[10px] tracking-wider transition-colors"
                     >
                       Xem tất cả ({recentPlaylists.length}) →
                     </button>
@@ -463,29 +463,29 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                           setSelectedPlaylist(pl);
                           setIsPlaylistModalOpen(true);
                         }}
-                        className="flex items-center gap-3 p-2.5 rounded-xl bg-[#141417] hover:bg-[#18181C] border border-white/[0.06] hover:border-white/[0.12] cursor-pointer transition-all"
+                        className="flex items-center gap-3 p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container-high border border-white/[0.06] hover:border-white/[0.12] cursor-pointer transition-all"
                       >
-                        <div className="w-11 h-11 rounded-lg overflow-hidden bg-[#18181B] flex items-center justify-center flex-shrink-0 border border-white/[0.06]">
+                        <div className="w-11 h-11 rounded-lg overflow-hidden bg-surface-container flex items-center justify-center flex-shrink-0 border border-white/[0.06]">
                           {thumb ? (
                             <img src={thumb} alt="" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} className="w-full h-full object-cover" />
                           ) : (
-                            <ListMusic size={18} className="text-cyan-500" />
+                            <ListMusic size={18} className="text-primary-container" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p title={pl.title || pl.name} className="text-xs font-medium text-zinc-200 truncate m-0">
+                          <p title={pl.title || pl.name} className="text-xs font-medium text-on-surface truncate m-0">
                             {pl.title || pl.name || 'Danh Sách Phát'}
                           </p>
                           <div className="flex items-center justify-between gap-2 mt-1">
-                            <span className="font-mono text-[10px] text-zinc-500">
+                            <span className="font-mono text-[10px] text-outline">
                               {pl.trackCount || pl.itemCount ? `${pl.trackCount || pl.itemCount} BÀI` : 'PLAYLIST'}
                             </span>
                             {pl.addedBy && (
-                              <div className="flex items-center gap-1 text-[10px] text-zinc-400 bg-[#18181B] px-1.5 py-0.5 rounded border border-white/[0.04]">
+                              <div className="flex items-center gap-1 text-[10px] text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded border border-white/[0.04]">
                                 {pl.addedByAvatar ? (
                                   <img src={pl.addedByAvatar} alt="" className="w-3 h-3 rounded-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                                 ) : (
-                                  <User size={10} className="text-zinc-500" />
+                                  <User size={10} className="text-outline" />
                                 )}
                                 <span className="truncate max-w-[70px]">@{pl.addedBy}</span>
                               </div>
@@ -502,15 +502,15 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
             {/* Bài Hát Yêu Thích */}
             {favorites.length > 0 && (
               <div>
-                <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+                <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-on-surface-variant mb-2 px-1">
                   <div className="flex items-center gap-1.5">
                     <span>YÊU THÍCH ({favorites.length})</span>
-                    <Heart size={12} className="text-cyan-500" fill="currentColor" />
+                    <Heart size={12} className="text-primary-container" fill="currentColor" />
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsFavoritesModalOpen(true)}
-                    className="text-cyan-400 hover:text-cyan-300 font-mono text-[10px] tracking-wider transition-colors"
+                    className="text-primary-container hover:text-primary font-mono text-[10px] tracking-wider transition-colors"
                   >
                     Xem tất cả →
                   </button>
@@ -521,20 +521,20 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                     <div
                       key={idx}
                       onClick={() => handleOrderTrack(fav)}
-                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
                     >
-                      <div className="w-9 h-9 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/[0.06]">
+                      <div className="w-9 h-9 rounded-md overflow-hidden bg-surface-container flex-shrink-0 border border-white/[0.06]">
                         <img src={getTrackThumb(fav)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate block" title={fav.title}>
+                        <span className="text-xs font-medium text-on-surface group-hover:text-white truncate block" title={fav.title}>
                           {fav.title}
                         </span>
-                        <span className="text-[11px] text-zinc-500 truncate block mt-0.5" title={fav.artist}>
+                        <span className="text-[11px] text-outline truncate block mt-0.5" title={fav.artist}>
                           {fav.artist || 'YouTube'}
                         </span>
                       </div>
-                      <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
+                      <span className="font-mono text-[11px] text-outline tabular-nums px-2">
                         {fav.duration || ''}
                       </span>
                     </div>
@@ -545,7 +545,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                   <button
                     type="button"
                     onClick={() => setIsFavoritesModalOpen(true)}
-                    className="mt-2 w-full py-2 rounded-xl bg-[#141417] hover:bg-cyan-500/10 border border-white/[0.07] hover:border-cyan-500/30 text-cyan-400 font-mono text-[11px] font-semibold tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                    className="mt-2 w-full py-2 rounded-xl bg-surface-container-low hover:bg-primary-container/10 border border-white/[0.07] hover:border-primary-container/30 text-primary-container font-mono text-[11px] font-semibold tracking-wider flex items-center justify-center gap-1.5 transition-all"
                   >
                     <span>XEM TOÀN BỘ DANH SÁCH YÊU THÍCH ({favorites.length} BÀI)</span>
                     <span>↗</span>
@@ -557,9 +557,9 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
             {/* Phổ Biến Trong Máy Chủ (Top Tracks) */}
             {topTracks.length > 0 && (
               <div>
-                <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-on-surface-variant mb-2 px-1">
                   <span>PHỔ BIẾN TRONG MÁY CHỦ</span>
-                  <Flame className="text-cyan-500" size={12} />
+                  <Flame className="text-primary-container" size={12} />
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -570,32 +570,32 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                       <div
                         key={idx}
                         onClick={() => handleOrderTrack(top)}
-                        className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
+                        className="group flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
                       >
                         <span
                           className={`font-mono text-xs font-bold w-6 text-center rounded py-0.5 ${
                             idx === 0
-                              ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                              ? 'bg-primary-container/20 text-primary-container border border-primary-container/40'
                               : isTop3
-                              ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
-                              : 'text-zinc-500'
+                              ? 'bg-primary-container/10 text-primary border border-primary-container/20'
+                              : 'text-outline'
                           }`}
                         >
                           #{idx + 1}
                         </span>
-                        <div className="w-9 h-9 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/[0.06]">
+                        <div className="w-9 h-9 rounded-md overflow-hidden bg-surface-container flex-shrink-0 border border-white/[0.06]">
                           <img src={getTrackThumb(top)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate block" title={top.title}>
+                          <span className="text-xs font-medium text-on-surface group-hover:text-white truncate block" title={top.title}>
                             {top.title}
                           </span>
-                          <span className="text-[11px] text-zinc-500 truncate block mt-0.5" title={top.artist}>
+                          <span className="text-[11px] text-outline truncate block mt-0.5" title={top.artist}>
                             {top.artist && top.artist !== 'Unknown' ? top.artist : 'YouTube Music'}
                             {playCount > 0 ? ` • Đã phát ${playCount} lần` : ''}
                           </span>
                         </div>
-                        <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
+                        <span className="font-mono text-[11px] text-outline tabular-nums px-2">
                           {top.duration || ''}
                         </span>
                       </div>

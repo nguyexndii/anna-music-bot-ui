@@ -255,16 +255,16 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
           onClick={(e) => { if (e.target === e.currentTarget) setShowClearModal(false); }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-[#141417] border border-white/[0.08] p-5 shadow-2xl">
+          <div className="w-full max-w-sm rounded-2xl bg-surface-container-low border border-white/[0.08] p-5 shadow-2xl">
             <h4 className="text-base font-bold text-zinc-100 m-0 mb-2">Xóa toàn bộ hàng chờ?</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed m-0 mb-5">
-              Bạn có chắc chắn muốn xóa tất cả <b className="text-zinc-200">{songs.length} bài hát</b> trong hàng chờ không?
+            <p className="text-xs text-on-surface-variant leading-relaxed m-0 mb-5">
+              Bạn có chắc chắn muốn xóa tất cả <b className="text-on-surface">{songs.length} bài hát</b> trong hàng chờ không?
             </p>
             <div className="flex justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setShowClearModal(false)}
-                className="px-3.5 py-1.5 rounded-lg border border-white/[0.08] bg-[#18181B] hover:bg-[#222226] text-xs font-medium text-zinc-300 transition-colors"
+                className="px-3.5 py-1.5 rounded-lg border border-white/[0.08] bg-surface-container hover:bg-[#222226] text-xs font-medium text-on-surface transition-colors"
               >
                 Hủy
               </button>
@@ -286,16 +286,16 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
           onClick={(e) => { if (e.target === e.currentTarget) setShowBatchModal(false); }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-[#141417] border border-white/[0.08] p-5 shadow-2xl">
+          <div className="w-full max-w-sm rounded-2xl bg-surface-container-low border border-white/[0.08] p-5 shadow-2xl">
             <h4 className="text-base font-bold text-zinc-100 m-0 mb-2">Xóa {selectedIndices.size} bài đã chọn?</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed m-0 mb-5">
+            <p className="text-xs text-on-surface-variant leading-relaxed m-0 mb-5">
               Các bài hát được đánh dấu sẽ bị xóa khỏi hàng chờ.
             </p>
             <div className="flex justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setShowBatchModal(false)}
-                className="px-3.5 py-1.5 rounded-lg border border-white/[0.08] bg-[#18181B] hover:bg-[#222226] text-xs font-medium text-zinc-300 transition-colors"
+                className="px-3.5 py-1.5 rounded-lg border border-white/[0.08] bg-surface-container hover:bg-[#222226] text-xs font-medium text-on-surface transition-colors"
               >
                 Hủy
               </button>
@@ -317,18 +317,18 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
           onClick={(e) => { if (e.target === e.currentTarget) setJumpModalData(null); }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-[#141417] border border-white/[0.08] p-5 shadow-2xl">
+          <div className="w-full max-w-sm rounded-2xl bg-surface-container-low border border-white/[0.08] p-5 shadow-2xl">
             <div className="flex items-center justify-between mb-3.5">
               <div>
                 <h4 className="text-sm font-bold text-zinc-100 m-0">Chuyển Vị Trí Bài Hát</h4>
-                <p className="text-[11px] text-zinc-400 m-0 mt-0.5">Hiện tại: <b className="text-cyan-400">#{jumpModalData.index + 1}</b></p>
+                <p className="text-[11px] text-on-surface-variant m-0 mt-0.5">Hiện tại: <b className="text-primary-container">#{jumpModalData.index + 1}</b></p>
               </div>
-              <button type="button" onClick={() => setJumpModalData(null)} className="text-zinc-400 hover:text-white p-1">
+              <button type="button" onClick={() => setJumpModalData(null)} className="text-on-surface-variant hover:text-white p-1">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#18181B] border border-white/[0.06] mb-4">
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-container border border-white/[0.06] mb-4">
               <img
                 src={jumpModalData.song.thumbnail || DEFAULT_TRACK_THUMB}
                 alt=""
@@ -336,13 +336,13 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 className="w-9 h-9 rounded-md object-cover flex-shrink-0"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-zinc-200 truncate m-0">{jumpModalData.song.title}</p>
-                <p className="text-[11px] text-zinc-500 truncate m-0 mt-0.5">{jumpModalData.song.artist || 'YouTube'}</p>
+                <p className="text-xs font-medium text-on-surface truncate m-0">{jumpModalData.song.title}</p>
+                <p className="text-[11px] text-outline truncate m-0 mt-0.5">{jumpModalData.song.artist || 'YouTube'}</p>
               </div>
             </div>
 
             <form onSubmit={handleConfirmJump}>
-              <label className="block text-[11px] text-zinc-400 mb-1.5">
+              <label className="block text-[11px] text-on-surface-variant mb-1.5">
                 Nhập số thứ tự muốn chuyển đến (1 - {songs.length}):
               </label>
               <input
@@ -351,19 +351,19 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 max={songs.length}
                 value={targetPosition}
                 onChange={(e) => setTargetPosition(e.target.value)}
-                className="no-spin-button w-full h-10 rounded-xl border border-white/[0.08] bg-[#101012] text-zinc-100 text-center font-mono text-base font-bold outline-none focus:border-cyan-500 mb-3"
+                className="no-spin-button w-full h-10 rounded-xl border border-white/[0.08] bg-[#101012] text-zinc-100 text-center font-mono text-base font-bold outline-none focus:border-primary-container mb-3"
                 autoFocus
               />
               <div className="flex gap-1.5 flex-wrap mb-4">
-                <button type="button" onClick={() => setTargetPosition('1')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-cyan-400 text-xs font-mono font-medium">#1 (Kế tiếp)</button>
-                {songs.length >= 2 && <button type="button" onClick={() => setTargetPosition('2')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-zinc-300 text-xs font-mono font-medium">#2</button>}
-                {songs.length >= 5 && <button type="button" onClick={() => setTargetPosition('5')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-zinc-300 text-xs font-mono font-medium">#5</button>}
-                <button type="button" onClick={() => setTargetPosition(String(songs.length))} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-[#18181B] text-zinc-400 text-xs font-mono font-medium">Cuối (#{songs.length})</button>
+                <button type="button" onClick={() => setTargetPosition('1')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-surface-container text-primary-container text-xs font-mono font-medium">#1 (Kế tiếp)</button>
+                {songs.length >= 2 && <button type="button" onClick={() => setTargetPosition('2')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-surface-container text-on-surface text-xs font-mono font-medium">#2</button>}
+                {songs.length >= 5 && <button type="button" onClick={() => setTargetPosition('5')} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-surface-container text-on-surface text-xs font-mono font-medium">#5</button>}
+                <button type="button" onClick={() => setTargetPosition(String(songs.length))} className="px-2.5 py-1 rounded-md border border-white/[0.06] bg-surface-container text-on-surface-variant text-xs font-mono font-medium">Cuối (#{songs.length})</button>
               </div>
 
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setJumpModalData(null)} className="px-3 py-1.5 rounded-lg border border-white/[0.08] bg-[#18181B] text-xs font-medium text-zinc-300">Hủy</button>
-                <button type="submit" className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-xs font-bold text-zinc-950">Xác Nhận</button>
+                <button type="button" onClick={() => setJumpModalData(null)} className="px-3 py-1.5 rounded-lg border border-white/[0.08] bg-surface-container text-xs font-medium text-on-surface">Hủy</button>
+                <button type="submit" className="px-3 py-1.5 rounded-lg bg-primary-container hover:bg-cyan-600 text-xs font-bold text-zinc-950">Xác Nhận</button>
               </div>
             </form>
           </div>
@@ -372,19 +372,19 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
       )}
 
       {/* ── Top Header Bar ──────────────────────────────── */}
-      <div className="flex items-center justify-between p-2.5 px-3.5 rounded-xl bg-[#141417] border border-white/[0.06] flex-shrink-0">
+      <div className="flex items-center justify-between p-2.5 px-3.5 rounded-xl bg-surface-container-low border border-white/[0.06] flex-shrink-0">
         <div className="flex items-center gap-2.5">
           {songs.length > 0 && (
             <button
               type="button"
               onClick={toggleSelectAll}
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 text-xs transition-colors"
+              className="flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface text-xs transition-colors"
             >
-              {isAllSelected ? <CheckSquare size={15} className="text-cyan-500" /> : <Square size={15} />}
+              {isAllSelected ? <CheckSquare size={15} className="text-primary-container" /> : <Square size={15} />}
               <span>{isAllSelected ? 'Bỏ chọn' : 'Chọn tất cả'}</span>
             </button>
           )}
-          <span className="font-mono text-xs text-zinc-500 tabular-nums">
+          <span className="font-mono text-xs text-outline tabular-nums">
             {songs.length} bài {totalSeconds > 0 ? `• ${formatTotalTime(totalSeconds)}` : ''}
           </span>
         </div>
@@ -397,13 +397,13 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
             let btnLabel = 'VỀ NHẠC LOFI';
             let btnTitle = 'Lưu hàng chờ và chuyển sang nhạc Lofi 24/7';
             let btnIcon = <Coffee size={12} />;
-            let btnClasses = 'border-cyan-500/25 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/15';
+            let btnClasses = 'border-primary-container/25 bg-primary-container/10 text-primary-container hover:bg-primary-container/15';
 
             if (isRoomEmpty) {
               btnLabel = 'PHÒNG TRỐNG (24/7)';
               btnTitle = 'Phòng Voice hiện không có ai, bot duy trì phát Lofi 24/7';
               btnIcon = <Coffee size={12} />;
-              btnClasses = 'border-white/[0.06] bg-white/[0.02] text-zinc-500 cursor-not-allowed opacity-60';
+              btnClasses = 'border-white/[0.06] bg-white/[0.02] text-outline cursor-not-allowed opacity-60';
             } else if (isLofiMode) {
               btnLabel = 'TIẾP TỤC PHÁT';
               btnTitle = songs.length > 0 ? `Tiếp tục phát ${songs.length} bài hát trong hàng chờ` : 'Phát lại bài hát gần nhất';
@@ -457,13 +457,13 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
       {/* ── Queue Song List ─────────────────────────────── */}
       <div className="flex-1 overflow-y-auto min-h-0 pr-1">
         {songs.length === 0 ? (
-          <div className="py-16 px-4 text-center text-zinc-500">
-            <Music2 size={32} className="mx-auto mb-3 opacity-40 text-zinc-400" />
-            <p className="font-semibold text-zinc-300 text-sm mb-1">Hàng chờ đang trống</p>
-            <p className="text-xs text-zinc-500 mb-4">Chuyển sang tab <b>Khám Phá</b> để thêm bài hát hoặc bật nhạc nền Lofi thư giãn.</p>
+          <div className="py-16 px-4 text-center text-outline">
+            <Music2 size={32} className="mx-auto mb-3 opacity-40 text-on-surface-variant" />
+            <p className="font-semibold text-on-surface text-sm mb-1">Hàng chờ đang trống</p>
+            <p className="text-xs text-outline mb-4">Chuyển sang tab <b>Khám Phá</b> để thêm bài hát hoặc bật nhạc nền Lofi thư giãn.</p>
             {isLofiMode ? (
               <div className="flex flex-col items-center gap-2.5">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 font-mono text-xs font-bold">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary-container/10 border border-primary-container/25 text-primary-container font-mono text-xs font-bold">
                   <Coffee size={14} />
                   <span>ĐANG PHÁT LOFI THƯ GIÃN 24/7</span>
                 </div>
@@ -482,7 +482,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 type="button"
                 onClick={() => onAction('toggleLofiMode')}
                 disabled={pendingAction === 'toggleLofiMode'}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 text-xs font-semibold hover:bg-cyan-500/15 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 border border-primary-container/25 text-primary-container text-xs font-semibold hover:bg-primary-container/15 transition-colors"
               >
                 <Coffee size={13} />
                 <span>Bật Nhạc Lofi 24/7</span>
@@ -509,14 +509,14 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                   onClick={(e) => toggleSelect(idx, e)}
                   className={`group flex items-center gap-2.5 p-2 rounded-xl border transition-all select-none cursor-pointer ${
                     isSelected
-                      ? 'bg-cyan-500/10 border-cyan-500/30'
+                      ? 'bg-primary-container/10 border-primary-container/30'
                       : isDragOver
-                      ? 'bg-[#18181B] border-cyan-500'
-                      : 'bg-[#141417] hover:bg-[#18181B] border-white/[0.05] hover:border-white/[0.09]'
+                      ? 'bg-surface-container border-primary-container'
+                      : 'bg-surface-container-low hover:bg-surface-container border-white/[0.05] hover:border-white/[0.09]'
                   } ${isDragging ? 'opacity-40' : 'opacity-100'}`}
                 >
                   {/* Drag Grip */}
-                  <div className="text-zinc-600 hover:text-zinc-400 cursor-grab flex items-center" title="Kéo thả đổi vị trí">
+                  <div className="text-zinc-600 hover:text-on-surface-variant cursor-grab flex items-center" title="Kéo thả đổi vị trí">
                     <GripVertical size={14} />
                   </div>
 
@@ -524,9 +524,9 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); toggleSelect(idx, e); }}
-                    className="text-zinc-500 hover:text-zinc-300 p-0 flex items-center"
+                    className="text-outline hover:text-on-surface p-0 flex items-center"
                   >
-                    {isSelected ? <CheckSquare size={15} className="text-cyan-500" /> : <Square size={15} />}
+                    {isSelected ? <CheckSquare size={15} className="text-primary-container" /> : <Square size={15} />}
                   </button>
 
                   {/* Index badge */}
@@ -534,7 +534,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                     type="button"
                     onClick={(e) => { e.stopPropagation(); openJumpModal(song, idx); }}
                     title="Nhấn để đổi vị trí"
-                    className="w-5 text-center font-mono text-[11px] font-semibold text-zinc-500 group-hover:text-zinc-300 tabular-nums flex-shrink-0"
+                    className="w-5 text-center font-mono text-[11px] font-semibold text-outline group-hover:text-on-surface tabular-nums flex-shrink-0"
                   >
                     {displayIndex}
                   </button>
@@ -544,15 +544,15 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                     src={song.thumbnail || DEFAULT_TRACK_THUMB}
                     alt=""
                     onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
-                    className="w-9 h-9 rounded-md object-cover flex-shrink-0 border border-white/[0.06] bg-[#18181B]"
+                    className="w-9 h-9 rounded-md object-cover flex-shrink-0 border border-white/[0.06] bg-surface-container"
                   />
 
                   {/* Song Title & Artist */}
                   <div className="min-w-0 flex-1 pr-2">
-                    <p className="text-xs font-medium text-zinc-200 group-hover:text-white truncate m-0" title={song.title}>
+                    <p className="text-xs font-medium text-on-surface group-hover:text-white truncate m-0" title={song.title}>
                       {song.title}
                     </p>
-                    <p className="text-[11px] text-zinc-500 truncate m-0 mt-0.5" title={`${song.artist || getSourceLabel(song)} • ${song.duration || ''}`}>
+                    <p className="text-[11px] text-outline truncate m-0 mt-0.5" title={`${song.artist || getSourceLabel(song)} • ${song.duration || ''}`}>
                       <span>{song.artist && song.artist !== 'Unknown' ? song.artist : getSourceLabel(song)}</span>
                       {song.duration ? ` • ${song.duration}` : ''}
                       {song.requestedBy ? ` • 👤 ${formatRequesterName(song.requestedBy)}` : ''}
@@ -566,11 +566,11 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                       type="button"
                       onClick={() => onAction('playNow', idx)}
                       disabled={Boolean(pendingAction)}
-                      className="w-7 h-7 rounded-lg border border-white/[0.06] bg-[#18181B] hover:bg-[#222226] text-zinc-300 hover:text-white flex items-center justify-center transition-colors"
+                      className="w-7 h-7 rounded-lg border border-white/[0.06] bg-surface-container hover:bg-[#222226] text-on-surface hover:text-white flex items-center justify-center transition-colors"
                       title={pendingAction === 'playNow' ? 'Đang nạp bài...' : 'Phát ngay bài này'}
                     >
                       {pendingAction === 'playNow' ? (
-                        <Loader2 size={12} className="animate-spin text-cyan-500" />
+                        <Loader2 size={12} className="animate-spin text-primary-container" />
                       ) : (
                         <Play size={12} fill="currentColor" className="ml-0.5" />
                       )}
@@ -583,8 +583,8 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                         onClick={(e) => handleToggleMenu(e, idx)}
                         className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors ${
                           isMenuOpen
-                            ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-400'
-                            : 'border-white/[0.06] bg-[#18181B] hover:bg-[#222226] text-zinc-400 hover:text-zinc-200'
+                            ? 'border-primary-container/40 bg-primary-container/10 text-primary-container'
+                            : 'border-white/[0.06] bg-surface-container hover:bg-[#222226] text-on-surface-variant hover:text-on-surface'
                         }`}
                         title="Tùy chọn khác..."
                       >
@@ -593,7 +593,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
 
                       {isMenuOpen && (
                         <div
-                          className={`absolute right-0 z-50 w-44 rounded-xl bg-[#141417] border border-white/[0.08] shadow-2xl p-1 flex flex-col gap-0.5 animate-in fade-in duration-150 ${
+                          className={`absolute right-0 z-50 w-44 rounded-xl bg-surface-container-low border border-white/[0.08] shadow-2xl p-1 flex flex-col gap-0.5 animate-in fade-in duration-150 ${
                             menuPlacement === 'top' ? 'bottom-8' : 'top-8'
                           }`}
                         >
@@ -601,9 +601,9 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                             type="button"
                             disabled={Boolean(pendingAction)}
                             onClick={() => { onAction('playNow', idx); setActiveMenuIdx(null); }}
-                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-zinc-200 hover:bg-[#1E1E22] text-left w-full transition-colors"
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-on-surface hover:bg-[#1E1E22] text-left w-full transition-colors"
                           >
-                            <Play size={12} fill="currentColor" className="text-zinc-400" />
+                            <Play size={12} fill="currentColor" className="text-on-surface-variant" />
                             <span>Phát ngay</span>
                           </button>
 
@@ -611,7 +611,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                             <button
                               type="button"
                               onClick={() => handleMoveToTop(idx)}
-                              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-cyan-400 hover:bg-[#1E1E22] text-left w-full transition-colors"
+                              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-primary-container hover:bg-[#1E1E22] text-left w-full transition-colors"
                             >
                               <ArrowUpToLine size={13} />
                               <span>Đưa lên đầu (#1)</span>
@@ -621,9 +621,9 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                           <button
                             type="button"
                             onClick={() => openJumpModal(song, idx)}
-                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-zinc-200 hover:bg-[#1E1E22] text-left w-full transition-colors"
+                            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-on-surface hover:bg-[#1E1E22] text-left w-full transition-colors"
                           >
-                            <ArrowUpDown size={13} className="text-zinc-400" />
+                            <ArrowUpDown size={13} className="text-on-surface-variant" />
                             <span>Chuyển vị trí...</span>
                           </button>
 

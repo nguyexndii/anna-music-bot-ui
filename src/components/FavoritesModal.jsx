@@ -48,7 +48,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
       className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
       <div
-        className="w-full max-w-xl max-h-[85vh] rounded-2xl bg-[#141417] border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
+        className="w-full max-w-xl max-h-[85vh] rounded-2xl bg-surface-container-low border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col overflow-hidden text-zinc-100"
         style={{
           fontFamily: "'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
@@ -73,7 +73,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
             {favorites.length > 0 && (
               <button
                 onClick={handlePlayAll}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold shadow-md transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container hover:bg-cyan-600 text-white text-xs font-semibold shadow-md transition"
                 title="Thêm tất cả bài yêu thích vào hàng chờ"
               >
                 <Play className="w-3.5 h-3.5 fill-white" />
@@ -83,7 +83,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
 
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-lg border border-white/[0.07] bg-[#18181C] hover:bg-[#222228] text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition"
+              className="w-8 h-8 rounded-lg border border-white/[0.07] bg-surface-container-high hover:bg-[#222228] text-on-surface-variant hover:text-zinc-100 flex items-center justify-center transition"
               aria-label="Đóng popup"
             >
               <X className="w-4 h-4" />
@@ -94,7 +94,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
         {/* Tracks List */}
         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-1.5 max-h-[62vh]">
           {favorites.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-zinc-500">
+            <div className="flex flex-col items-center justify-center py-16 text-center text-outline">
               <Heart className="w-8 h-8 mb-3 opacity-30 text-rose-400" />
               <p className="text-xs">Chưa có bài hát nào trong danh sách yêu thích.</p>
             </div>
@@ -105,10 +105,10 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                 <div
                   key={song.url || idx}
                   onClick={() => onOrderSong?.(song)}
-                  className="flex items-center gap-3 p-2 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.04] hover:border-cyan-500/30 cursor-pointer transition-all duration-150 group"
+                  className="flex items-center gap-3 p-2 rounded-xl bg-[#16161A] hover:bg-[#1C1C22] border border-white/[0.04] hover:border-primary-container/30 cursor-pointer transition-all duration-150 group"
                   title="Nhấn để thêm vào hàng chờ"
                 >
-                  <span className="font-mono text-xs text-zinc-500 w-6 text-right tabular-nums flex-shrink-0">
+                  <span className="font-mono text-xs text-outline w-6 text-right tabular-nums flex-shrink-0">
                     {globalIndex < 10 ? `0${globalIndex}` : globalIndex}
                   </span>
 
@@ -122,23 +122,23 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
 
                   <div className="min-w-0 flex-1">
                     <p
-                      className="text-xs font-semibold text-zinc-200 truncate group-hover:text-cyan-400 transition-colors"
+                      className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors"
                       title={song.title}
                     >
                       {song.title}
                     </p>
-                    <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                    <p className="text-[11px] text-on-surface-variant truncate mt-0.5">
                       {song.artist || 'YouTube'}
                     </p>
                   </div>
 
                   {song.duration && (
-                    <span className="font-mono text-xs text-zinc-500 flex-shrink-0 tabular-nums">
+                    <span className="font-mono text-xs text-outline flex-shrink-0 tabular-nums">
                       {song.duration}
                     </span>
                   )}
 
-                  <div className="w-7 h-7 rounded-md bg-[#1F1F24] border border-white/[0.08] text-zinc-400 group-hover:text-cyan-400 group-hover:border-cyan-500/30 flex items-center justify-center flex-shrink-0 transition">
+                  <div className="w-7 h-7 rounded-md bg-[#1F1F24] border border-white/[0.08] text-on-surface-variant group-hover:text-primary-container group-hover:border-primary-container/30 flex items-center justify-center flex-shrink-0 transition">
                     <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                   </div>
                 </div>
@@ -149,7 +149,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
 
         {/* Footer */}
         {favorites.length > 0 && (
-          <div className="px-5 py-2.5 border-t border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113] text-zinc-400 font-mono text-xs">
+          <div className="px-5 py-2.5 border-t border-white/[0.07] flex items-center justify-between flex-shrink-0 bg-[#111113] text-on-surface-variant font-mono text-xs">
             <span>Tổng số {favorites.length} bài hát</span>
             <span>Cuộn để xem thêm</span>
           </div>

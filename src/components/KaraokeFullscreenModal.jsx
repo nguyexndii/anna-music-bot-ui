@@ -343,11 +343,11 @@ export default function KaraokeFullscreenModal({
       <header className="relative z-20 h-14 px-5 sm:px-6 flex items-center justify-between border-b border-white/[0.07] bg-[#09090B]/95 gap-3">
         {/* Left: Brand + Lyrics Source badge */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="relative w-8 h-8 rounded-lg overflow-hidden ring-1 ring-cyan-500/30 flex-shrink-0 bg-zinc-900">
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden ring-1 ring-primary-container/30 flex-shrink-0 bg-zinc-900">
             <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <span className="font-mono text-xs font-bold tracking-wider text-cyan-400">
+            <span className="font-mono text-xs font-bold tracking-wider text-primary-container">
               ANNA KARAOKE
             </span>
             {lyricsSourceInfo && (
@@ -357,7 +357,7 @@ export default function KaraokeFullscreenModal({
             )}
             {hasSynced && !isYtCc && (
               <span
-                className="w-4 h-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold flex items-center justify-center cursor-help flex-shrink-0"
+                className="w-4 h-4 rounded-full bg-primary-container/10 border border-primary-container/30 text-primary-container font-mono text-[10px] font-bold flex items-center justify-center cursor-help flex-shrink-0"
                 title="Lời từ Spotify / Bên thứ ba · Có thể lệch nhẹ so với bản thu âm"
               >
                 !
@@ -376,7 +376,7 @@ export default function KaraokeFullscreenModal({
                 onClick={() => setFontSize(size)}
                 className={`px-2.5 py-1 text-xs font-mono font-medium rounded transition-all ${
                   fontSize === size
-                    ? 'bg-cyan-500 text-white shadow-sm'
+                    ? 'bg-primary-container text-white shadow-sm'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
                 title={size === 'md' ? 'Cỡ chữ chuẩn' : 'Cỡ chữ phóng to'}
@@ -392,7 +392,7 @@ export default function KaraokeFullscreenModal({
               onClick={() => setShowOffsetBar((p) => !p)}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
                 showOffsetBar
-                  ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400'
+                  ? 'bg-primary-container/15 border-primary-container/40 text-primary-container'
                   : 'bg-[#141417] border-white/[0.08] text-zinc-300 hover:bg-[#1A1A1F]'
               }`}
               title="Cân chỉnh độ trễ đồng bộ lời"
@@ -419,7 +419,7 @@ export default function KaraokeFullscreenModal({
               }}
               className={`hidden sm:flex items-center px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
                 autoScroll
-                  ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400'
+                  ? 'bg-primary-container/15 border-primary-container/40 text-primary-container'
                   : 'bg-[#141417] border-white/[0.08] text-zinc-400 hover:text-zinc-200'
               }`}
             >
@@ -441,7 +441,7 @@ export default function KaraokeFullscreenModal({
 
       {/* ── Offset Calibration Sub-bar ── */}
       {showOffsetBar && hasSynced && (
-        <div className="relative z-20 bg-[#111113] border-b border-white/[0.07] px-4 py-2 flex items-center justify-center gap-1.5 flex-wrap">
+        <div className="relative z-20 bg-surface-container-lowest border-b border-white/[0.07] px-4 py-2 flex items-center justify-center gap-1.5 flex-wrap">
           <span className="font-mono text-xs text-zinc-400 mr-2">BÙ TRỄ ĐỒNG BỘ:</span>
           {[-10000, -5000, -2000, -1000, -250].map((ms) => (
             <button
@@ -454,7 +454,7 @@ export default function KaraokeFullscreenModal({
           ))}
           <button
             onClick={() => onUpdateOffset?.(0)}
-            className="px-3 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-400 text-xs font-mono font-bold transition"
+            className="px-3 py-1 rounded bg-primary-container/20 hover:bg-primary-container/30 border border-primary-container/40 text-primary-container text-xs font-mono font-bold transition"
           >
             MẶC ĐỊNH
           </button>
@@ -472,68 +472,62 @@ export default function KaraokeFullscreenModal({
 
       {/* ── Main Studio Stage ── */}
       <main className="relative z-10 flex-1 min-h-0 flex items-stretch overflow-hidden">
-        {/* Left: 3D Album Artwork & Equalizer Waveform Stage */}
-        <div className="w-[280px] lg:w-[360px] hidden md:flex flex-col items-center justify-center p-6 border-r border-white/[0.07] bg-black/40 backdrop-blur-xl gap-5">
-          <div className="relative w-52 h-52 lg:w-64 lg:h-64 flex-shrink-0 mx-auto group">
+        {/* Left: Vintage Spinning Vinyl Turntable Stage (Main Style) */}
+        <div className="w-[280px] lg:w-[360px] hidden md:flex flex-col items-center justify-center p-6 border-r border-white/5 bg-[#0c0e11]/85 backdrop-blur-xl gap-6 select-none">
+          {/* Mâm đĩa than quay cổ điển chân thực */}
+          <div
+            className={`w-56 h-56 lg:w-64 lg:h-64 rounded-full relative flex items-center justify-center flex-shrink-0 shadow-[0_20px_50px_rgba(0,0,0,0.95)] border border-white/10 ${
+              isPlaying ? 'spinning-vinyl' : 'spinning-vinyl-paused'
+            }`}
+            style={{
+              background: 'radial-gradient(circle, rgb(14, 16, 19) 38%, rgb(24, 28, 35) 42%, rgb(13, 15, 18) 46%, rgb(28, 32, 41) 52%, rgb(14, 16, 20) 58%, rgb(25, 29, 38) 64%, rgb(11, 13, 16) 72%, rgb(26, 30, 39) 82%, rgb(9, 10, 13) 92%, rgb(20, 22, 28) 100%)'
+            }}
+          >
+            {/* Vinyl Grooves Conic Sheen */}
             <div
-              className={`absolute -inset-2.5 rounded-3xl bg-gradient-to-tr from-cyan-500/30 to-indigo-500/25 blur-xl transition-opacity duration-700 ${
-                isPlaying ? 'opacity-85' : 'opacity-25'
-              }`}
+              className="absolute inset-0 rounded-full mix-blend-screen opacity-70 pointer-events-none"
+              style={{
+                background: 'conic-gradient(from 40deg, transparent 0deg, rgba(255,255,255,0.06) 30deg, rgba(255,255,255,0.2) 55deg, rgba(255,255,255,0.04) 80deg, transparent 110deg, transparent 180deg, rgba(255,255,255,0.06) 210deg, rgba(255,255,255,0.2) 235deg, rgba(255,255,255,0.04) 260deg, transparent 290deg)'
+              }}
             />
-            <div className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-slate-900">
-              <img
-                src={getTrackThumb(current)}
-                alt={current?.title || 'Album Cover'}
-                onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
-                className={`w-full h-full object-cover transition-transform duration-700 ${
-                  isPlaying ? 'scale-105' : 'scale-100'
-                }`}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-[18px] rounded-full border border-black/30 pointer-events-none"></div>
+            <div className="absolute inset-[38px] rounded-full border border-black/40 pointer-events-none"></div>
 
-              {/* Equalizer Audio Wave Badge (Góc dưới ảnh bìa) */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-950/75 backdrop-blur-md border border-white/10">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <User className="w-3 h-3 text-cyan-400 flex-shrink-0" />
-                  <span className="text-[10px] font-mono text-slate-300 truncate">
-                    {isLofiCurrent ? 'Anna Radio' : (current?.requestedBy?.replace(/^<@!?\d+>$/, 'Discord User') || 'Anna Studio')}
-                  </span>
+            {/* Center Label (Vintage Champagne tone) */}
+            <div className="relative w-[80px] h-[80px] lg:w-[90px] lg:h-[90px] rounded-full bg-[#e8c977] p-[3px] shadow-lg flex items-center justify-center overflow-hidden border border-[#9b7829]">
+              <div className="w-full h-full rounded-full flex flex-col items-center justify-between py-1 bg-gradient-to-b from-[#f5df9d] via-[#e8c977] to-[#cfab52] text-[#332503]">
+                <span className="text-[6.5px] font-bold font-mono tracking-widest uppercase">ANNA VINYL</span>
+                <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-full overflow-hidden border border-[#584400]/40 shadow-inner">
+                  <img
+                    alt="Album Art"
+                    className="w-full h-full object-cover"
+                    src={getTrackThumb(current)}
+                    onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
+                  />
                 </div>
-                {/* Equalizer Waveform Bars */}
-                <div className="flex items-end gap-1 h-3.5 flex-shrink-0">
-                  <span className={`w-1 bg-cyan-400 rounded-full ${isPlaying ? 'eq-bar-1' : 'h-1.5'}`} />
-                  <span className={`w-1 bg-indigo-400 rounded-full ${isPlaying ? 'eq-bar-2' : 'h-2.5'}`} />
-                  <span className={`w-1 bg-cyan-400 rounded-full ${isPlaying ? 'eq-bar-3' : 'h-1.5'}`} />
-                  <span className={`w-1 bg-indigo-400 rounded-full ${isPlaying ? 'eq-bar-4' : 'h-2'}`} />
-                </div>
+                <span className="text-[6px] font-mono tracking-wider font-semibold">33⅓ RPM</span>
+              </div>
+              <div className="absolute w-3.5 h-3.5 rounded-full bg-[#181a1f] border border-[#d8dce6] flex items-center justify-center">
+                <div className="w-1 h-1 rounded-full bg-[#0a0c0e]"></div>
               </div>
             </div>
           </div>
 
+          {/* Track metadata */}
           <div className="text-center w-full px-2 max-w-[280px]">
-            <h2
-              className="text-base lg:text-lg font-bold text-slate-100 line-clamp-2 leading-snug"
-              title={current?.title}
-            >
+            <h2 className="text-base lg:text-lg font-bold text-on-surface line-clamp-2 leading-snug" title={current?.title}>
               {isLofiCurrent ? '24/7 Lofi Thư Giãn' : current?.title || 'Chưa có bài hát'}
             </h2>
-            <p className="text-xs lg:text-sm font-medium text-cyan-400 truncate mt-1">
-              {isLofiCurrent
-                ? 'Chế độ phát nền 24/7'
-                : current?.artist && current.artist !== 'Unknown'
-                ? current.artist
-                : 'Anna Music'}
+            <p className="text-xs lg:text-sm font-medium text-primary-container truncate mt-1">
+              {isLofiCurrent ? 'Chế độ phát nền 24/7' : current?.artist || 'Anna Music'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isPlaying ? 'bg-cyan-400 shadow-[0_0_8px_#22d3ee]' : 'bg-slate-500'
-              }`}
-            />
-            <span className="font-mono text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-              {isPlaying ? 'Đang phát' : 'Tạm dừng'}
+          {/* Hi-Fi Voice Status badge */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container border border-white/5 shadow-sm">
+            <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-tertiary animate-pulse shadow-[0_0_8px_#9bfcc0]' : 'bg-outline'}`} />
+            <span className="font-mono text-[11px] font-medium text-on-surface uppercase tracking-wider">
+              {isPlaying ? 'ĐANG PHÁT HI-FI' : 'TẠM DỪNG'}
             </span>
           </div>
         </div>
@@ -573,7 +567,7 @@ export default function KaraokeFullscreenModal({
                   }}
                   className={`my-1 text-center max-w-3xl rounded-xl transition-all duration-200 cursor-pointer select-none leading-relaxed ${
                     isActive
-                      ? 'font-bold text-zinc-100 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-black/40 scale-[1.02]'
+                      ? 'font-bold text-zinc-100 bg-primary-container/10 border border-primary-container/30 shadow-lg shadow-black/40 scale-[1.02]'
                       : isPassed
                       ? 'font-medium text-zinc-500 hover:text-zinc-300'
                       : 'font-normal text-zinc-600 hover:text-zinc-400'
@@ -585,7 +579,7 @@ export default function KaraokeFullscreenModal({
             })
           ) : lyricsData?.lyrics ? (
             <div className="max-w-2xl text-center py-6">
-              <span className="font-mono text-xs uppercase tracking-wider text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full inline-block mb-6">
+              <span className="font-mono text-xs uppercase tracking-wider text-primary-container bg-primary-container/10 border border-primary-container/20 px-3 py-1 rounded-full inline-block mb-6">
                 Lời bài hát không đồng bộ
               </span>
               <p
@@ -610,10 +604,10 @@ export default function KaraokeFullscreenModal({
       </main>
 
       {/* ── Docked Bottom Player Bar ── */}
-      <footer className="relative z-30 px-4 sm:px-8 py-3.5 bg-[#111113] border-t border-white/[0.08] flex flex-col gap-2.5">
+      <footer className="relative z-30 px-4 sm:px-8 py-3.5 bg-surface-container-lowest border-t border-white/[0.08] flex flex-col gap-2.5">
         {/* Seek timeline row */}
         <div className="flex items-center gap-3 max-w-4xl w-full mx-auto">
-          <span className="font-mono text-xs text-cyan-400 min-w-[42px] text-right font-medium">
+          <span className="font-mono text-xs text-primary-container min-w-[42px] text-right font-medium">
             {formatTime(currentDisplayMs)}
           </span>
 
@@ -625,7 +619,7 @@ export default function KaraokeFullscreenModal({
           >
             <div className="w-full h-1.5 rounded-full bg-zinc-800 relative overflow-hidden group-hover:h-2 transition-all">
               <div
-                className="h-full bg-cyan-500 rounded-full relative"
+                className="h-full bg-primary-container rounded-full relative"
                 style={{ width: `${percent}%` }}
               />
             </div>
@@ -691,7 +685,7 @@ export default function KaraokeFullscreenModal({
               onClick={() => onAction?.('shuffle')}
               className={`p-2 rounded-lg transition ${
                 isShuffle
-                  ? 'text-cyan-400 bg-cyan-500/10'
+                  ? 'text-primary-container bg-primary-container/10'
                   : 'text-zinc-400 hover:text-zinc-200'
               }`}
               title={isShuffle ? 'Xáo trộn: Đang bật' : 'Xáo trộn hàng chờ'}
@@ -738,7 +732,7 @@ export default function KaraokeFullscreenModal({
                 isLofiCurrent
                   ? 'text-zinc-600 opacity-40 cursor-not-allowed'
                   : loopMode !== 'off'
-                  ? 'text-cyan-400 bg-cyan-500/10'
+                  ? 'text-primary-container bg-primary-container/10'
                   : 'text-zinc-400 hover:text-zinc-200'
               }`}
               title={
@@ -755,7 +749,7 @@ export default function KaraokeFullscreenModal({
             >
               <Repeat className="w-4 h-4" />
               {loopMode === 'song' && (
-                <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-cyan-500 text-zinc-950 text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-primary-container text-zinc-950 text-[9px] font-bold flex items-center justify-center">
                   1
                 </span>
               )}
@@ -787,7 +781,7 @@ export default function KaraokeFullscreenModal({
               max={100}
               value={localVolume}
               onChange={(e) => handleVolume(Number(e.target.value))}
-              className="w-16 sm:w-20 h-1.5 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-cyan-500"
+              className="w-16 sm:w-20 h-1.5 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-primary-container"
             />
 
             <span className="font-mono text-xs text-zinc-500 min-w-[32px] text-right">

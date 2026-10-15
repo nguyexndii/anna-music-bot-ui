@@ -21,13 +21,13 @@ export default function NoVoiceSession({ user, guildName, onRefresh, isRefreshin
         <img
           src="/logo.gif"
           alt="Anna Music"
-          className="w-16 h-16 rounded-2xl object-cover border border-white/10 ring-1 ring-cyan-500/30 shadow-2xl mb-3"
+          className="w-16 h-16 rounded-2xl object-cover border border-white/10 ring-1 ring-primary-container/30 shadow-2xl mb-3"
           style={{ imageRendering: 'pixelated' }}
         />
         <div className="text-2xl font-extrabold tracking-tight">
-          <span>an</span><span className="text-cyan-500">na</span>
+          <span>an</span><span className="text-primary-container">na</span>
         </div>
-        <div className="font-mono text-[10px] tracking-widest text-zinc-500 uppercase mt-1">
+        <div className="font-mono text-[10px] tracking-widest text-outline uppercase mt-1">
           STUDIO WEB PLAYER
         </div>
       </div>
@@ -39,7 +39,7 @@ export default function NoVoiceSession({ user, guildName, onRefresh, isRefreshin
             className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
               isDifferentVoice
                 ? 'bg-amber-500/10 border border-amber-500/25 text-amber-400'
-                : 'bg-cyan-500/10 border border-cyan-500/25 text-cyan-400'
+                : 'bg-primary-container/10 border border-primary-container/25 text-primary-container'
             }`}
           >
             {isDifferentVoice ? <MicOff className="w-6 h-6" /> : <Radio className="w-6 h-6" />}
@@ -48,20 +48,20 @@ export default function NoVoiceSession({ user, guildName, onRefresh, isRefreshin
             <h2 className="text-base sm:text-lg font-bold text-zinc-100 tracking-tight">
               {isDifferentVoice ? 'Khác Phòng Voice Với Bot' : 'Chưa Tham Gia Phòng Voice'}
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Máy chủ: <span className="text-cyan-400 font-semibold">{guildName || user?.guildName || 'Discord'}</span>
+            <p className="text-xs text-on-surface-variant mt-0.5">
+              Máy chủ: <span className="text-primary-container font-semibold">{guildName || user?.guildName || 'Discord'}</span>
             </p>
           </div>
         </div>
 
-        <div className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+        <div className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
           {isDifferentVoice ? (
             <p>
-              Bot hiện đang phát nhạc tại phòng <b className="text-cyan-400 font-semibold">{botVoice?.name}</b>, còn bạn đang ở phòng <b className="text-zinc-200 font-semibold">{userVoice?.name}</b>. Vui lòng chuyển sang cùng phòng với Bot để điều khiển nhạc!
+              Bot hiện đang phát nhạc tại phòng <b className="text-primary-container font-semibold">{botVoice?.name}</b>, còn bạn đang ở phòng <b className="text-on-surface font-semibold">{userVoice?.name}</b>. Vui lòng chuyển sang cùng phòng với Bot để điều khiển nhạc!
             </p>
           ) : botVoice ? (
             <p>
-              Bot đang hoạt động tại phòng <b className="text-cyan-400 font-semibold">{botVoice?.name}</b>. Hãy tham gia vào phòng Voice này trên Discord để bắt đầu nghe và gọi bài nhé!
+              Bot đang hoạt động tại phòng <b className="text-primary-container font-semibold">{botVoice?.name}</b>. Hãy tham gia vào phòng Voice này trên Discord để bắt đầu nghe và gọi bài nhé!
             </p>
           ) : (
             <p>
@@ -71,20 +71,20 @@ export default function NoVoiceSession({ user, guildName, onRefresh, isRefreshin
         </div>
 
         <div className="bg-[#16161A] border border-white/[0.06] rounded-xl p-4 space-y-2">
-          <p className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-            <Volume2 className="w-4 h-4 text-cyan-400" />
+          <p className="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-2">
+            <Volume2 className="w-4 h-4 text-primary-container" />
             <span>Hướng dẫn nhanh:</span>
           </p>
-          <ol className="text-xs text-zinc-400 space-y-1.5 list-decimal list-inside leading-relaxed">
+          <ol className="text-xs text-on-surface-variant space-y-1.5 list-decimal list-inside leading-relaxed">
             {botVoice ? (
               <>
-                <li>Mở Discord và vào kênh Voice: <b className="text-cyan-400 font-semibold">{botVoice.name}</b>.</li>
-                <li>Quay lại đây và nhấn nút <b className="text-zinc-200">"Đồng Bộ Phiên Voice"</b> bên dưới.</li>
+                <li>Mở Discord và vào kênh Voice: <b className="text-primary-container font-semibold">{botVoice.name}</b>.</li>
+                <li>Quay lại đây và nhấn nút <b className="text-on-surface">"Đồng Bộ Phiên Voice"</b> bên dưới.</li>
               </>
             ) : (
               <>
                 <li>Mở Discord và vào một kênh Voice bất kỳ trong máy chủ.</li>
-                <li>Quay lại đây và nhấn nút <b className="text-zinc-200">"Đồng Bộ Phiên Voice"</b>.</li>
+                <li>Quay lại đây và nhấn nút <b className="text-on-surface">"Đồng Bộ Phiên Voice"</b>.</li>
               </>
             )}
           </ol>
@@ -94,7 +94,7 @@ export default function NoVoiceSession({ user, guildName, onRefresh, isRefreshin
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-[0.98] disabled:opacity-50"
+            className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-primary-container hover:bg-cyan-600 text-white text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-primary-container/20 active:scale-[0.98] disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>{isRefreshing ? 'Đang kiểm tra...' : 'Đồng Bộ Phiên Voice'}</span>
@@ -103,18 +103,18 @@ export default function NoVoiceSession({ user, guildName, onRefresh, isRefreshin
           {onLogout && (
             <button
               onClick={onLogout}
-              className="w-full sm:w-auto py-3 px-4 rounded-xl bg-[#18181C] hover:bg-[#222228] border border-white/[0.08] text-zinc-300 hover:text-white text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2"
+              className="w-full sm:w-auto py-3 px-4 rounded-xl bg-[#18181C] hover:bg-[#222228] border border-white/[0.08] text-on-surface hover:text-white text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2"
               title="Đăng xuất để nhập mã PIN khác"
             >
-              <LogOut className="w-4 h-4 text-zinc-400" />
+              <LogOut className="w-4 h-4 text-on-surface-variant" />
               <span>Đổi Mã PIN</span>
             </button>
           )}
         </div>
 
-        <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 pt-1">
+        <div className="flex items-center justify-center gap-1.5 text-xs text-outline pt-1">
           <HelpCircle className="w-3.5 h-3.5 opacity-70" />
-          <span>Gõ lệnh <code className="text-cyan-400 font-mono font-bold bg-cyan-500/10 border border-cyan-500/20 px-1.5 py-0.5 rounded">/web</code> trong Discord nếu bạn muốn tạo phiên mới</span>
+          <span>Gõ lệnh <code className="text-primary-container font-mono font-bold bg-primary-container/10 border border-primary-container/20 px-1.5 py-0.5 rounded">/web</code> trong Discord nếu bạn muốn tạo phiên mới</span>
         </div>
       </div>
     </main>

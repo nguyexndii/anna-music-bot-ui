@@ -125,7 +125,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
       {/* Header with Role Badge */}
       <div className="flex items-center justify-between pb-3 border-b border-white/[0.07]">
         <div className="flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-cyan-400" />
+          <Sliders className="w-4 h-4 text-primary-container" />
           <h3 className="text-sm font-bold text-zinc-100">Cài Đặt</h3>
           {saveSuccessMessage && (
             <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold animate-in fade-in">
@@ -140,7 +140,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             <span>Quản Trị Viên</span>
           </span>
         ) : (
-          <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-zinc-400 font-bold flex items-center gap-1.5">
+          <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-on-surface-variant font-bold flex items-center gap-1.5">
             <User className="w-3.5 h-3.5" />
             <span>Thành Viên</span>
           </span>
@@ -149,8 +149,8 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
 
       {/* SECTION 1: Cài Đặt Cá Nhân */}
       <div className="flex flex-col gap-3">
-        <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-          <User className="w-3.5 h-3.5 text-cyan-400" />
+        <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+          <User className="w-3.5 h-3.5 text-primary-container" />
           <span>Tùy Chọn Cá Nhân</span>
         </h4>
 
@@ -158,10 +158,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
         <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
           <div className="pr-4">
             <div className="flex items-center gap-2">
-              <Mic2 className="w-4 h-4 text-cyan-400" />
+              <Mic2 className="w-4 h-4 text-primary-container" />
               <p className="text-xs font-bold text-zinc-100">Tự động cuộn lời bài hát (Karaoke Sync)</p>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+            <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed">
               Tự động cuộn và làm nổi bật theo từng câu hát khi bài hát đang phát.
             </p>
           </div>
@@ -170,7 +170,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             onClick={toggleAutoScroll}
             title={autoScrollLyrics ? 'Tắt tự động cuộn' : 'Bật tự động cuộn'}
             className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
-              autoScrollLyrics ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+              autoScrollLyrics ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
             }`}
           >
             <div
@@ -185,10 +185,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
         <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
           <div className="pr-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <Sparkles className="w-4 h-4 text-primary-container" />
               <p className="text-xs font-bold text-zinc-100">Nền mờ động theo màu bài hát (Ambient Glow)</p>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+            <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed">
               Hiệu ứng ánh sáng hào quang chuyển động mờ theo tông màu ảnh bìa bài hát đang phát.
             </p>
           </div>
@@ -197,7 +197,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             onClick={toggleAmbientBg}
             title={ambientBgEnabled ? 'Tắt nền studio' : 'Bật nền studio'}
             className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
-              ambientBgEnabled ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+              ambientBgEnabled ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
             }`}
           >
             <div
@@ -221,10 +221,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <ScrollText className="w-3.5 h-3.5 text-cyan-400" />
+                <ScrollText className="w-3.5 h-3.5 text-primary-container" />
                 <span>Kênh Nhật Ký Hoạt Động (Log Channel)</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Ghi lại toàn bộ nhật ký hoạt động của bot vào kênh Discord được chỉ định.
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 value={serverSettings.logChannelId || ''}
                 onChange={(e) => updateSetting('logChannelId', e.target.value || null)}
                 disabled={isSaving}
-                className="flex-1 bg-[#121215] border border-white/[0.08] text-zinc-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 font-medium transition cursor-pointer"
+                className="flex-1 bg-[#121215] border border-white/[0.08] text-on-surface text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
               >
                 <option value="">🚫 Tắt kênh nhật ký</option>
                 {textChannels.map((ch) => (
@@ -260,10 +260,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-cyan-400" />
+                <Hash className="w-3.5 h-3.5 text-primary-container" />
                 <span>Kênh Nhận Lệnh (Music Channel)</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Giới hạn chỉ cho phép sử dụng lệnh bot tại kênh chat được chỉ định.
               </p>
             </div>
@@ -273,7 +273,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 value={serverSettings.musicChannelId || ''}
                 onChange={(e) => updateSetting('musicChannelId', e.target.value || null)}
                 disabled={isSaving}
-                className="flex-1 bg-[#121215] border border-white/[0.08] text-zinc-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 font-medium transition cursor-pointer"
+                className="flex-1 bg-[#121215] border border-white/[0.08] text-on-surface text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
               >
                 <option value="">🌐 Cho phép dùng lệnh ở mọi kênh</option>
                 {textChannels.map((ch) => (
@@ -299,10 +299,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                <Lock className="w-3.5 h-3.5 text-primary-container" />
                 <span>Khóa Phòng Voice Cố Định</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Cố định bot chỉ tham gia và phát nhạc tại phòng Voice được chọn.
               </p>
             </div>
@@ -312,7 +312,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 value={serverSettings.lockedVoiceChannelId || ''}
                 onChange={(e) => updateSetting('lockedVoiceChannelId', e.target.value || null)}
                 disabled={isSaving}
-                className="flex-1 bg-[#121215] border border-white/[0.08] text-zinc-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 font-medium transition cursor-pointer"
+                className="flex-1 bg-[#121215] border border-white/[0.08] text-on-surface text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
               >
                 <option value="">🔊 Cho phép bot vào mọi phòng Voice</option>
                 {voiceChannels.map((vc) => (
@@ -338,10 +338,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-cyan-400" />
+                <Radio className="w-3.5 h-3.5 text-primary-container" />
                 <span>Chế Độ 24/7 (Luôn Trực Tuyến)</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Duy trì kết nối liên tục trong phòng Voice và phát nhạc nền khi hàng chờ trống.
               </p>
             </div>
@@ -354,7 +354,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
               }}
               title={serverSettings.mode247 ? 'Tắt chế độ 24/7' : 'Bật chế độ 24/7'}
               className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
-                serverSettings.mode247 ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+                serverSettings.mode247 ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
               }`}
             >
               <div
@@ -369,10 +369,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <Sparkles className="w-3.5 h-3.5 text-primary-container" />
                 <span>Tự Động Phát Bài Tương Tự (Autoplay)</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Tự động tìm kiếm và nối tiếp các bài hát tương tự khi kết thúc hàng chờ.
               </p>
             </div>
@@ -385,7 +385,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
               }}
               title={serverSettings.autoplay !== false ? 'Tắt Autoplay' : 'Bật Autoplay'}
               className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
-                serverSettings.autoplay !== false ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+                serverSettings.autoplay !== false ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
               }`}
             >
               <div
@@ -400,10 +400,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] flex flex-col gap-2.5 transition">
             <div>
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                <Sliders className="w-3.5 h-3.5 text-primary-container" />
                 <span>Thứ Tự Tầng Gợi Ý Autoplay</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Tích chọn các tầng gợi ý nhạc bạn muốn dùng. Nếu chỉ chọn YouTube Mix, bot sẽ chỉ lấy nhạc từ YouTube Mix.
               </p>
             </div>
@@ -437,22 +437,22 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                     disabled={isSaving}
                     className={`flex items-center justify-between p-2.5 rounded-xl border text-left transition ${
                       isChecked
-                        ? 'bg-cyan-500/10 border-cyan-500/40 text-zinc-100'
-                        : 'bg-[#121215] border-white/[0.06] text-zinc-400 hover:border-white/[0.1]'
+                        ? 'bg-primary-container/10 border-primary-container/40 text-zinc-100'
+                        : 'bg-[#121215] border-white/[0.06] text-on-surface-variant hover:border-white/[0.1]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <span>{layer.badge}</span>
                       <div>
                         <div className="text-xs font-semibold">{layer.label}</div>
-                        <div className="text-[10px] text-zinc-500">{layer.desc}</div>
+                        <div className="text-[10px] text-outline">{layer.desc}</div>
                       </div>
                     </div>
                     <span
                       className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded ${
                         isChecked
-                          ? 'bg-cyan-500 text-white'
-                          : 'bg-zinc-800 text-zinc-500'
+                          ? 'bg-primary-container text-white'
+                          : 'bg-zinc-800 text-outline'
                       }`}
                     >
                       {isChecked ? 'BẬT' : 'TẮT'}
@@ -467,10 +467,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400"/>
+                <Sparkles className="w-3.5 h-3.5 text-primary-container"/>
                 <span>Trợ Lý DJ Gemini AI (Thông Minh)</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Sử dụng AI để phân tích tâm trạng, câu hát và gợi ý bài hát cùng ngôn ngữ & vibe.
               </p>
             </div>
@@ -479,7 +479,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
               onClick={() => updateSetting('useAiAssistant', serverSettings.useAiAssistant === false)}
               title={serverSettings.useAiAssistant !== false ? 'Tắt DJ AI' : 'Bật DJ AI'}
               className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
-                serverSettings.useAiAssistant !== false ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+                serverSettings.useAiAssistant !== false ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
               }`}
             >
               <div
@@ -494,10 +494,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] flex flex-col gap-2.5 transition">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Volume2 className="w-3.5 h-3.5 text-cyan-400"/>
+                <Volume2 className="w-3.5 h-3.5 text-primary-container"/>
                 <span>Âm Lượng Mặc Định Máy Chủ</span>
               </p>
-              <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
+              <span className="font-mono text-xs font-bold text-primary-container bg-primary-container/10 px-2 py-0.5 rounded-md border border-primary-container/20">
                 {serverSettings.defaultVolume || 80}%
               </span>
             </div>
@@ -509,8 +509,8 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                   onClick={() => updateSetting('defaultVolume', vol)}
                   className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-semibold border transition ${
                     Number(serverSettings.defaultVolume) === vol
-                      ? 'bg-cyan-500 text-white border-cyan-500'
-                      : 'bg-[#121215] text-zinc-400 border-white/[0.07] hover:text-zinc-200'
+                      ? 'bg-primary-container text-white border-primary-container'
+                      : 'bg-[#121215] text-on-surface-variant border-white/[0.07] hover:text-on-surface'
                   }`}
                 >
                   {vol}%
@@ -523,16 +523,16 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] flex flex-col gap-2.5 transition">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Disc className="w-3.5 h-3.5 text-cyan-400" />
+                <Disc className="w-3.5 h-3.5 text-primary-container" />
                 <span>Hòa Âm Chuyển Bài (Fade-in)</span>
               </p>
-              <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
+              <span className="font-mono text-xs font-bold text-primary-container bg-primary-container/10 px-2 py-0.5 rounded-md border border-primary-container/20">
                 {serverSettings.crossfadeDuration > 0
                   ? `${serverSettings.crossfadeDuration}s`
                   : 'Tắt (0s)'}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 leading-relaxed">
+            <p className="text-[11px] text-on-surface-variant leading-relaxed">
               Tạo hiệu ứng tăng dần âm lượng khi bắt đầu bài hát mới để chuyển bài mượt mà hơn.
             </p>
 
@@ -544,9 +544,9 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 step="1"
                 value={serverSettings.crossfadeDuration || 0}
                 onChange={(e) => updateSetting('crossfadeDuration', parseInt(e.target.value, 10))}
-                className="flex-1 accent-cyan-500 bg-zinc-800 cursor-pointer h-1.5 rounded-full"
+                className="flex-1 accent-primary-container bg-zinc-800 cursor-pointer h-1.5 rounded-full"
               />
-              <span className="font-mono text-xs text-zinc-500 w-8 text-right">
+              <span className="font-mono text-xs text-outline w-8 text-right">
                 {serverSettings.crossfadeDuration || 0}s
               </span>
             </div>
@@ -556,10 +556,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
+                <Volume2 className="w-3.5 h-3.5 text-primary-container" />
                 <span>Trạng Thái Kênh Voice (Voice Status)</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Hiển thị tên bài hát đang phát trên thanh trạng thái của phòng Voice.
               </p>
             </div>
@@ -568,7 +568,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
               onClick={() => updateSetting('updateVoiceStatus', serverSettings.updateVoiceStatus === false)}
               title={serverSettings.updateVoiceStatus !== false ? 'Tắt trạng thái voice' : 'Bật trạng thái voice'}
               className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
-                serverSettings.updateVoiceStatus !== false ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+                serverSettings.updateVoiceStatus !== false ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
               }`}
             >
               <div
@@ -583,10 +583,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                <Bell className="w-3.5 h-3.5 text-cyan-400" />
+                <Bell className="w-3.5 h-3.5 text-primary-container" />
                 <span>Thông Báo Bài Hát Mới</span>
               </p>
-              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                 Gửi tin nhắn thông báo kèm nút điều khiển mỗi khi chuyển sang bài hát tiếp theo.
               </p>
             </div>
@@ -595,7 +595,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
               onClick={() => updateSetting('announceSongs', serverSettings.announceSongs === false)}
               title={serverSettings.announceSongs !== false ? 'Tắt thông báo bài hát' : 'Bật thông báo bài hát'}
               className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
-                serverSettings.announceSongs !== false ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+                serverSettings.announceSongs !== false ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
               }`}
             >
               <div
@@ -611,10 +611,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
-                  <Music className="w-3.5 h-3.5 text-cyan-400" />
+                  <Music className="w-3.5 h-3.5 text-primary-container" />
                   <span>Chế Độ DJ (DJ Only)</span>
                 </p>
-                <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+                <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
                   Chỉ cho phép Quản trị viên và thành viên có vai trò DJ điều khiển nhạc.
                 </p>
               </div>
@@ -622,7 +622,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
               <button
                 onClick={() => updateSetting('djOnly', !serverSettings.djOnly)}
                 className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 ${
-                  serverSettings.djOnly ? 'bg-cyan-500 shadow-md shadow-cyan-500/25' : 'bg-zinc-800'
+                  serverSettings.djOnly ? 'bg-primary-container shadow-md shadow-primary-container/25' : 'bg-zinc-800'
                 }`}
               >
                 <div
@@ -635,12 +635,12 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
 
             {serverSettings.djOnly && (
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-white/[0.06] animate-in fade-in">
-                <span className="text-xs text-zinc-300 font-medium">Vai trò DJ:</span>
+                <span className="text-xs text-on-surface font-medium">Vai trò DJ:</span>
                 <select
                   value={serverSettings.djRoleId || ''}
                   onChange={(e) => updateSetting('djRoleId', e.target.value || null)}
                   disabled={isSaving}
-                  className="flex-1 bg-[#121215] border border-white/[0.08] text-zinc-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-cyan-500 font-medium transition cursor-pointer"
+                  className="flex-1 bg-[#121215] border border-white/[0.08] text-on-surface text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
                 >
                   <option value="">🏷️ Chọn vai trò Discord...</option>
                   {roles.map((r) => (

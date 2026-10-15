@@ -28,7 +28,7 @@ export default function LofiConfirmModal({ isOpen, onClose, onConfirm, queueCoun
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-100 p-1 rounded-lg hover:bg-white/[0.06] transition"
+          className="absolute top-4 right-4 text-on-surface-variant hover:text-zinc-100 p-1 rounded-lg hover:bg-white/[0.06] transition"
           aria-label="Đóng"
         >
           <X className="w-4 h-4" />
@@ -45,7 +45,7 @@ export default function LofiConfirmModal({ isOpen, onClose, onConfirm, queueCoun
         </h3>
 
         {/* Description */}
-        <p className="text-xs text-zinc-400 leading-relaxed mt-2 mb-6">
+        <p className="text-xs text-on-surface-variant leading-relaxed mt-2 mb-6">
           {queueCount > 0
             ? `Bot sẽ tạm dừng bài hát hiện tại và phát nhạc Lofi thư giãn. Toàn bộ ${queueCount} bài trong hàng chờ vẫn được lưu giữ nguyên vẹn để tiếp tục nghe sau!`
             : 'Bot sẽ chuyển sang phát nhạc Lofi 24/7 thư giãn không lời. Bạn có thể thêm bài hát mới hoặc bấm tiếp tục phát bất cứ lúc nào!'}
@@ -55,7 +55,7 @@ export default function LofiConfirmModal({ isOpen, onClose, onConfirm, queueCoun
         <div className="flex gap-2.5 w-full">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 px-4 rounded-xl bg-[#18181C] hover:bg-[#222228] border border-white/[0.08] text-zinc-300 text-xs font-semibold transition"
+            className="flex-1 py-2.5 px-4 rounded-xl bg-[#18181C] hover:bg-[#222228] border border-white/[0.08] text-on-surface text-xs font-semibold transition"
           >
             Hủy Bỏ
           </button>
@@ -64,7 +64,7 @@ export default function LofiConfirmModal({ isOpen, onClose, onConfirm, queueCoun
               onClose();
               onConfirm();
             }}
-            className="flex-1 py-2.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20 transition active:scale-95"
+            className="flex-1 py-2.5 px-4 rounded-xl bg-primary-container hover:bg-cyan-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-primary-container/20 transition active:scale-95"
           >
             <Check className="w-4 h-4 stroke-[2.5]" />
             <span>Chuyển Lofi</span>
