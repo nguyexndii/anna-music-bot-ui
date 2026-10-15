@@ -160,25 +160,48 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#e8c977]/5 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#ef7864]/5 rounded-full blur-[140px] pointer-events-none" />
 
+      {/* Top Header Logo on Auth */}
+      <div className="w-full max-w-4xl flex items-center justify-between mb-4 px-2 z-10 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#e8c977]/30 shadow-md">
+            <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = '/logo.jpg'; }} />
+          </div>
+          <span className="font-brand text-xl font-bold text-[#e8c977]">
+            anna <span className="font-sans font-normal text-sm text-[#ef7864]">music</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1 bg-[#16181b] rounded-full border border-white/5 text-xs font-mono text-[#aba395]">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>LOSSLESS 384KBPS • OPUS</span>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 w-full max-w-4xl shadow-2xl rounded-2xl overflow-hidden bg-[#16181b] border border-white/5 relative z-10">
         
-        {/* CỘT TRÁI: Khối thương hiệu Audiophile Lounge */}
+        {/* CỘT TRÁI: Khối thương hiệu Audiophile Lounge với Logo Lớn */}
         <div className="lg:col-span-5 flex flex-col justify-between p-6 sm:p-8 bg-[#0c0e11] border-b lg:border-b-0 lg:border-r border-white/5 relative overflow-hidden">
           <div className="relative z-10 flex flex-col gap-4">
-            {/* Logo Glyph */}
+            
+            {/* Logo Glyph thực tế & Sóng nhạc */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-[#1c1e22] flex items-center justify-center shadow-md border border-white/10">
-                  <Disc3 size={24} className="text-[#e8c977]" />
+                <div className="w-16 h-16 rounded-2xl bg-[#1c1e22] overflow-hidden p-1 shadow-[0_0_25px_rgba(232,201,119,0.2)] border border-[#e8c977]/30 flex items-center justify-center shrink-0">
+                  <img
+                    src="/logo.gif"
+                    alt="Anna Music Logo"
+                    className="w-full h-full object-cover rounded-xl"
+                    onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+                  />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono text-[9px] tracking-widest text-[#7f786c] uppercase">Boutique Soundbot</span>
-                  <span className="font-mono text-xs text-[#9bfcc0] flex items-center gap-1.5 font-bold">
+                  <span className="font-mono text-[10px] tracking-widest text-[#7f786c] uppercase">Boutique Soundbot</span>
+                  <span className="font-mono text-xs text-[#9bfcc0] flex items-center gap-1.5 font-bold mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#9bfcc0] inline-block animate-pulse"></span>
                     Lossless 384kbps
                   </span>
                 </div>
               </div>
+              
               {/* 5 Equalizer Wave Bars */}
               <div className="flex items-end gap-1 h-6 px-2.5 py-1 bg-[#1c1e22] rounded-lg border border-white/5">
                 <span className="w-1 bg-[#e8c977] rounded-full eq-bar-1" />
@@ -192,13 +215,31 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
             {/* Brand Title */}
             <div className="pt-2">
               <div className="flex items-baseline gap-1">
-                <span className="font-brand text-3xl font-bold text-[#e8c977] leading-none">an</span>
-                <span className="font-brand text-3xl font-bold text-[#f5a192] leading-none">na</span>
-                <span className="font-sans text-xs font-semibold text-[#aba395] ml-2 tracking-widest uppercase">Vinyl Lounge</span>
+                <span className="font-brand text-4xl font-bold text-[#e8c977] leading-none">an</span>
+                <span className="font-brand text-4xl font-bold text-[#f5a192] leading-none">na</span>
+                <span className="font-mono text-[11px] font-semibold text-[#aba395] ml-2 tracking-widest uppercase">MUSIC WEB PLAYER</span>
               </div>
-              <p className="text-xs text-[#aba395] mt-2 leading-relaxed font-sans">
-                Không gian điều khiển âm nhạc Discord cao cấp, kết hợp cơ cấu đĩa than cơ học và âm thanh phòng thu trung thực.
+              <p className="text-xs text-[#aba395] mt-2.5 leading-relaxed font-sans">
+                Trải nghiệm thính phòng kỹ thuật số trên Discord. Không gian đĩa than cổ điển kết hợp chất âm số tinh khiết và âm thanh phòng thu trung thực.
               </p>
+            </div>
+
+            {/* Mini Feature Badges */}
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <div className="p-2.5 bg-[#141619] rounded-xl flex items-center gap-2 border border-white/5">
+                <Sparkles size={16} className="text-[#e8c977] shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="font-mono text-[9px] font-bold text-[#e2e2e6] uppercase tracking-wider">KHÔNG GIẬT LAG</span>
+                  <span className="text-[10px] text-[#aba395] truncate">Đệm âm thanh 0s</span>
+                </div>
+              </div>
+              <div className="p-2.5 bg-[#141619] rounded-xl flex items-center gap-2 border border-white/5">
+                <Radio size={16} className="text-[#9bfcc0] shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="font-mono text-[9px] font-bold text-[#e2e2e6] uppercase tracking-wider">HI-RES AUDIO</span>
+                  <span className="text-[10px] text-[#aba395] truncate">24-bit / 96kHz</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -215,8 +256,11 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
         <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-10 bg-[#16181b]">
           <form onSubmit={submit} className="w-full max-w-sm mx-auto flex flex-col gap-4">
             <div className="text-center mb-1">
-              <h2 className="text-xl font-bold text-[#e2e2e6] font-sans">Xác Thực Phiên Phát Nhạc</h2>
-              <p className="font-mono text-xs text-[#aba395] mt-1">Nhập 6 chữ số từ Discord bot</p>
+              <span className="px-2.5 py-0.5 bg-[#1c1e22] rounded text-[#e8c977] font-mono text-[10px] uppercase tracking-wider border border-white/5 inline-block mb-2">
+                KẾT NỐI TÀI KHOẢN
+              </span>
+              <h2 className="text-2xl font-bold text-[#e2e2e6] font-sans">Nhập mã PIN</h2>
+              <p className="font-mono text-xs text-[#aba395] mt-1">Dùng lệnh <code className="text-[#e8c977] font-bold">/web</code> trong Discord để lấy mã 6 số</p>
             </div>
 
             <div>
@@ -251,7 +295,7 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
                   <span>ĐANG XÁC THỰC KẾT NỐI...</span>
                 </>
               ) : (
-                <span>MỞ BẢNG ĐIỀU KHIỂN</span>
+                <span>KẾT NỐI VÀO PHÒNG</span>
               )}
             </button>
 
@@ -762,21 +806,35 @@ export default function App() {
         {/* ── 2. MAIN CENTER AREA (TOP HEADER + WORKSPACE) ─────────────────── */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#111316]">
           
-          {/* Top Fixed Header Bar (48px) */}
-          <header className="h-12 border-b border-white/5 px-4 flex items-center justify-between gap-3 shrink-0 bg-[#0c0e11]/80 backdrop-blur-md z-10">
-            {/* Live Search Quick Trigger Input */}
-            <div
-              onClick={() => setActiveTab('search')}
-              className="flex items-center gap-2.5 px-3 py-1.5 bg-[#141619] border border-white/5 hover:border-[#e8c977]/40 rounded-xl cursor-pointer w-full max-w-sm transition-all"
-            >
-              <Search size={14} className="text-[#aba395] shrink-0" />
-              <span className="text-xs text-[#7f786c] truncate">Tìm bài hát, nghệ sĩ hoặc dán link...</span>
-              <kbd className="hidden sm:inline font-mono text-[9px] text-[#7f786c] bg-[#1c1e22] px-1.5 py-0.5 rounded ml-auto">
-                /
-              </kbd>
+          {/* Top Fixed Header Bar (48px) - Chuẩn Stitch Zero Scroll */}
+          <header className="h-12 border-b border-white/5 px-4 flex items-center justify-between gap-3 shrink-0 bg-[#0c0e11]/80 backdrop-blur-md z-10 select-none">
+            {/* Header Left: Current Context Breadcrumb */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                onClick={() => setActiveTab('search')}
+                className="flex items-center gap-2 cursor-pointer group"
+                title="Anna Music - Bấm để về trang chính"
+              >
+                <div className="w-7 h-7 rounded-lg overflow-hidden border border-[#e8c977]/30 shrink-0 group-hover:border-[#e8c977] transition-colors">
+                  <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = '/logo.jpg'; }} />
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-brand text-lg font-bold text-[#e8c977] leading-none">an</span>
+                  <span className="font-brand text-lg font-bold text-[#f5a192] leading-none">na</span>
+                </div>
+              </div>
+
+              {/* Status Pill */}
+              <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#16181b] border border-white/5 text-xs text-[#aba395]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-mono text-[11px] truncate">
+                  {player?.voiceChannel?.name || 'Phòng Chờ'}
+                </span>
+                <span className="font-mono text-[9px] text-[#7f786c] uppercase">• 384KBPS</span>
+              </div>
             </div>
 
-            {/* Header Right Actions */}
+            {/* Header Right: Status Chips, Karaoke & Top-Right Brand Logo Button */}
             <div className="flex items-center gap-2.5 shrink-0">
               {/* Hi-Fi Lossless Chip */}
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#16181b] border border-white/5 shadow-sm">
@@ -785,21 +843,35 @@ export default function App() {
               </div>
 
               {/* Discord Voice Room Listener Avatars */}
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#16181b] border border-white/5">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#16181b] border border-white/5" title="Số người đang nghe trong phòng Voice">
                 <Headphones size={13} className="text-[#aba395]" />
                 <span className="font-mono text-[11px] text-[#e2e2e6] font-semibold">
-                  {player?.voiceChannel?.humanMemberCount ?? player?.voiceChannel?.memberCount ?? 1}
+                  {player?.voiceChannel?.humanMemberCount ?? player?.voiceChannel?.memberCount ?? 1} Nghe
                 </span>
               </div>
 
               {/* Karaoke Fullscreen Launcher Button */}
               <button
                 onClick={() => setIsKaraokeOpen(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#e8c977]/10 hover:bg-[#e8c977]/20 border border-[#e8c977]/30 text-[#e8c977] text-xs font-mono font-bold transition-all"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#e8c977]/10 hover:bg-[#e8c977]/20 border border-[#e8c977]/30 text-[#e8c977] text-xs font-mono font-bold transition-all active:scale-95 shadow-sm"
                 title="Mở toàn màn hình Karaoke"
               >
                 <Maximize2 size={13} />
                 <span className="hidden md:inline">KARAOKE</span>
+              </button>
+
+              {/* NÚT LOGO GÓC TRÊN BÊN PHẢI (Click quay về trang chính) */}
+              <button
+                onClick={() => setActiveTab('search')}
+                className="w-8 h-8 rounded-full overflow-hidden border border-[#e8c977]/40 hover:border-[#ffe6a9] shadow-[0_0_12px_rgba(232,201,119,0.35)] hover:scale-105 active:scale-95 transition-all shrink-0 ml-1 group relative ring-1 ring-[#e8c977]/20"
+                title="Logo Anna Music • Nhấn để quay về trang chính"
+              >
+                <img
+                  src="/logo.gif"
+                  alt="Anna Music Logo"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+                />
               </button>
             </div>
           </header>

@@ -195,18 +195,18 @@ export default function BottomMiniPlayer({
   const isSwitchingLofi = pendingAction === 'toggleLofiMode' || pendingAction === 'switchTo247';
 
   return (
-    <footer className="h-[68px] bg-surface-container-lowest border-t border-white/5 px-4 flex items-center justify-between gap-4 select-none shrink-0 z-30 shadow-2xl">
+    <footer className="h-[68px] bg-[#0c0e11] border-t border-white/5 px-4 flex items-center justify-between gap-4 select-none shrink-0 z-30 shadow-2xl">
       
       {/* Left: Mini Artwork + Track Meta */}
       <div className="flex items-center gap-3 w-[260px] min-w-0">
         <div
           onClick={() => onOpenKaraoke?.()}
-          className="w-11 h-11 rounded-lg bg-surface-container border border-white/5 overflow-hidden shrink-0 relative group cursor-pointer"
+          className="w-11 h-11 rounded-lg bg-[#1c1e22] border border-white/5 overflow-hidden shrink-0 relative group cursor-pointer shadow-sm"
           title="Mở toàn màn hình Karaoke"
         >
           <img
             alt="Thumbnail"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             src={thumbUrl}
             onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
           />
@@ -215,11 +215,11 @@ export default function BottomMiniPlayer({
           </div>
         </div>
 
-        <div className="flex flex-col min-w-0">
+        <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <span
               onClick={() => onOpenKaraoke?.()}
-              className="text-xs font-bold text-on-surface truncate cursor-pointer hover:text-primary-container transition-colors"
+              className="text-xs font-bold text-[#e8c977] truncate cursor-pointer hover:underline transition-all"
               title={current?.title}
             >
               {current?.title || (isLofi ? 'Anna Radio 24/7' : 'Chưa có bài hát')}
@@ -227,28 +227,28 @@ export default function BottomMiniPlayer({
             {!isLofi && current && (
               <button
                 onClick={handleFavoriteClick}
-                className="text-secondary shrink-0 hover:scale-110 active:scale-95 transition-transform"
+                className="text-[#ef7864] shrink-0 hover:scale-110 active:scale-95 transition-transform"
                 title={isFav ? 'Bỏ thích' : 'Yêu thích'}
               >
                 <Heart size={14} fill={isFav ? 'currentColor' : 'none'} className={heartPopping ? 'heart-pop-anim' : ''} />
               </button>
             )}
           </div>
-          <span className="text-[11px] text-outline truncate">
+          <span className="text-[11px] text-[#aba395] truncate">
             {current?.artist || (isLofi ? 'Phát nền thư giãn' : 'Anna Music')}
           </span>
         </div>
       </div>
 
       {/* Center: Playback Transport & Progress Scrubber */}
-      <div className="flex-1 max-w-xl flex flex-col items-center gap-1">
+      <div className="flex-1 max-w-lg flex flex-col items-center gap-1">
         <div className="flex items-center gap-4">
           {/* Shuffle */}
           <button
             onClick={() => onAction('shuffle')}
             disabled={!isPlayable || Boolean(pendingAction)}
-            className={`text-outline hover:text-on-surface transition-colors p-1 ${
-              player?.shuffle ? 'text-primary-container font-bold' : ''
+            className={`text-[#aba395] hover:text-[#e2e2e6] transition-colors p-1 ${
+              player?.shuffle ? 'text-[#e8c977] font-bold' : ''
             }`}
             title="Xáo trộn hàng chờ"
           >
@@ -259,21 +259,21 @@ export default function BottomMiniPlayer({
           <button
             onClick={() => onAction('previous')}
             disabled={!isPlayable || Boolean(pendingAction)}
-            className="text-outline hover:text-on-surface transition-colors p-1"
+            className="text-[#aba395] hover:text-[#e2e2e6] transition-colors p-1"
             title="Bài trước"
           >
-            {pendingAction === 'previous' ? <Loader2 size={16} className="animate-spin text-primary-container" /> : <SkipBack size={17} fill="currentColor" />}
+            {pendingAction === 'previous' ? <Loader2 size={16} className="animate-spin text-[#e8c977]" /> : <SkipBack size={17} fill="currentColor" />}
           </button>
 
           {/* Play/Pause Gold Circular Button */}
           <button
             onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
             disabled={!isPlayable && !isLofi}
-            className="w-8 h-8 rounded-full bg-primary-container hover:bg-primary text-on-primary font-bold flex items-center justify-center shadow hover:scale-105 active:scale-95 transition-all"
+            className="w-8 h-8 rounded-full bg-[#e8c977] hover:bg-[#ffe6a9] text-[#111316] font-bold flex items-center justify-center shadow hover:scale-105 active:scale-95 transition-all"
             title={isPlaying ? 'Tạm dừng (Space)' : 'Phát (Space)'}
           >
             {pendingAction === 'pause' || pendingAction === 'resume' ? (
-              <Loader2 size={16} className="animate-spin text-on-primary" />
+              <Loader2 size={16} className="animate-spin text-[#111316]" />
             ) : isPlaying ? (
               <Pause size={16} fill="currentColor" />
             ) : (
@@ -285,34 +285,34 @@ export default function BottomMiniPlayer({
           <button
             onClick={() => onAction('skip')}
             disabled={!isPlayable || Boolean(pendingAction)}
-            className="text-outline hover:text-on-surface transition-colors p-1"
+            className="text-[#aba395] hover:text-[#e2e2e6] transition-colors p-1"
             title="Bài kế tiếp"
           >
-            {pendingAction === 'skip' ? <Loader2 size={16} className="animate-spin text-primary-container" /> : <SkipForward size={17} fill="currentColor" />}
+            {pendingAction === 'skip' ? <Loader2 size={16} className="animate-spin text-[#e8c977]" /> : <SkipForward size={17} fill="currentColor" />}
           </button>
 
           {/* Loop */}
           <button
             onClick={() => !isLofi && onAction('loop')}
             disabled={!isPlayable || Boolean(pendingAction) || isLofi}
-            className={`text-outline hover:text-on-surface relative transition-colors p-1 ${
-              loopMode !== 'off' ? 'text-primary-container font-bold' : ''
+            className={`text-[#aba395] hover:text-[#e2e2e6] relative transition-colors p-1 ${
+              loopMode !== 'off' ? 'text-[#e8c977] font-bold' : ''
             }`}
             title={isLofi ? 'Chế độ Lofi 24/7 phát radio' : `Lặp lại: ${loopMode === 'song' ? '1 bài' : loopMode === 'queue' ? 'Hàng chờ' : 'Tắt'}`}
           >
             <Repeat size={15} />
             {loopMode === 'song' && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary-container text-on-primary text-[7px] font-bold flex items-center justify-center">1</span>
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#e8c977] text-[#111316] text-[7px] font-bold flex items-center justify-center">1</span>
             )}
             {loopMode === 'queue' && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-secondary text-white text-[7px] font-bold flex items-center justify-center">∞</span>
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#ef7864] text-white text-[7px] font-bold flex items-center justify-center">∞</span>
             )}
           </button>
         </div>
 
         {/* Scrubber Bar */}
-        <div className="w-full flex items-center gap-2 font-mono text-[10px] text-outline">
-          <span className="w-8 text-right text-primary-container font-semibold">{formatTime(currentDisplayMs)}</span>
+        <div className="w-full flex items-center gap-2 font-mono text-[10px] text-[#aba395]">
+          <span className="w-8 text-right text-[#e8c977] font-semibold">{formatTime(currentDisplayMs)}</span>
           <div
             ref={progressBarRef}
             onPointerDown={handlePointerDown}
@@ -327,14 +327,14 @@ export default function BottomMiniPlayer({
           >
             {hoverInfo && (
               <div
-                className="absolute -top-5 -translate-x-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest border border-white/10 text-[9px] font-mono text-primary font-bold shadow pointer-events-none"
+                className="absolute -top-5 -translate-x-1/2 px-1.5 py-0.5 rounded bg-[#2e3137] border border-white/10 text-[9px] font-mono text-[#ffe6a9] font-bold shadow pointer-events-none"
                 style={{ left: `${hoverInfo.percent}%` }}
               >
                 {hoverInfo.time}
               </div>
             )}
-            <div className="w-full h-1 bg-surface-container rounded-full overflow-hidden group-hover:h-1.5 transition-all">
-              <div className="h-full bg-primary-container rounded-full" style={{ width: `${percent}%` }} />
+            <div className="w-full h-1 bg-[#1c1e22] rounded-full overflow-hidden group-hover:h-1.5 transition-all">
+              <div className="h-full bg-[#e8c977] rounded-full" style={{ width: `${percent}%` }} />
             </div>
           </div>
           <span className="w-8">{current?.duration || '0:00'}</span>
@@ -342,7 +342,7 @@ export default function BottomMiniPlayer({
       </div>
 
       {/* Right: Quick Mode Switch + Lyrics + Volume */}
-      <div className="flex items-center justify-end gap-3 w-[260px]">
+      <div className="flex items-center justify-end gap-3 w-[260px] shrink-0">
         {/* Lofi Radio pill */}
         <button
           onClick={() => onAction('toggleLofiMode')}
@@ -350,7 +350,7 @@ export default function BottomMiniPlayer({
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-mono text-[10px] font-bold tracking-wider transition-all ${
             isLofi
               ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-              : 'bg-surface-container border-white/5 text-outline hover:text-primary-container'
+              : 'bg-[#1c1e22] border-white/5 text-[#aba395] hover:text-[#e8c977]'
           }`}
           title="Bật/Tắt chế độ Lofi thư giãn 24/7"
         >
@@ -369,8 +369,8 @@ export default function BottomMiniPlayer({
           }}
           className={`p-1.5 rounded-lg border transition-all ${
             activeTab === 'lyrics'
-              ? 'bg-primary-container/15 border-primary-container/40 text-primary-container'
-              : 'border-white/5 text-outline hover:text-on-surface hover:bg-surface-container'
+              ? 'bg-[#e8c977]/15 border-[#e8c977]/40 text-[#e8c977]'
+              : 'border-white/5 text-[#aba395] hover:text-[#e2e2e6] hover:bg-[#1c1e22]'
           }`}
           title="Mở lời bài hát Karaoke"
         >
@@ -379,8 +379,8 @@ export default function BottomMiniPlayer({
 
         {/* Volume controls */}
         <div className="flex items-center gap-1.5">
-          <button onClick={toggleMute} className="text-outline hover:text-on-surface p-1" title={localVolume === 0 ? 'Bật âm' : 'Tắt âm'}>
-            {localVolume === 0 ? <VolumeX size={15} className="text-secondary" /> : <Volume2 size={15} />}
+          <button onClick={toggleMute} className="text-[#aba395] hover:text-[#e2e2e6] p-1" title={localVolume === 0 ? 'Bật âm' : 'Tắt âm'}>
+            {localVolume === 0 ? <VolumeX size={15} className="text-[#ef7864]" /> : <Volume2 size={15} />}
           </button>
           <input
             type="range"
@@ -396,8 +396,9 @@ export default function BottomMiniPlayer({
                 onAction('volume', v);
               }, 300);
             }}
-            className="w-16 h-1 bg-surface-container rounded-full appearance-none cursor-pointer accent-[#e8c977]"
+            className="w-16 h-1 bg-[#1c1e22] rounded-full appearance-none cursor-pointer accent-[#e8c977]"
           />
+          <span className="font-mono text-[9px] text-[#aba395] w-6 text-right">{localVolume}%</span>
         </div>
       </div>
 

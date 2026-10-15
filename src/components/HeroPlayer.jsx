@@ -319,46 +319,49 @@ export default function HeroPlayer({
 
   // ───────────────────────────────────────────────────────────────────────────
   // DESKTOP FULL VIEW: MÂM ĐĨA THAN VINYL CỔ ĐIỂN CHÂN THỰC (TONEARM + CONIC GROOVES)
+  // Chuẩn Stitch Zero-Scroll 100vh, vừa khít tuyệt đối mọi độ phân giải
   // ───────────────────────────────────────────────────────────────────────────
   return (
-    <aside className="w-full h-full bg-surface-container-low border-l border-white/5 p-3 flex flex-col justify-between select-none overflow-y-auto no-scrollbar z-20">
+    <aside className="w-full h-full bg-[#16181b] border-l border-white/5 p-3 flex flex-col justify-between select-none overflow-hidden z-20">
       
       {/* 1. Top Status Header */}
-      <div className="flex items-center justify-between pb-1 shrink-0">
+      <div className="flex items-center justify-between pb-1 shrink-0 h-6">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
-          <span className="font-mono text-[10px] font-bold text-primary tracking-widest uppercase">
+          <span className="w-2 h-2 rounded-full bg-[#e8c977] animate-pulse"></span>
+          <span className="font-mono text-[10px] font-bold text-[#ffe6a9] tracking-widest uppercase">
             {isLofi ? 'LOFI RADIO 24/7' : 'ĐANG PHÁT HI-FI'}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="flex -space-x-1.5 items-center">
-            {player?.voiceChannel?.members?.slice(0, 3).map((m, idx) => (
-              <img
-                key={idx}
-                src={m.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
-                alt={m.name}
-                title={m.name}
-                className="w-5 h-5 rounded-full object-cover ring-1 ring-surface"
-              />
-            )) || (
-              <span className="w-5 h-5 rounded-full bg-primary-container text-on-primary font-bold text-[9px] flex items-center justify-center ring-1 ring-surface">A</span>
+            {player?.voiceChannel?.members && player.voiceChannel.members.length > 0 ? (
+              player.voiceChannel.members.slice(0, 3).map((m, idx) => (
+                <img
+                  key={idx}
+                  src={m.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                  alt={m.name || 'Member'}
+                  title={m.name || 'Member'}
+                  className="w-5 h-5 rounded-full object-cover ring-1 ring-[#111316]"
+                />
+              ))
+            ) : (
+              <span className="w-5 h-5 rounded-full bg-[#e8c977] text-[#111316] font-bold text-[9px] flex items-center justify-center ring-1 ring-[#111316]">A</span>
             )}
           </div>
-          <span className="font-mono text-[9px] text-primary-container font-semibold">
+          <span className="font-mono text-[9px] text-[#e8c977] font-semibold">
             {player?.voiceChannel?.memberCount || 1} V-ROOM
           </span>
         </div>
       </div>
 
-      {/* 2. MÂM ĐĨA THAN VINYL CỔ ĐIỂN CHÂN THỰC (TONEARM + CONIC SHEEN) */}
-      <div className="relative w-full h-[185px] bg-[#0c0e11] rounded-xl border border-white/5 flex items-center justify-center overflow-hidden shrink-0 shadow-inner my-1">
+      {/* 2. MÂM ĐĨA THAN VINYL CỔ ĐIỂN CHÂN THỰC (TONEARM + CONIC SHEEN) - Tối ưu 155px */}
+      <div className="relative w-full h-[155px] bg-[#0c0e11] rounded-xl border border-white/5 flex items-center justify-center overflow-hidden shrink-0 shadow-inner my-0.5">
         {/* Radial Platter Shadow */}
-        <div className="w-[172px] h-[172px] rounded-full p-[4px] bg-[#14161a] shadow-[0_10px_25px_rgba(0,0,0,0.9)] flex items-center justify-center border border-[#2b2d35]/50 relative">
+        <div className="w-[144px] h-[144px] rounded-full p-[3px] bg-[#14161a] shadow-[0_8px_20px_rgba(0,0,0,0.9)] flex items-center justify-center border border-[#2b2d35]/50 relative">
           
           {/* The Rotating Vinyl */}
           <div
-            className={`relative w-[164px] h-[164px] rounded-full flex items-center justify-center shadow-2xl cursor-pointer ${
+            className={`relative w-[138px] h-[138px] rounded-full flex items-center justify-center shadow-2xl cursor-pointer ${
               isPlaying ? 'spinning-vinyl' : 'spinning-vinyl-paused'
             }`}
             onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
@@ -374,15 +377,15 @@ export default function HeroPlayer({
                 background: 'conic-gradient(from 40deg, transparent 0deg, rgba(255,255,255,0.06) 30deg, rgba(255,255,255,0.2) 55deg, rgba(255,255,255,0.04) 80deg, transparent 110deg, transparent 180deg, rgba(255,255,255,0.06) 210deg, rgba(255,255,255,0.2) 235deg, rgba(255,255,255,0.04) 260deg, transparent 290deg)'
               }}
             />
-            <div className="absolute inset-[15px] rounded-full border border-black/30 pointer-events-none"></div>
-            <div className="absolute inset-[32px] rounded-full border border-black/40 pointer-events-none"></div>
+            <div className="absolute inset-[12px] rounded-full border border-black/30 pointer-events-none"></div>
+            <div className="absolute inset-[26px] rounded-full border border-black/40 pointer-events-none"></div>
 
             {/* Center Vintage Round Label (Champagne tone) */}
-            <div className="relative w-[64px] h-[64px] rounded-full bg-[#e8c977] p-[2px] shadow-md flex items-center justify-center select-none overflow-hidden border border-[#9b7829]">
-              <div className="w-full h-full rounded-full flex flex-col items-center justify-between py-1 bg-gradient-to-b from-[#f5df9d] via-[#e8c977] to-[#cfab52] text-[#332503]">
-                <span className="text-[5.5px] font-bold font-mono tracking-widest uppercase">ANNA VINYL</span>
+            <div className="relative w-[54px] h-[54px] rounded-full bg-[#e8c977] p-[2px] shadow-md flex items-center justify-center select-none overflow-hidden border border-[#9b7829]">
+              <div className="w-full h-full rounded-full flex flex-col items-center justify-between py-0.5 bg-gradient-to-b from-[#f5df9d] via-[#e8c977] to-[#cfab52] text-[#332503]">
+                <span className="text-[5px] font-bold font-mono tracking-widest uppercase">ANNA VINYL</span>
                 {/* Mini artwork center */}
-                <div className="w-6 h-6 rounded-full overflow-hidden border border-[#584400]/40 shadow-inner">
+                <div className="w-5 h-5 rounded-full overflow-hidden border border-[#584400]/40 shadow-inner">
                   <img
                     alt="Album Artwork"
                     className="w-full h-full object-cover"
@@ -390,27 +393,27 @@ export default function HeroPlayer({
                     onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
                   />
                 </div>
-                <span className="text-[5px] font-mono tracking-wider font-semibold">33⅓ RPM</span>
+                <span className="text-[4.5px] font-mono tracking-wider font-semibold">33⅓ RPM</span>
               </div>
 
               {/* Spindle hole center */}
-              <div className="absolute w-3 h-3 rounded-full bg-[#181a1f] border border-[#d8dce6] flex items-center justify-center">
+              <div className="absolute w-2.5 h-2.5 rounded-full bg-[#181a1f] border border-[#d8dce6] flex items-center justify-center">
                 <div className="w-1 h-1 rounded-full bg-[#0a0c0e]"></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Cần Kim Tonearm Chữ S Đồng Thau Chân Thực (Từ Nhánh Main) */}
+        {/* Cần Kim Tonearm Chữ S Đồng Thau Chân Thực */}
         <div
-          className="absolute top-1 right-2 z-20 pointer-events-none select-none origin-top-right"
+          className="absolute top-0.5 right-1.5 z-20 pointer-events-none select-none origin-top-right"
           style={{
             transform: `rotate(${tonearmAngle}deg)`,
             transition: tonearmTransition,
           }}
           title={isPlaying ? `Kim đĩa than: ${Math.round(percent)}%` : 'Kim đang ở vị trí nghỉ'}
         >
-          <svg className="w-[84px] h-[150px]" viewBox="0 0 76 210" fill="none">
+          <svg className="w-[74px] h-[135px]" viewBox="0 0 76 210" fill="none">
             <defs>
               <linearGradient id="vintageBrassDeck" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="#fffaea" />
@@ -459,25 +462,25 @@ export default function HeroPlayer({
         </div>
 
         {/* Direct Drive Tag */}
-        <div className="absolute bottom-1.5 right-2 px-1.5 py-0.5 rounded bg-black/60 border border-white/5 font-mono text-[8px] text-primary-container tracking-wider flex items-center gap-1">
+        <div className="absolute bottom-1 right-2 px-1.5 py-0.5 rounded bg-black/60 border border-white/5 font-mono text-[8px] text-[#e8c977] tracking-wider flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>DIRECT DRIVE</span>
         </div>
       </div>
 
-      {/* 3. Track Information */}
-      <div className="flex flex-col gap-0.5 shrink-0 px-0.5">
+      {/* 3. Track Information - Luôn hiển thị tên bài & ca sĩ rõ ràng */}
+      <div className="flex flex-col gap-0.5 shrink-0 px-0.5 mt-0.5">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[9px] text-outline uppercase tracking-wider">
+          <span className="font-mono text-[9px] text-[#aba395] uppercase tracking-wider truncate">
             {getSourceLabel(current)}
           </span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             {current?.url && (
               <a
                 href={current.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-outline hover:text-on-surface transition-colors p-1"
+                className="text-[#aba395] hover:text-[#e2e2e6] transition-colors p-1"
                 title="Mở link bài hát gốc"
               >
                 <ExternalLink size={13} />
@@ -486,7 +489,7 @@ export default function HeroPlayer({
             {!isLofi && current && (
               <button
                 onClick={handleFavoriteClick}
-                className="text-secondary hover:scale-110 active:scale-95 transition-transform p-1"
+                className="text-[#ef7864] hover:scale-110 active:scale-95 transition-transform p-1"
                 title={isFav ? 'Bỏ thích' : 'Thêm vào yêu thích'}
               >
                 <Heart size={16} fill={isFav ? 'currentColor' : 'none'} className={heartPopping ? 'heart-pop-anim' : ''} />
@@ -494,13 +497,13 @@ export default function HeroPlayer({
             )}
           </div>
         </div>
-        <h3 className="text-sm font-bold text-on-surface truncate leading-tight mt-0.5" title={current?.title}>
+        <h3 className="text-sm font-bold text-[#e2e2e6] truncate leading-tight mt-0.5" title={current?.title}>
           {current?.title || (isLofi ? '24/7 Lofi Thư Giãn' : 'Chưa có bài hát đang phát')}
         </h3>
-        <p className="text-xs text-primary-container truncate font-medium">
+        <p className="text-xs text-[#e8c977] truncate font-medium">
           {current?.artist || (isLofi ? 'Anna Radio' : 'Anna Music')}
           {current?.requestedBy && !isLofi && (
-            <span className="text-outline text-[11px] ml-1.5 font-normal">
+            <span className="text-[#aba395] text-[11px] ml-1.5 font-normal">
               • bởi {current.requestedBy.replace(/^<@!?\d+>$/, 'Discord User')}
             </span>
           )}
@@ -508,7 +511,7 @@ export default function HeroPlayer({
       </div>
 
       {/* 4. Progress Bar & Scrubbing */}
-      <div className="flex flex-col gap-1 shrink-0 px-0.5 my-1">
+      <div className="flex flex-col gap-1 shrink-0 px-0.5 my-0.5">
         <div
           ref={progressBarRef}
           onPointerDown={handlePointerDown}
@@ -524,31 +527,31 @@ export default function HeroPlayer({
           {/* Hover Time Tooltip */}
           {hoverInfo && (
             <div
-              className="absolute -top-6 -translate-x-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest border border-white/10 text-[9px] font-mono text-primary font-bold shadow-lg pointer-events-none z-30"
+              className="absolute -top-6 -translate-x-1/2 px-1.5 py-0.5 rounded bg-[#2e3137] border border-white/10 text-[9px] font-mono text-[#ffe6a9] font-bold shadow-lg pointer-events-none z-30"
               style={{ left: `${hoverInfo.percent}%` }}
             >
               {hoverInfo.time}
             </div>
           )}
           {/* Track rail */}
-          <div className="w-full h-1 bg-surface-container rounded-full overflow-hidden group-hover:h-1.5 transition-all">
-            <div className="h-full bg-primary-container rounded-full transition-all" style={{ width: `${percent}%` }} />
+          <div className="w-full h-1 bg-[#1c1e22] rounded-full overflow-hidden group-hover:h-1.5 transition-all">
+            <div className="h-full bg-[#e8c977] rounded-full transition-all" style={{ width: `${percent}%` }} />
           </div>
         </div>
-        <div className="flex items-center justify-between font-mono text-[10px] text-outline">
-          <span className="text-primary-container font-semibold">{formatTime(currentDisplayMs)}</span>
+        <div className="flex items-center justify-between font-mono text-[10px] text-[#aba395]">
+          <span className="text-[#e8c977] font-semibold">{formatTime(currentDisplayMs)}</span>
           <span>{current?.duration || '0:00'}</span>
         </div>
       </div>
 
-      {/* 5. Playback Transport Controls */}
+      {/* 5. Playback Transport Controls - Cụm nút bấm nổi bật với Nút Play Vàng To 44px */}
       <div className="flex items-center justify-between shrink-0 px-2 my-0.5">
         {/* Shuffle */}
         <button
           onClick={() => onAction('shuffle')}
           disabled={!isPlayable || Boolean(pendingAction)}
           className={`p-1.5 rounded-lg transition-colors ${
-            player?.shuffle ? 'text-primary-container bg-primary-container/15 font-bold' : 'text-outline hover:text-on-surface'
+            player?.shuffle ? 'text-[#e8c977] bg-[#e8c977]/15 font-bold' : 'text-[#aba395] hover:text-[#e2e2e6]'
           }`}
           title={player?.shuffle ? 'Tắt phát ngẫu nhiên' : 'Bật phát ngẫu nhiên'}
         >
@@ -559,21 +562,21 @@ export default function HeroPlayer({
         <button
           onClick={() => onAction('previous')}
           disabled={!isPlayable || Boolean(pendingAction)}
-          className="p-1.5 text-outline hover:text-on-surface transition-colors"
+          className="p-1.5 text-[#aba395] hover:text-[#e2e2e6] transition-colors"
           title="Bài trước (⏮)"
         >
-          {pendingAction === 'previous' ? <Loader2 size={18} className="animate-spin text-primary-container" /> : <SkipBack size={19} fill="currentColor" />}
+          {pendingAction === 'previous' ? <Loader2 size={18} className="animate-spin text-[#e8c977]" /> : <SkipBack size={19} fill="currentColor" />}
         </button>
 
-        {/* Master Play / Pause circular button */}
+        {/* Master Play / Pause circular button - Vàng To 44px Nổi Bật Tuyệt Đối */}
         <button
           onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
           disabled={!isPlayable && !isLofi}
-          className="w-11 h-11 rounded-full bg-primary-container hover:bg-primary text-on-primary font-bold flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all"
+          className="w-11 h-11 rounded-full bg-[#e8c977] hover:bg-[#ffe6a9] text-[#111316] font-bold flex items-center justify-center shadow-[0_4px_16px_rgba(232,201,119,0.35)] hover:scale-105 active:scale-95 transition-all"
           title={isPlaying ? 'Tạm dừng (Space)' : 'Phát (Space)'}
         >
           {pendingAction === 'pause' || pendingAction === 'resume' ? (
-            <Loader2 size={20} className="animate-spin text-on-primary" />
+            <Loader2 size={20} className="animate-spin text-[#111316]" />
           ) : isPlaying ? (
             <Pause size={20} fill="currentColor" />
           ) : (
@@ -585,10 +588,10 @@ export default function HeroPlayer({
         <button
           onClick={() => onAction('skip')}
           disabled={!isPlayable || Boolean(pendingAction)}
-          className="p-1.5 text-outline hover:text-on-surface transition-colors"
+          className="p-1.5 text-[#aba395] hover:text-[#e2e2e6] transition-colors"
           title="Bài kế tiếp (⏭)"
         >
-          {pendingAction === 'skip' ? <Loader2 size={18} className="animate-spin text-primary-container" /> : <SkipForward size={19} fill="currentColor" />}
+          {pendingAction === 'skip' ? <Loader2 size={18} className="animate-spin text-[#e8c977]" /> : <SkipForward size={19} fill="currentColor" />}
         </button>
 
         {/* Loop */}
@@ -596,25 +599,25 @@ export default function HeroPlayer({
           onClick={() => !isLofi && onAction('loop')}
           disabled={!isPlayable || Boolean(pendingAction) || isLofi}
           className={`p-1.5 rounded-lg relative transition-colors ${
-            loopMode !== 'off' ? 'text-primary-container bg-primary-container/15' : 'text-outline hover:text-on-surface'
+            loopMode !== 'off' ? 'text-[#e8c977] bg-[#e8c977]/15' : 'text-[#aba395] hover:text-[#e2e2e6]'
           }`}
           title={isLofi ? 'Chế độ Lofi 24/7 phát radio liên tục' : `Lặp: ${loopMode === 'song' ? '1 bài' : loopMode === 'queue' ? 'Hàng chờ' : 'Tắt'}`}
         >
           <Repeat size={16} />
           {loopMode === 'song' && (
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-primary-container text-on-primary text-[8px] font-bold flex items-center justify-center">1</span>
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#e8c977] text-[#111316] text-[8px] font-bold flex items-center justify-center">1</span>
           )}
           {loopMode === 'queue' && (
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-secondary text-white text-[8px] font-bold flex items-center justify-center">∞</span>
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#ef7864] text-white text-[8px] font-bold flex items-center justify-center">∞</span>
           )}
         </button>
       </div>
 
       {/* 6. Volume Slider & Quick Mode Toggles */}
-      <div className="flex flex-col gap-2 shrink-0 pt-2 border-t border-white/5 px-0.5">
+      <div className="flex flex-col gap-1.5 shrink-0 pt-1.5 border-t border-white/5 px-0.5">
         <div className="flex items-center gap-2">
-          <button onClick={toggleMute} className="text-outline hover:text-on-surface p-1" title={localVolume === 0 ? 'Bật âm' : 'Tắt âm'}>
-            {localVolume === 0 ? <VolumeX size={15} className="text-secondary" /> : <Volume2 size={15} />}
+          <button onClick={toggleMute} className="text-[#aba395] hover:text-[#e2e2e6] p-1" title={localVolume === 0 ? 'Bật âm' : 'Tắt âm'}>
+            {localVolume === 0 ? <VolumeX size={15} className="text-[#ef7864]" /> : <Volume2 size={15} />}
           </button>
           <input
             type="range"
@@ -630,13 +633,13 @@ export default function HeroPlayer({
                 onAction('volume', v);
               }, 300);
             }}
-            className="flex-1 h-1 bg-surface-container rounded-full appearance-none cursor-pointer accent-[#e8c977]"
+            className="flex-1 h-1 bg-[#1c1e22] rounded-full appearance-none cursor-pointer accent-[#e8c977]"
           />
-          <span className="font-mono text-[10px] text-outline w-7 text-right">{localVolume}%</span>
+          <span className="font-mono text-[10px] text-[#aba395] w-7 text-right">{localVolume}%</span>
         </div>
 
         {/* Dual action buttons: Lofi mode toggle + Fullscreen Karaoke */}
-        <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+        <div className="grid grid-cols-2 gap-1.5">
           <button
             onClick={() => {
               if (isSwitchingLofi) return;
@@ -650,7 +653,7 @@ export default function HeroPlayer({
             className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border font-mono text-[9px] font-bold tracking-wider transition-all ${
               isLofi
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-surface-container border-white/5 text-primary-container hover:bg-surface-container-high'
+                : 'bg-[#1c1e22] border-white/5 text-[#e8c977] hover:bg-[#24272c]'
             }`}
             title={isLofi ? 'Đang phát Lofi, bấm để quay lại nhạc thường' : 'Chuyển sang nhạc nền Lofi 24/7'}
           >
@@ -660,13 +663,33 @@ export default function HeroPlayer({
 
           <button
             onClick={() => onOpenKaraoke?.()}
-            className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-surface-container border border-white/5 text-on-surface hover:text-primary-container hover:bg-surface-container-high font-mono text-[9px] font-bold tracking-wider transition-all"
+            className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-[#1c1e22] border border-white/5 text-[#e2e2e6] hover:text-[#e8c977] hover:bg-[#24272c] font-mono text-[9px] font-bold tracking-wider transition-all"
             title="Mở sân khấu Karaoke toàn màn hình"
           >
             <Maximize2 size={12} />
             <span>KARAOKE</span>
           </button>
         </div>
+      </div>
+
+      {/* 7. Discord Voice Room Status Widget ở đáy Right Panel (Chuẩn Stitch) */}
+      <div className="flex items-center justify-between p-2 rounded-lg bg-[#1c1e22] border border-white/5 shrink-0 mt-0.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-5 h-5 rounded bg-[#2e3137] flex items-center justify-center text-[#9bfcc0] shrink-0">
+            <Radio size={12} />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-semibold text-[#e2e2e6] truncate">
+              {player?.voiceChannel?.name || 'Phòng Voice Tổng'}
+            </span>
+            <span className="font-mono text-[8.5px] text-[#7f786c] truncate">
+              {player?.voiceChannel?.humanMemberCount ?? player?.voiceChannel?.memberCount ?? 1} thành viên • 384kbps
+            </span>
+          </div>
+        </div>
+        <span className="font-mono text-[8px] text-emerald-400 uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/20">
+          LIVE
+        </span>
       </div>
 
     </aside>
