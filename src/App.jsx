@@ -30,7 +30,11 @@ import {
   Headphones,
   Maximize2,
   ExternalLink,
-  Volume2
+  Volume2,
+  Play,
+  Pause,
+  SkipForward,
+  Loader2
 } from 'lucide-react';
 import { API_BASE } from './config';
 
