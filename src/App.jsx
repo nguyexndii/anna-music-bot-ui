@@ -537,6 +537,16 @@ export default function App() {
         } else {
           showToast(`Đã thêm "${data.track?.title || title}" vào hàng chờ!`);
         }
+        if (!isBatch && data.track && (!player?.current || player.current.is247 || player.current.requestedBy === 'Auto (24/7)')) {
+          setPlayer(prev => prev ? {
+            ...prev,
+            current: {
+              ...data.track,
+              is247: false,
+              requestedBy: user?.displayName || user?.username || 'User'
+            }
+          } : prev);
+        }
         fetchState(true);
       } else {
         showToast(data.error || 'Lỗi thêm bài hát', 'error');
@@ -782,7 +792,15 @@ export default function App() {
       {/* ── Now Playing ───────────────────────────────── */}
       <section className="now-playing" style={{ position: 'relative', zIndex: 1 }}>
         <header className="now-topbar">
-          <span className="now-eyebrow">ĐANG PHÁT</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="now-eyebrow">ĐANG PHÁT</span>
+            {(player?.voiceChannel?.name || user?.botVoice?.name || user?.userVoice?.name) && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#18181B] border border-white/[0.07] font-mono text-[10px] text-zinc-300 truncate max-w-[160px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+                <span className="truncate">{player?.voiceChannel?.name || user?.botVoice?.name || user?.userVoice?.name}</span>
+              </span>
+            )}
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {/* Online Users Avatar Stack (Avatar của bạn chồng lên những người còn lại) */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -803,7 +821,7 @@ export default function App() {
                         <img
                           key={u.userId || u.id || i}
                           src={u.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
-                          alt={u.displayName || u.username}
+                          alt={u.displayName || user.username}
                           title={`${u.displayName || u.username || 'Người dùng'}${u.isMe ? ' (Bạn)' : ''}`}
                           style={{
                             width: 24,
@@ -860,6 +878,13 @@ export default function App() {
             <span className="now-eyebrow" style={{ color: 'var(--yellow)' }}>
               {Math.max(1, (activeWebUsers?.length || 0) + (user ? (activeWebUsers?.some(u => String(u.userId || u.id) === String(user.userId || user.id)) ? 0 : 1) : 0))} ONLINE
             </span>
+            <button
+              onClick={handleLogout}
+              className="lg:hidden p-1.5 rounded-lg bg-[#18181B] border border-white/[0.07] text-zinc-400 hover:text-rose-400 transition-colors"
+              title="Đăng xuất"
+            >
+              <LogOut size={14} />
+            </button>
           </div>
         </header>
         <HeroPlayer
@@ -874,18 +899,35 @@ export default function App() {
       {/* ── Content Panel ─────────────────────────────── */}
       <section className="content-panel" style={{ position: 'relative', zIndex: 1 }}>
         <header className="content-header">
-          <h2 className="content-title">
-            {activeTabDef?.label}
-            {effectiveContentTab === 'queue' && (
-              <span className="live-dot" title="Hàng chờ đang hoạt động" />
+          <div className="flex items-center gap-2 min-w-0">
+            <h2 className="content-title">
+              {activeTabDef?.label}
+              {effectiveContentTab === 'queue' && (
+                <span className="live-dot" title="Hàng chờ đang hoạt động" />
+              )}
+              {effectiveContentTab === 'search' && player?.isPlaying && (
+                <span className="live-dot" title="Đang phát" />
+              )}
+            </h2>
+            {(player?.voiceChannel?.name || user?.botVoice?.name || user?.userVoice?.name) && (
+              <span className="lg:hidden inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#18181B] border border-white/[0.07] font-mono text-[10px] text-zinc-300 truncate max-w-[140px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+                <span className="truncate">{player?.voiceChannel?.name || user?.botVoice?.name || user?.userVoice?.name}</span>
+              </span>
             )}
-            {effectiveContentTab === 'search' && player?.isPlaying && (
-              <span className="live-dot" title="Đang phát" />
-            )}
-          </h2>
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: '0.14em', color: 'var(--muted)', textTransform: 'uppercase' }}>
-            {guild?.name || user?.guildName || ''}
-          </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: '0.14em', color: 'var(--muted)', textTransform: 'uppercase' }}>
+              {guild?.name || user?.guildName || ''}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="lg:hidden p-1.5 rounded-lg bg-[#18181B] border border-white/[0.07] text-zinc-400 hover:text-rose-400 transition-colors"
+              title="Đăng xuất"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
         </header>
 
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>

@@ -24,6 +24,19 @@ function formatTime(ms) {
   return `${m}:${(s % 60).toString().padStart(2, '0')}`;
 }
 
+function getTrackThumb(track) {
+  if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
+    return track.thumbnail;
+  }
+  if (track?.url) {
+    const match = track.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (match && match[1]) {
+      return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
+    }
+  }
+  return DEFAULT_TRACK_THUMB;
+}
+
 function parseDurationToMs(str) {
   if (!str || str.toLowerCase().includes('live')) return 0;
   const parts = str.split(':').map(Number);
@@ -49,7 +62,18 @@ export default function KaraokeFullscreenModal({
   const totalMs = parseDurationToMs(current?.duration);
 
   const [fontSize, setFontSize] = useState('md'); // 'md' | 'lg'
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(() => {
+    const saved = localStorage.getItem('anna_karaoke_autoscroll');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  useEffect(() => {
+    const handleAutoScrollChange = (e) => {
+      if (typeof e.detail === 'boolean') setAutoScroll(e.detail);
+    };
+    window.addEventListener('anna_autoscroll_change', handleAutoScrollChange);
+    return () => window.removeEventListener('anna_autoscroll_change', handleAutoScrollChange);
+  }, []);
   const [showOffsetBar, setShowOffsetBar] = useState(false);
 
   // Real-time progress: compute from server data + elapsed time since last poll
@@ -302,6 +326,19 @@ export default function KaraokeFullscreenModal({
         }}
       />
 
+            {/* ── Ambient Blurred Artwork Backdrop ── */}
+      {current?.thumbnail && (
+        <div
+          className="absolute -inset-16 bg-cover bg-center pointer-events-none z-0 transition-all duration-1000"
+          style={{
+            backgroundImage: `url(${current.thumbnail})`,
+            filter: 'blur(85px) brightness(0.22) saturate(1.6)',
+            opacity: 0.75,
+            transform: 'scale(1.15)',
+          }}
+        />
+      )}
+
       {/* ── Studio Header ── */}
       <header className="relative z-20 h-14 px-5 sm:px-6 flex items-center justify-between border-b border-white/[0.07] bg-[#09090B]/95 gap-3">
         {/* Left: Brand + Lyrics Source badge */}
@@ -372,7 +409,14 @@ export default function KaraokeFullscreenModal({
           {/* Auto scroll toggle */}
           {hasSynced && (
             <button
-              onClick={() => setAutoScroll((p) => !p)}
+              onClick={() => {
+                setAutoScroll((p) => {
+                  const next = !p;
+                  localStorage.setItem('anna_karaoke_autoscroll', String(next));
+                  window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
+                  return next;
+                });
+              }}
               className={`hidden sm:flex items-center px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-all ${
                 autoScroll
                   ? 'bg-orange-500/15 border-orange-500/40 text-orange-400'
@@ -399,7 +443,7 @@ export default function KaraokeFullscreenModal({
       {showOffsetBar && hasSynced && (
         <div className="relative z-20 bg-[#111113] border-b border-white/[0.07] px-4 py-2 flex items-center justify-center gap-1.5 flex-wrap">
           <span className="font-mono text-xs text-zinc-400 mr-2">BÙ TRỄ ĐỒNG BỘ:</span>
-          {[-5000, -2000, -1000, -250].map((ms) => (
+          {[-10000, -5000, -2000, -1000, -250].map((ms) => (
             <button
               key={ms}
               onClick={() => onUpdateOffset?.(manualOffsetMs + ms)}
@@ -414,7 +458,7 @@ export default function KaraokeFullscreenModal({
           >
             MẶC ĐỊNH
           </button>
-          {[250, 1000, 2000, 5000].map((ms) => (
+          {[250, 1000, 2000, 5000, 10000].map((ms) => (
             <button
               key={ms}
               onClick={() => onUpdateOffset?.(manualOffsetMs + ms)}
@@ -428,20 +472,26 @@ export default function KaraokeFullscreenModal({
 
       {/* ── Main Studio Stage ── */}
       <main className="relative z-10 flex-1 min-h-0 flex items-stretch overflow-hidden">
-        {/* Left: Modern Square Album Frame (Zero-GPU Lag) */}
-        <div className="w-[280px] lg:w-[360px] hidden md:flex flex-col items-center justify-center p-6 border-r border-white/[0.07] bg-[#0C0C0E]/70 gap-5">
-          <div className="w-56 h-56 lg:w-64 lg:h-64 rounded-2xl overflow-hidden border border-white/[0.1] shadow-2xl bg-zinc-900 relative group flex-shrink-0">
-            <img
-              src={current?.thumbnail || DEFAULT_TRACK_THUMB}
-              alt={current?.title || 'Album Art'}
-              className="w-full h-full object-cover"
-            />
-            {isPlaying && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-md bg-black/75 backdrop-blur-sm border border-white/10 flex items-center gap-1.5 shadow-md">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-mono text-[10px] font-bold text-zinc-200 tracking-wider">LIVE</span>
-              </div>
-            )}
+        {/* Left: Spinning Vinyl Turntable Stage */}
+        <div className="w-[260px] lg:w-[340px] hidden md:flex flex-col items-center justify-center p-6 border-r border-white/[0.07] bg-black/35 backdrop-blur-md gap-5">
+          <div
+            className={`w-52 h-52 lg:w-60 lg:h-60 rounded-full relative flex items-center justify-center flex-shrink-0 ${
+              isPlaying ? 'spinning' : 'spinning-paused'
+            }`}
+            style={{
+              background: 'repeating-radial-gradient(circle, #090a0c 0px, #090a0c 1.5px, #181a1f 2px, #0e1013 3.5px)',
+              boxShadow: '0 22px 60px rgba(0,0,0,0.9), 0 0 0 2px rgba(255,255,255,0.08), 0 0 32px rgba(249,115,22,0.12)',
+            }}
+          >
+            <div className="w-[44%] h-[44%] rounded-full overflow-hidden shadow-[0_0_0_3px_#111316,0_0_0_4.5px_rgba(249,115,22,0.45)]">
+              <img
+                src={getTrackThumb(current)}
+                alt={current?.title || 'Album Art'}
+                onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="absolute w-4 h-4 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 border border-zinc-950 shadow-inner" />
           </div>
 
           <div className="text-center w-full px-2 max-w-[280px]">
@@ -451,7 +501,7 @@ export default function KaraokeFullscreenModal({
             >
               {isLofiCurrent ? '24/7 Lofi Thư Giãn' : current?.title || 'Chưa có bài hát'}
             </h2>
-            <p className="text-xs lg:text-sm font-medium text-zinc-400 truncate mt-1">
+            <p className="text-xs lg:text-sm font-medium text-orange-400 truncate mt-1">
               {isLofiCurrent
                 ? 'Chế độ phát nền 24/7'
                 : current?.artist && current.artist !== 'Unknown'

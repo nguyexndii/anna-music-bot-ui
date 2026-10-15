@@ -540,6 +540,17 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
                     </div>
                   ))}
                 </div>
+
+                {favorites.length > 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsFavoritesModalOpen(true)}
+                    className="mt-2 w-full py-2 rounded-xl bg-[#141417] hover:bg-orange-500/10 border border-white/[0.07] hover:border-orange-500/30 text-orange-400 font-mono text-[11px] font-semibold tracking-wider flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <span>XEM TOÀN BỘ DANH SÁCH YÊU THÍCH ({favorites.length} BÀI)</span>
+                    <span>↗</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -548,35 +559,48 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
               <div>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-2 px-1">
                   <span>PHỔ BIẾN TRONG MÁY CHỦ</span>
-                  <Flame size={12} className="text-orange-500" />
+                  <Flame className="text-orange-500" size={12} />
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  {topTracks.slice(0, 6).map((top, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handleOrderTrack(top)}
-                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
-                    >
-                      <span className="font-mono text-xs font-semibold text-zinc-500 w-5 text-center">
-                        {idx + 1}
-                      </span>
-                      <div className="w-9 h-9 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/[0.06]">
-                        <img src={getTrackThumb(top)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate block" title={top.title}>
-                          {top.title}
+                  {topTracks.slice(0, 8).map((top, idx) => {
+                    const playCount = top.count || top.playCount || 0;
+                    const isTop3 = idx < 3;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleOrderTrack(top)}
+                        className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#161619] border border-transparent hover:border-white/[0.05] cursor-pointer transition-colors"
+                      >
+                        <span
+                          className={`font-mono text-xs font-bold w-6 text-center rounded py-0.5 ${
+                            idx === 0
+                              ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                              : isTop3
+                              ? 'bg-orange-500/10 text-orange-300 border border-orange-500/20'
+                              : 'text-zinc-500'
+                          }`}
+                        >
+                          #{idx + 1}
                         </span>
-                        <span className="text-[11px] text-zinc-500 truncate block mt-0.5" title={top.artist}>
-                          {top.playCount ? `Đã phát ${top.playCount} lần` : (top.artist || '')}
+                        <div className="w-9 h-9 rounded-md overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/[0.06]">
+                          <img src={getTrackThumb(top)} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = DEFAULT_TRACK_THUMB; }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate block" title={top.title}>
+                            {top.title}
+                          </span>
+                          <span className="text-[11px] text-zinc-500 truncate block mt-0.5" title={top.artist}>
+                            {top.artist && top.artist !== 'Unknown' ? top.artist : 'YouTube Music'}
+                            {playCount > 0 ? ` • Đã phát ${playCount} lần` : ''}
+                          </span>
+                        </div>
+                        <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
+                          {top.duration || ''}
                         </span>
                       </div>
-                      <span className="font-mono text-[11px] text-zinc-500 tabular-nums px-2">
-                        {top.duration || ''}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

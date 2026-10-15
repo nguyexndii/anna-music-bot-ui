@@ -12,7 +12,8 @@ import {
   Loader2,
   Coffee,
   Maximize2,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react';
 import { DEFAULT_TRACK_THUMB } from '../config';
 
@@ -78,6 +79,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   const [progressMs, setProgressMs] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragMs, setDragMs] = useState(0);
+  const [hoverInfo, setHoverInfo] = useState(null); // { percent, timeMs }
   const [localVolume, setLocalVolume] = useState(player?.volume ?? 80);
   const [previousVolume, setPreviousVolume] = useState(80);
   const [heartPopping, setHeartPopping] = useState(false);
@@ -147,6 +149,16 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     if (x === undefined) return;
     setIsDragging(true);
     setDragMs(calculateTimeFromEvent(x));
+  };
+
+  const handleSeekHover = (e) => {
+    if (!progressBarRef.current || totalMs <= 0 || !isPlayable) return;
+    const r = progressBarRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    setHoverInfo({
+      percent: ratio * 100,
+      timeMs: Math.floor(ratio * totalMs)
+    });
   };
 
   useEffect(() => {
@@ -227,6 +239,8 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
   const loopMode = player?.loopMode || player?.loop || 'off';
   const tonearmAngle = isPlaying ? 2 + (percent / 100) * 14 : -24;
+  const isRoomEmpty = Boolean(player?.voiceChannel && player.voiceChannel.humanMemberCount === 0);
+  const isSwitchingLofi = pendingAction === 'toggleLofiMode' || pendingAction === 'switchTo247';
 
   return (
     <div className="flex-1 flex flex-col justify-between min-h-0 select-none">
@@ -289,6 +303,18 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
             </div>
 
             <div className="flex items-center gap-1">
+              {current?.url && current.url.startsWith('http') && (
+                <a
+                  href={current.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-lg bg-[#18181B] hover:bg-[#222226] border border-white/[0.07] text-zinc-400 hover:text-orange-400 transition-colors"
+                  title="Mở liên kết bài hát gốc"
+                >
+                  <ExternalLink size={13} />
+                </a>
+              )}
+
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent('anna_open_karaoke'))}
@@ -324,16 +350,26 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           </p>
         </div>
 
-        {/* ── Scrubber Progress Bar ── */}
+        {/* ── Scrubber Progress Bar with Hover Time Preview ── */}
         <div className="mt-4">
           <div
             ref={progressBarRef}
             onMouseDown={!isPlayable || pendingAction ? undefined : handlePointerDown}
             onTouchStart={!isPlayable || pendingAction ? undefined : handlePointerDown}
+            onMouseMove={handleSeekHover}
+            onMouseLeave={() => setHoverInfo(null)}
             className={`group relative h-2 rounded-full bg-[#222226] flex items-center select-none ${
               !isPlayable || pendingAction ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
             }`}
           >
+            {hoverInfo && isPlayable && (
+              <div
+                className="absolute -top-7 -translate-x-1/2 px-1.5 py-0.5 rounded bg-zinc-900 border border-orange-500/40 text-orange-400 font-mono text-[10px] font-bold pointer-events-none shadow-lg z-20"
+                style={{ left: `${hoverInfo.percent}%` }}
+              >
+                {formatTime(hoverInfo.timeMs)}
+              </div>
+            )}
             <div
               className="h-full rounded-full bg-orange-500 relative transition-all duration-150"
               style={{ width: `${percent}%` }}
@@ -355,7 +391,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
             onClick={() => onAction('shuffle')}
             disabled={!isPlayable || Boolean(pendingAction)}
             className="p-2 rounded-full text-zinc-400 hover:text-zinc-100 disabled:opacity-40 transition"
-            title="Xáo trộn hàng chờ"
+            title="Xáo trộn ngẫu nhiên hàng chờ"
           >
             <Shuffle size={17} />
           </button>
@@ -427,17 +463,40 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
       <footer className="pt-3 border-t border-white/[0.07] flex items-center justify-between gap-3 flex-shrink-0">
         <button
           type="button"
-          onClick={() => onAction('toggleLofiMode')}
+          onClick={() => {
+            if (isSwitchingLofi) return;
+            if (isRoomEmpty) {
+              onAction('notifyEmptyRoom');
+              return;
+            }
+            onAction('toggleLofiMode');
+          }}
           disabled={Boolean(pendingAction)}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border font-mono text-[10px] font-bold tracking-wider transition ${
-            isLofi
+            isRoomEmpty
+              ? 'border-white/[0.06] bg-white/[0.02] text-zinc-500 cursor-not-allowed opacity-60'
+              : isLofi
               ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/15'
               : 'bg-orange-500/10 border-orange-500/25 text-orange-400 hover:bg-orange-500/15'
           }`}
-          title={isLofi ? 'Quay lại phát nhạc của người dùng' : 'Lưu hàng chờ và chuyển sang nhạc nền Lofi 24/7'}
+          title={
+            isRoomEmpty
+              ? 'Phòng Voice hiện không có ai, bot duy trì phát Lofi 24/7'
+              : isLofi
+              ? 'Quay lại phát nhạc của người dùng'
+              : 'Lưu hàng chờ và chuyển sang nhạc nền Lofi 24/7'
+          }
         >
-          <Coffee size={12} />
-          <span>{isLofi ? 'TIẾP TỤC NHẠC' : 'CHẾ ĐỘ LOFI'}</span>
+          {isSwitchingLofi ? <Loader2 className="animate-spin" size={12} /> : <Coffee size={12} />}
+          <span>
+            {isSwitchingLofi
+              ? 'ĐANG CHUYỂN...'
+              : isRoomEmpty
+              ? 'PHÒNG TRỐNG (24/7)'
+              : isLofi
+              ? 'TIẾP TỤC NHẠC'
+              : 'CHẾ ĐỘ LOFI'}
+          </span>
         </button>
 
         <div className="flex items-center gap-2 w-32 sm:w-36">

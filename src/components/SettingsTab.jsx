@@ -50,6 +50,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
     djOnly: false,
     djRoleId: null,
     defaultVolume: 80,
+    useAiAssistant: true,
     autoplayLayers: ['ytmix', 'ai', 'lastfm', 'heuristic'],
   });
 
@@ -185,10 +186,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="pr-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-orange-400" />
-              <p className="text-xs font-bold text-zinc-100">Nền mờ tối giản (Zero-Lag Ambient Vignette)</p>
+              <p className="text-xs font-bold text-zinc-100">Nền mờ động theo màu bài hát (Ambient Glow)</p>
             </div>
             <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
-              Hiệu ứng ánh sáng studio tối tĩnh phía trên đỉnh màn hình giúp mắt thư giãn hơn.
+              Hiệu ứng ánh sáng hào quang chuyển động mờ theo tông màu ảnh bìa bài hát đang phát.
             </p>
           </div>
 
@@ -459,6 +460,62 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* 5c. Gemini DJ AI Assistant */}
+          <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] hover:border-white/[0.1] transition">
+            <div className="pr-4">
+              <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-orange-400"/>
+                <span>Trợ Lý DJ Gemini AI (Thông Minh)</span>
+              </p>
+              <p className="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">
+                Sử dụng AI để phân tích tâm trạng, câu hát và gợi ý bài hát cùng ngôn ngữ & vibe.
+              </p>
+            </div>
+
+            <button
+              onClick={() => updateSetting('useAiAssistant', serverSettings.useAiAssistant === false)}
+              title={serverSettings.useAiAssistant !== false ? 'Tắt DJ AI' : 'Bật DJ AI'}
+              className={`w-11 h-6 rounded-full relative p-0.5 transition-all flex-shrink-0 active:scale-95 focus-visible:outline-none ${
+                serverSettings.useAiAssistant !== false ? 'bg-orange-500 shadow-md shadow-orange-500/25' : 'bg-zinc-800'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 ${
+                  serverSettings.useAiAssistant !== false ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* 6b. Default Server Volume */}
+          <div className="p-3.5 sm:p-4 rounded-xl bg-[#16161A] border border-white/[0.06] flex flex-col gap-2.5 transition">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
+                <Volume2 className="w-3.5 h-3.5 text-orange-400"/>
+                <span>Âm Lượng Mặc Định Máy Chủ</span>
+              </p>
+              <span className="font-mono text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
+                {serverSettings.defaultVolume || 80}%
+              </span>
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+              {[30, 50, 80, 100].map((vol) => (
+                <button
+                  key={vol}
+                  type="button"
+                  onClick={() => updateSetting('defaultVolume', vol)}
+                  className={`flex-1 py-1.5 rounded-lg font-mono text-xs font-semibold border transition ${
+                    Number(serverSettings.defaultVolume) === vol
+                      ? 'bg-orange-500 text-white border-orange-500'
+                      : 'bg-[#121215] text-zinc-400 border-white/[0.07] hover:text-zinc-200'
+                  }`}
+                >
+                  {vol}%
+                </button>
+              ))}
             </div>
           </div>
 
