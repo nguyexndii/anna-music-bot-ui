@@ -83,6 +83,24 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   const [heartPopping, setHeartPopping] = useState(false);
   const [wasPlaying, setWasPlaying]   = useState(isPlaying);
   const [lastTrackId, setLastTrackId] = useState(current?.title);
+  const [isSwinging, setIsSwinging]   = useState(false);
+
+  // Kích hoạt hiệu ứng vung cần kim cơ học khi đổi bài hoặc play/pause (như nhánh main)
+  useEffect(() => {
+    const playChanged = wasPlaying !== isPlaying;
+    const trackChanged = lastTrackId !== current?.title;
+    if (trackChanged) {
+      setProgressMs(0);
+      progressBaseRef.current = { baseMs: 0, snapshotAt: Date.now(), playing: isPlaying };
+    }
+    if (playChanged || trackChanged) {
+      setWasPlaying(isPlaying);
+      setLastTrackId(current?.title);
+      setIsSwinging(true);
+      const timer = setTimeout(() => setIsSwinging(false), 950);
+      return () => clearTimeout(timer);
+    }
+  }, [isPlaying, wasPlaying, current?.title, lastTrackId]);
 
   const progressBarRef   = useRef(null);
   const progressBaseRef = useRef({ baseMs: 0, snapshotAt: Date.now(), playing: false });
@@ -223,90 +241,157 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   const currentDisplayMs = isDragging ? dragMs : progressMs;
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
 
-  // Tính góc xoay cần kim tonearm cơ học chạm rãnh (từ 0° tới ~16° khi chơi nhạc)
-  const tonearmAngle = isPlaying ? (2 + (percent / 100) * 14) : -22;
+  // Cần kim mâm than realtime: quét trong rãnh đen 16.5° -> 33.5° (chuẩn nhánh main)
+  const tonearmAngle = (isPlaying || isDragging) ? (16.5 + (percent / 100) * 17) : -24;
+  const tonearmTransition = isSwinging
+    ? 'transform 0.9s cubic-bezier(0.34, 1.25, 0.64, 1)'
+    : isDragging
+    ? 'transform 0.08s ease-out'
+    : 'transform 1s linear';
 
   const coverUrl = getTrackThumb(current);
 
   return (
     <div className={`w-full flex flex-col justify-between ${isMobileCenter ? 'py-2 px-1 max-w-md mx-auto min-h-[500px]' : 'h-full gap-2'}`}>
 
-      {/* ── 1. MÂM ĐĨA THAN AUDIOPHILE CHÂN THỰC (Audiophile Vinyl Lounge) ───────── */}
-      <div className="relative w-full h-[200px] sm:h-[210px] bg-gradient-to-b from-[#0c0e11] via-[#14161b] to-[#1c1e24] rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl border border-white/5 shrink-0 my-1">
-        {/* Platter Hợp Kim Nhôm & Đế Mâm Kim Loại */}
-        <div className="w-[180px] h-[180px] rounded-full p-[4px] bg-[#121316] shadow-[0_12px_32px_rgba(0,0,0,0.95)] flex items-center justify-center border border-[#2b2d35] relative">
-          {/* Đĩa Than Vinyl 33⅓ RPM Quay Tròn */}
-          <div
-            className={`relative w-[170px] h-[170px] rounded-full flex items-center justify-center cursor-pointer overflow-hidden ${
-              isPlaying ? 'animate-spin-record' : ''
-            }`}
-            style={{
-              background: 'radial-gradient(circle, #0e0f11 0%, #151619 40%, #0d0e10 65%, #18191c 78%, #0a0a0c 100%)',
-              animationPlayState: isPlaying ? 'running' : 'paused'
-            }}
-            onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
-            title={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
-          >
-            {/* Microgrooves Rãnh Đĩa Thật */}
-            <div
-              className="absolute inset-0 rounded-full pointer-events-none"
-              style={{
-                background: 'repeating-radial-gradient(circle at center, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1.5px, transparent 3.5px)'
-              }}
-            />
-            <div className="absolute inset-[10px] rounded-full border border-white/[0.04] pointer-events-none" />
-            <div className="absolute inset-[24px] rounded-full border border-white/[0.03] pointer-events-none" />
-            <div className="absolute inset-[40px] rounded-full border border-[#ffe08e]/10 pointer-events-none" />
-
-            {/* Vệt Sáng Quang Học Phản Chiếu Conic 4 Cánh */}
-            <div
-              className="absolute inset-0 rounded-full opacity-40 pointer-events-none mix-blend-screen"
-              style={{
-                background: 'conic-gradient(from 45deg, transparent 0deg, rgba(255,230,169,0.2) 45deg, transparent 90deg, rgba(255,255,255,0.1) 135deg, transparent 180deg, rgba(255,230,169,0.2) 225deg, transparent 270deg, rgba(255,255,255,0.1) 315deg, transparent 360deg)'
-              }}
-            />
-
-            {/* TÂM MÂM ĐĨA: Ảnh Album Bìa Bài Hát Tròn Lớn Viền Đồng Thau Kép */}
-            <div className="relative w-[70px] h-[70px] rounded-full p-[2px] bg-gradient-to-tr from-[#69530b] via-[#c49b2c] to-[#ffe08e] shadow-xl flex items-center justify-center shrink-0 border border-[#ffe08e]/60 z-10 select-none">
-              <div className="w-full h-full rounded-full overflow-hidden relative flex items-center justify-center bg-[#18150e]">
-                <img
-                  src={coverUrl}
-                  alt={current?.title || 'Album Art'}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
-                />
-                {/* Lỗ Trục Spindle Đồng Thau & Đen Kim Loại CNC */}
-                <div className="absolute inset-0 m-auto w-3 h-3 rounded-full bg-gradient-to-b from-[#ffe08e] to-[#584400] flex items-center justify-center p-[1px] shadow-md pointer-events-none">
-                  <div className="w-full h-full rounded-full bg-[#0a0a0c] border border-black/50 flex items-center justify-center">
-                    <div className="w-1 h-1 rounded-full bg-[#999]" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CẦN KIM CHỮ S ĐỒNG THAU (Tonearm) Xoay Cơ Học */}
+      {/* ── 1. MÂM ĐĨA THAN VINTAGE & CÂY KIM REALTIME (Chuẩn nhánh main) ──────── */}
+      <div className="vinyl-deck relative my-2 select-none">
+        {/* Tonearm (Needle - Phong cách Mâm Đĩa Than Cổ Điển Chạy Realtime) */}
         <div
-          className="absolute top-1 right-2 z-20 pointer-events-none select-none origin-top-right transition-transform duration-700 ease-out"
-          style={{ transform: `rotate(${tonearmAngle}deg)` }}
+          className={`tonearm-assembly ${isPlaying ? 'on-record' : ''}`}
+          style={{
+            transform: `rotate(${tonearmAngle}deg)`,
+            transition: tonearmTransition,
+          }}
+          title={isPlaying ? `Kim đĩa than: ${Math.round(percent)}% bài hát` : 'Kim đĩa than đang ở vị trí nghỉ'}
+          aria-hidden="true"
         >
-          {/* Trục Xoay Pivot Đồng Thau */}
-          <div className="absolute top-1 right-2 w-6 h-6 rounded-full bg-gradient-to-b from-[#3a3c40] to-[#141518] border border-[#ffe08e]/50 shadow-md flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-[#c49b2c] to-[#ffe6a9]" />
-          </div>
-          {/* SVG Cần Kim Chữ S Kim Loại Audiophile */}
-          <svg className="w-[84px] h-[145px] drop-shadow-[1px_3px_5px_rgba(0,0,0,0.9)]" fill="none" viewBox="0 0 80 140" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 67 15 C 65 42, 72 65, 58 92 C 50 108, 40 115, 30 126" stroke="#e8c977" strokeLinecap="round" strokeWidth="2.5" />
-            <path d="M 28 126 L 16 134 L 19 139 L 31 131 Z" fill="#282a2d" stroke="#ffe08e" strokeWidth="0.8" />
-            <circle cx="17" cy="138" fill="#ffb4a7" r="1.2" />
+          <svg
+            className="tonearm-svg"
+            viewBox="0 0 76 210"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="vintageBrass" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#fffaea" />
+                <stop offset="25%" stopColor="#e5c178" />
+                <stop offset="55%" stopColor="#a07832" />
+                <stop offset="85%" stopColor="#634714" />
+                <stop offset="100%" stopColor="#96702c" />
+              </linearGradient>
+
+              <radialGradient id="baseMetal" cx="35%" cy="35%" r="65%">
+                <stop offset="0%" stopColor="#525866" />
+                <stop offset="45%" stopColor="#2e323b" />
+                <stop offset="80%" stopColor="#181a1f" />
+                <stop offset="100%" stopColor="#0f1013" />
+              </radialGradient>
+
+              <linearGradient id="counterweightMetal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#544018" />
+                <stop offset="20%" stopColor="#d8b265" />
+                <stop offset="45%" stopColor="#fffaeb" />
+                <stop offset="65%" stopColor="#ad822e" />
+                <stop offset="90%" stopColor="#4a3610" />
+                <stop offset="100%" stopColor="#7a581e" />
+              </linearGradient>
+
+              <linearGradient id="cartridgeGold" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#f3d082" />
+                <stop offset="50%" stopColor="#9c7229" />
+                <stop offset="100%" stopColor="#3d2a0a" />
+              </linearGradient>
+            </defs>
+
+            {/* 1. Counterweight (Quả đối trọng kim loại phía sau trục) */}
+            <rect x="27" y="6" width="22" height="15" rx="3" fill="url(#counterweightMetal)" stroke="#221808" strokeWidth="0.8" />
+            <line x1="27" y1="10" x2="49" y2="10" stroke="#1c1404" strokeWidth="0.8" />
+            <line x1="27" y1="13.5" x2="49" y2="13.5" stroke="#fffaea" strokeWidth="0.5" opacity="0.6" />
+            <line x1="27" y1="17" x2="49" y2="17" stroke="#1c1404" strokeWidth="0.8" />
+
+            {/* Rear arm stub */}
+            <rect x="36" y="19" width="4" height="12" rx="1.5" fill="url(#vintageBrass)" />
+
+            {/* 2. Base & Gimbal Housing (Bệ trục đỡ cơ khí cổ điển) */}
+            <circle cx="38" cy="40" r="19" fill="url(#baseMetal)" stroke="#666c78" strokeWidth="1.2" />
+            <circle cx="38" cy="40" r="15" fill="#15171b" stroke="#363a42" strokeWidth="0.8" />
+            <circle cx="38" cy="40" r="9" fill="url(#vintageBrass)" stroke="#3a2b10" strokeWidth="0.8" />
+            <circle cx="38" cy="40" r="4.5" fill="#2a1f0a" />
+            <circle cx="37" cy="39" r="1.8" fill="#fff5d6" opacity="0.85" />
+
+            {/* 3. Classic S-Shaped Curved Tonearm Tube (Cần kim cong vintage) */}
+            <path
+              d="M38 48 Q38 78 35 102 Q32 130 39 155 L42 174"
+              fill="none"
+              stroke="rgba(0,0,0,0.5)"
+              strokeWidth="4.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M38 48 Q38 78 35 102 Q32 130 39 155 L42 174"
+              fill="none"
+              stroke="url(#vintageBrass)"
+              strokeWidth="3.6"
+              strokeLinecap="round"
+            />
+            <path
+              d="M37.3 49 Q37.3 78 34.3 102 Q31.3 130 38.3 155 L41.3 173"
+              fill="none"
+              stroke="#fffef7"
+              strokeWidth="0.8"
+              opacity="0.65"
+              strokeLinecap="round"
+            />
+
+            {/* 4. Headshell Connector Ring */}
+            <rect x="39" y="171" width="6" height="5" rx="1" transform="rotate(-6 42 174)" fill="url(#counterweightMetal)" stroke="#1a1407" strokeWidth="0.5" />
+
+            {/* 5. Vintage Headshell (Máng kim cổ điển có góc nghiêng theo rãnh đĩa) */}
+            <g transform="rotate(-14 42 178)">
+              <path
+                d="M37 175 L47 175 L46 200 L38 200 Z"
+                fill="#181a1e"
+                stroke="url(#vintageBrass)"
+                strokeWidth="1.2"
+              />
+              <path
+                d="M47 179 C51 179 53 184 50 189"
+                fill="none"
+                stroke="url(#vintageBrass)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <line x1="40" y1="181" x2="44" y2="181" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
+              <line x1="40" y1="185" x2="44" y2="185" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
+              <line x1="40" y1="189" x2="44" y2="189" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
+              <rect x="38.5" y="193" width="7" height="6" rx="1" fill="url(#cartridgeGold)" stroke="#221808" strokeWidth="0.5" />
+              <line x1="42" y1="200" x2="42" y2="206" stroke="#e0e4eb" strokeWidth="1.2" strokeLinecap="round" />
+              <circle cx="42" cy="206" r="1.1" fill="#ff4d4d" />
+            </g>
           </svg>
         </div>
 
-        {/* Direct Drive Badge */}
-        <div className="absolute bottom-2 right-2.5 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/60 border border-white/5 font-mono text-[9px] text-primary-container tracking-wider uppercase pointer-events-none">
-          <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-emerald-400 animate-pulse' : 'bg-outline'}`}></span>
-          <span>33⅓ RPM • DIRECT DRIVE</span>
+        {/* Vinyl Disc (Đĩa than cổ điển vân rãnh xoay tròn) */}
+        <div
+          className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
+          aria-label={isLofi ? 'Đĩa nhạc: 24/7 Lofi Thư Giãn' : (current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát')}
+          onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
+          title={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
+        >
+          <div className="vinyl-grooves" />
+          <div className="vinyl-art">
+            <img
+              src={coverUrl}
+              alt={current?.title || 'Album Art'}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
+            />
+            {/* Lỗ trục trung tâm bọc vành đồng thau vintage */}
+            <div className="vinyl-spindle-hole">
+              <div className="spindle-dot" />
+            </div>
+          </div>
         </div>
       </div>
 

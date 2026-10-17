@@ -19,6 +19,18 @@ body { margin: 0; font-family: "Be Vietnam Pro", "Inter", -apple-system, BlinkMa
 button, input { font: inherit; }
 button { cursor: pointer; }
 
+/* Xóa bỏ hoàn toàn viền trắng focus outline mặc định khi click chuột */
+button:focus,
+button:focus-visible,
+a:focus,
+a:focus-visible,
+div:focus,
+div:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ─── 3-Column App Shell ────────────────────────────── */
 .music-app {
   min-height: 100vh;

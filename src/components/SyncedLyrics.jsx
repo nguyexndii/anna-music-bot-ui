@@ -86,6 +86,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fontSizeLevel, setFontSizeLevel] = useState(1); // 0: nhỏ, 1: chuẩn, 2: to
   const [currentLineProgress, setCurrentLineProgress] = useState(0);
+  const [effectiveCurrentMs, setEffectiveCurrentMs] = useState(0);
 
   const activeLineRef = useRef(null);
   const containerRef  = useRef(null);
@@ -251,6 +252,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       }
 
       const effectiveTime = Math.max(0, currentProgress + manualOffsetMs);
+      setEffectiveCurrentMs(effectiveTime);
 
       let foundIdx = -1;
       for (let i = lines.length - 1; i >= 0; i--) {
@@ -264,11 +266,12 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         setActiveLineIdx(foundIdx);
       }
 
-      // Tính phần trăm tiến trình của câu hát đang hát hiện tại (để thanh vạch tua chạy đồng bộ)
+      // Tính phần trăm tiến trình của câu hát đang hát hiện tại
       if (foundIdx >= 0 && lines[foundIdx]) {
         const curLine = lines[foundIdx];
+        const duration = Math.max(800, curLine.endTimeMs - curLine.timeMs);
         const elapsed = Math.max(0, effectiveTime - curLine.timeMs);
-        const p = Math.min(100, Math.max(0, (elapsed / curLine.durationMs) * 100));
+        const p = Math.min(100, Math.max(0, (elapsed / duration) * 100));
         setCurrentLineProgress(p);
       } else {
         setCurrentLineProgress(0);
@@ -312,10 +315,10 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
 
       {/* ── 1. SUB-HEADER CỦA LYRICS CANVAS (Chuẩn Stitch) ────────────────── */}
       <div className="shrink-0 flex items-center justify-between pb-3 pt-1 border-b border-white/5 mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
-          <span className="font-mono text-xs text-outline uppercase tracking-wider">
-            PHÁT ĐỒNG THỜI VỚI PHÒNG #{player?.voiceChannel?.name || 'LOUNGE-01'}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="material-symbols-outlined text-primary-container text-base shrink-0">mic</span>
+          <span className="font-mono text-xs text-on-surface-variant font-medium truncate">
+            {player?.voiceChannel?.name ? `Phòng: #${player.voiceChannel.name}` : 'Lời Nhạc Đồng Bộ'}
           </span>
         </div>
 
@@ -435,6 +438,30 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           </div>
         ) : (
           <div className="flex flex-col gap-3 py-16 px-1 sm:px-4">
+            {/* Thanh tiến trình đoạn dạo đầu trước câu hát đầu tiên */}
+            {effectiveCurrentMs < (lines[0]?.timeMs || 0) && (lines[0]?.timeMs || 0) > 2000 && (
+              <div className="bg-surface-container/70 border border-primary-container/20 rounded-2xl p-3.5 shadow-md mb-2 flex items-center justify-between gap-3 animate-fade-in">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="material-symbols-outlined text-primary-container text-lg animate-pulse">graphic_eq</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-on-surface">Đoạn nhạc dạo đầu</span>
+                    <span className="font-mono text-[10px] text-outline">Đang chuẩn bị vào câu hát đầu tiên...</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="h-1.5 w-24 sm:w-36 bg-surface-container-highest rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary-container rounded-full transition-all duration-150 ease-linear"
+                      style={{ width: `${Math.min(100, Math.max(0, (effectiveCurrentMs / lines[0].timeMs) * 100))}%` }}
+                    />
+                  </div>
+                  <span className="font-mono text-[11px] text-primary-container font-semibold">
+                    {formatTime(effectiveCurrentMs)} / {formatTime(lines[0].timeMs)}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {lines.map((line, idx) => {
               const isActive = activeLineIdx === idx;
               const isPast = activeLineIdx > idx;
@@ -446,30 +473,33 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
                     key={idx}
                     ref={activeLineRef}
                     onClick={() => handleLineClick(line.timeMs)}
-                    className="bg-surface-container/80 border border-primary-container/30 rounded-2xl p-4 shadow-xl my-2 flex flex-col gap-2.5 transition-all cursor-pointer group"
+                    className="bg-surface-container/90 border border-primary-container/30 rounded-2xl p-4 shadow-xl my-1 flex flex-col gap-2.5 transition-all duration-300 ease-out cursor-pointer group"
                     title="Nhấn để tua lại đầu câu này"
                   >
                     <div className="flex items-baseline gap-3">
                       <span className="font-mono text-xs text-primary-container font-bold shrink-0">
                         {formatTime(line.timeMs)}
                       </span>
-                      <p className={`font-body font-bold text-primary-container leading-snug tracking-tight ${
+                      <p className={`font-body font-bold text-primary-container leading-snug tracking-tight transition-all duration-300 ${
                         fontSizeLevel === 2 ? 'text-2xl sm:text-3xl' : fontSizeLevel === 0 ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'
                       }`}>
                         {capitalizeFirstLetter(line.text)}
                       </p>
                     </div>
 
-                    {/* Vạch tiến trình đồng bộ thời gian thực của câu hát (không bấm tua được) */}
-                    <div className="flex items-center gap-3 ml-12 pointer-events-none select-none">
-                      <div className="h-1.5 w-32 bg-surface-container-highest rounded-full overflow-hidden">
+                    {/* Vạch tiến trình đồng bộ thời gian thực của câu hát */}
+                    <div className="flex items-center gap-3 ml-12 pointer-events-none select-none max-w-md">
+                      <span className="font-mono text-[11px] text-primary-container/90 font-semibold shrink-0">
+                        {formatTime(Math.min(line.endTimeMs, Math.max(line.timeMs, effectiveCurrentMs)))}
+                      </span>
+                      <div className="h-1.5 flex-1 min-w-[120px] bg-surface-container-highest rounded-full overflow-hidden">
                         <div
                           className="h-full bg-primary-container rounded-full transition-all duration-150 ease-linear"
                           style={{ width: `${currentLineProgress}%` }}
                         />
                       </div>
-                      <span className="font-mono text-[11px] text-primary-container font-semibold">
-                        {formatTime(line.timeMs)} • {formatTime(line.endTimeMs)}
+                      <span className="font-mono text-[11px] text-outline font-semibold shrink-0">
+                        {formatTime(line.endTimeMs)}
                       </span>
                     </div>
                   </div>
@@ -481,7 +511,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
                 <div
                   key={idx}
                   onClick={() => handleLineClick(line.timeMs)}
-                  className={`flex items-baseline gap-4 py-2 px-3 rounded-xl transition-all cursor-pointer ${
+                  className={`flex items-baseline gap-4 py-2 px-3 rounded-xl transition-all duration-300 ease-out cursor-pointer ${
                     isPast
                       ? 'opacity-35 hover:opacity-80 text-outline'
                       : 'opacity-70 hover:opacity-100 text-on-surface'
@@ -491,7 +521,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
                   <span className="font-mono text-[11px] text-outline w-12 shrink-0">
                     {formatTime(line.timeMs)}
                   </span>
-                  <p className={`font-body font-medium transition-colors ${
+                  <p className={`font-body font-medium transition-all duration-300 ${
                     fontSizeLevel === 2 ? 'text-lg sm:text-xl' : fontSizeLevel === 0 ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
                   }`}>
                     {capitalizeFirstLetter(line.text)}

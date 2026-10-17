@@ -218,67 +218,19 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
   const topTracks = player?.topTracks || [];
   const recentPlaylists = player?.recentPlaylists || [];
 
+  const handleWheelHorizontal = (e) => {
+    if (e.deltaY !== 0) {
+      e.currentTarget.scrollLeft += e.deltaY;
+    }
+  };
+
+  const favoritesScrollRef = useRef(null);
+  const topTracksScrollRef = useRef(null);
+
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
 
-      {/* ── 1. THANH TÌM KIẾM HERO DUY NHẤT ───────────────────────────────── */}
-      <div className="flex items-center gap-2 bg-surface-container px-3 py-2 rounded-xl border border-white/5 focus-within:border-primary-container/50 shadow-sm shrink-0 mb-3">
-        <button
-          type="button"
-          onClick={() => executeSearch(query.trim(), searchMode)}
-          className="text-outline hover:text-on-surface transition-colors p-0.5"
-          title="Tìm kiếm bài hát"
-        >
-          {loading ? (
-            <Loader2 size={18} className="animate-spin text-primary-container" />
-          ) : (
-            <Search size={18} />
-          )}
-        </button>
-
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => {
-            const val = e.target.value;
-            setQuery(val);
-            onQueryChange?.(val);
-            if (!val.trim()) {
-              setResults([]);
-              setLoading(false);
-            }
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder="Dán liên kết YouTube / Spotify hoặc gõ tên bài..."
-          className="bg-transparent border-none text-xs sm:text-sm text-on-surface placeholder:text-outline w-full focus:outline-none"
-        />
-
-        {/* Nút Tìm Kiếm Nâng Cao */}
-        <button
-          onClick={() => handleModeChange(searchMode === 'all' ? 'official' : 'all')}
-          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono tracking-wider flex items-center gap-1 shrink-0 transition-all ${
-            searchMode === 'all'
-              ? 'bg-primary-container text-on-primary shadow'
-              : 'bg-primary-container/20 text-primary-container hover:bg-primary-container/30'
-          }`}
-          title={searchMode === 'all' ? 'Đang bật tìm kiếm mở rộng (Remix, Live, Cover) - Nhấn để tắt' : 'Bật tìm kiếm mở rộng'}
-        >
-          <SlidersHorizontal size={12} />
-          <span>NÂNG CAO</span>
-        </button>
-
-        {query && (
-          <button
-            onClick={handleClear}
-            className="text-outline hover:text-on-surface p-1 transition-colors"
-            title="Xóa tìm kiếm"
-          >
-            <X size={16} />
-          </button>
-        )}
-      </div>
-
-      {/* ── 2. BANNER PHÁT HIỆN LINK PLAYLIST (Nếu có) ────────────────────── */}
+      {/* ── 1. BANNER PHÁT HIỆN LINK PLAYLIST (Nếu có) ────────────────────── */}
       {detected?.isPlaylist && (
         <div className="bg-surface-container-low rounded-xl border border-primary-container/40 p-3 flex items-center justify-between gap-3 shrink-0 mb-3 shadow-lg">
           <div className="flex items-center gap-3 min-w-0">
@@ -324,10 +276,10 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
         </div>
       )}
 
-      {/* ── 3. VÙNG HIỂN THỊ CHÍNH (Kết quả tìm kiếm HOẶC Khám Phá Stitch) ─── */}
+      {/* ── 2. VÙNG HIỂN THỊ CHÍNH (Kết quả tìm kiếm HOẶC Khám Phá Stitch) ─── */}
       <div className="flex-1 overflow-y-auto custom-scroll min-h-0 pr-1 flex flex-col gap-3">
 
-        {/* ── 3A. NẾU ĐANG TÌM KIẾM ────────────────────────────────────────── */}
+        {/* ── 2A. NẾU ĐANG TÌM KIẾM TỪ TOP HEADER ──────────────────────────── */}
         {query.trim().length >= 2 && !detected?.isPlaylist ? (
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between pb-1 text-xs text-outline font-mono">
@@ -387,10 +339,10 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
             )}
           </div>
         ) : (
-          /* ── 3B. MÀN HÌNH KHÁM PHÁ CHUẨN STITCH (Khi ô search trống) ──────── */
+          /* ── 2B. MÀN HÌNH KHÁM PHÁ CHUẨN STITCH (Khi ô search trống) ──────── */
           <div className="flex flex-col gap-3 min-h-0">
 
-            {/* HÀNG 1: NGHE GẦN ĐÂY (Horizontal Scroll mượt mà) */}
+            {/* HÀNG 1: NGHE GẦN ĐÂY (Hàng ngang + Scroll chuột ngang) */}
             {history.length > 0 && (
               <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col gap-2 shrink-0">
                 <div className="flex items-center justify-between">
@@ -404,14 +356,14 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                   </div>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => recentScrollRef.current?.scrollBy({ left: -180, behavior: 'smooth' })}
+                      onClick={() => recentScrollRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}
                       className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
                       title="Cuộn sang trái"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     <button
-                      onClick={() => recentScrollRef.current?.scrollBy({ left: 180, behavior: 'smooth' })}
+                      onClick={() => recentScrollRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}
                       className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
                       title="Cuộn sang phải"
                     >
@@ -422,9 +374,10 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
 
                 <div
                   ref={recentScrollRef}
+                  onWheel={handleWheelHorizontal}
                   className="flex gap-2.5 overflow-x-auto scrollbar-none py-1"
                 >
-                  {history.slice(0, 14).map((track, idx) => (
+                  {history.slice(0, 16).map((track, idx) => (
                     <div
                       key={track.url || idx}
                       onClick={() => handleOrderTrack(track)}
@@ -440,6 +393,11 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                         <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow">
                           <Play size={12} fill="currentColor" className="ml-0.5" />
                         </div>
+                        {track.duration && (
+                          <span className="absolute bottom-1 left-1 text-[9px] font-mono px-1 rounded bg-black/70 text-outline">
+                            {track.duration}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] font-semibold text-on-surface truncate mt-1 group-hover:text-primary transition-colors">
                         {track.title}
@@ -453,7 +411,159 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
               </div>
             )}
 
-            {/* HÀNG 2: PLAYLIST ĐÃ THÊM GẦN ĐÂY */}
+            {/* HÀNG 2: BÀI HÁT YÊU THÍCH (Hàng ngang + Scroll chuột ngang) */}
+            {favorites.length > 0 && (
+              <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col gap-2 shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Heart size={14} className="text-secondary fill-secondary" />
+                    <span className="text-xs font-bold text-on-surface uppercase tracking-wider">
+                      BÀI HÁT YÊU THÍCH
+                    </span>
+                    <span className="font-mono text-[10px] text-outline">
+                      ({favorites.length})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setIsFavoritesModalOpen(true)}
+                      className="text-[11px] font-semibold text-primary-container hover:text-primary flex items-center gap-1 mr-1"
+                    >
+                      <span>Xem tất cả</span>
+                      <span className="material-symbols-outlined text-[13px]">north_east</span>
+                    </button>
+                    <button
+                      onClick={() => favoritesScrollRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}
+                      className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
+                      title="Cuộn sang trái"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      onClick={() => favoritesScrollRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}
+                      className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
+                      title="Cuộn sang phải"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={favoritesScrollRef}
+                  onWheel={handleWheelHorizontal}
+                  className="flex gap-2.5 overflow-x-auto scrollbar-none py-1"
+                >
+                  {favorites.slice(0, 16).map((fav, idx) => (
+                    <div
+                      key={fav.url || idx}
+                      onClick={() => handleOrderTrack(fav)}
+                      className="w-28 shrink-0 group cursor-pointer"
+                    >
+                      <div className="w-28 h-18 rounded-lg bg-surface-container overflow-hidden relative border border-white/5 shadow-sm">
+                        <img
+                          src={getTrackThumb(fav)}
+                          alt=""
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
+                        />
+                        <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-secondary-container text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow">
+                          <Play size={12} fill="currentColor" className="ml-0.5" />
+                        </div>
+                        {fav.duration && (
+                          <span className="absolute bottom-1 left-1 text-[9px] font-mono px-1 rounded bg-black/70 text-outline">
+                            {fav.duration}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] font-semibold text-on-surface truncate mt-1 group-hover:text-primary transition-colors">
+                        {fav.title}
+                      </div>
+                      <div className="text-[9px] text-outline font-mono truncate">
+                        {fav.artist || 'Anna Music'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* HÀNG 3: PHỔ BIẾN TRONG MÁY CHỦ / TOP TUẦN (Hàng ngang + Scroll chuột ngang) */}
+            {topTracks.length > 0 && (
+              <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col gap-2 shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[15px] text-primary-container">trending_up</span>
+                    <span className="text-xs font-bold text-on-surface uppercase tracking-wider">
+                      PHỔ BIẾN TRONG MÁY CHỦ
+                    </span>
+                    <span className="font-mono text-[9px] text-primary-container font-semibold">
+                      TOP TUẦN
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => topTracksScrollRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}
+                      className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
+                      title="Cuộn sang trái"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      onClick={() => topTracksScrollRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}
+                      className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
+                      title="Cuộn sang phải"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={topTracksScrollRef}
+                  onWheel={handleWheelHorizontal}
+                  className="flex gap-2.5 overflow-x-auto scrollbar-none py-1"
+                >
+                  {topTracks.slice(0, 16).map((track, idx) => (
+                    <div
+                      key={track.url || idx}
+                      onClick={() => handleOrderTrack(track)}
+                      className="w-28 shrink-0 group cursor-pointer"
+                    >
+                      <div className="w-28 h-18 rounded-lg bg-surface-container overflow-hidden relative border border-white/5 shadow-sm">
+                        <img
+                          src={getTrackThumb(track)}
+                          alt=""
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
+                        />
+                        <span className={`absolute top-1 left-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded shadow ${
+                          idx < 3 ? 'bg-primary-container text-on-primary' : 'bg-black/70 text-outline'
+                        }`}>
+                          #{idx + 1}
+                        </span>
+                        <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow">
+                          <Play size={12} fill="currentColor" className="ml-0.5" />
+                        </div>
+                        {track.duration && (
+                          <span className="absolute bottom-1 left-1 text-[9px] font-mono px-1 rounded bg-black/70 text-outline">
+                            {track.duration}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] font-semibold text-on-surface truncate mt-1 group-hover:text-primary transition-colors">
+                        {track.title}
+                      </div>
+                      <div className="text-[9px] text-outline font-mono truncate">
+                        {track.artist || 'Anna Music'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* HÀNG 4: PLAYLIST ĐÃ THÊM GẦN ĐÂY */}
             {recentPlaylists.length > 0 && (
               <div className="flex flex-col gap-1.5 shrink-0">
                 <div className="flex items-center justify-between">
@@ -507,127 +617,6 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                 </div>
               </div>
             )}
-
-            {/* HÀNG 3: LƯỚI 2 CỘT SONG SONG (Bài Hát Yêu Thích & Top Tuần) */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 min-h-0 flex-1">
-
-              {/* CỘT TRÁI: BÀI HÁT YÊU THÍCH */}
-              <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col min-h-0">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5 shrink-0">
-                  <div className="flex items-center gap-1.5">
-                    <Heart size={14} className="text-secondary fill-secondary" />
-                    <span className="text-xs font-bold text-on-surface uppercase tracking-wider">
-                      BÀI HÁT YÊU THÍCH
-                    </span>
-                    <span className="font-mono text-[9px] text-outline">
-                      ({favorites.length})
-                    </span>
-                  </div>
-                  {favorites.length > 0 && (
-                    <button
-                      onClick={() => setIsFavoritesModalOpen(true)}
-                      className="text-[11px] font-semibold text-primary-container hover:text-primary flex items-center gap-1"
-                    >
-                      <span>Xem tất cả</span>
-                      <span className="material-symbols-outlined text-[13px]">north_east</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex-1 overflow-y-auto custom-scroll flex flex-col gap-1 pr-1 pt-2 min-h-0">
-                  {favorites.length === 0 ? (
-                    <div className="text-center py-8 text-outline text-xs">
-                      Chưa có bài hát yêu thích. Bấm vào icon ❤️ ở bài hát đang phát để lưu!
-                    </div>
-                  ) : (
-                    favorites.slice(0, 6).map((fav, i) => (
-                      <div
-                        key={fav.url || i}
-                        onClick={() => handleOrderTrack(fav)}
-                        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-container transition-colors group cursor-pointer"
-                      >
-                        <div className="w-8 h-8 rounded bg-surface-container-highest overflow-hidden shrink-0">
-                          <img
-                            src={getTrackThumb(fav)}
-                            alt=""
-                            className="w-full h-full object-cover"
-                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[11px] font-semibold text-on-surface truncate group-hover:text-primary">
-                            {fav.title}
-                          </div>
-                          <div className="text-[9px] text-outline font-mono truncate">
-                            {fav.artist || 'Anna Music'}
-                          </div>
-                        </div>
-                        <span className="font-mono text-[10px] text-outline">
-                          {fav.duration || ''}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* CỘT PHẢI: PHỔ BIẾN TRONG MÁY CHỦ (TOP TUẦN) */}
-              <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col min-h-0">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5 shrink-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-on-surface uppercase tracking-wider">
-                      PHỔ BIẾN TRONG MÁY CHỦ
-                    </span>
-                    <span className="font-mono text-[9px] text-primary-container font-semibold">
-                      TOP TUẦN
-                    </span>
-                  </div>
-                  <span className="font-mono text-[9px] text-outline">REALTIME</span>
-                </div>
-
-                <div className="flex-1 overflow-y-auto custom-scroll flex flex-col gap-1 pr-1 pt-2 min-h-0">
-                  {topTracks.length === 0 ? (
-                    <div className="text-center py-8 text-outline text-xs">
-                      Chưa có dữ liệu bài hát phổ biến tuần này.
-                    </div>
-                  ) : (
-                    topTracks.slice(0, 6).map((track, i) => (
-                      <div
-                        key={track.url || i}
-                        onClick={() => handleOrderTrack(track)}
-                        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-container transition-colors group cursor-pointer"
-                      >
-                        <span className={`font-mono text-xs font-bold w-5 text-center ${
-                          i < 3 ? 'text-primary-container' : 'text-outline'
-                        }`}>
-                          {i < 3 ? `#${i + 1}` : `0${i + 1}`}
-                        </span>
-                        <div className="w-8 h-8 rounded bg-surface-container-highest overflow-hidden shrink-0">
-                          <img
-                            src={getTrackThumb(track)}
-                            alt=""
-                            className="w-full h-full object-cover"
-                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[11px] font-semibold text-on-surface truncate group-hover:text-primary">
-                            {track.title}
-                          </div>
-                          <div className="text-[9px] text-outline font-mono truncate">
-                            {track.artist || 'Anna Music'}
-                          </div>
-                        </div>
-                        <span className="font-mono text-[9px] text-outline text-right">
-                          {track.playCount ? `${track.playCount} lần` : ''}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-            </div>
 
           </div>
         )}

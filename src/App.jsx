@@ -1005,16 +1005,10 @@ export default function App() {
           </kbd>
         </div>
 
-        {/* Right Header Utilities: Hi-Fi Status, Online Counter, Profile */}
+        {/* Right Header Utilities: Online Counter */}
         <div className="flex items-center gap-2.5 shrink-0">
-          {/* 48kHz Hi-Fi Lossless */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container font-mono text-[10px] text-tertiary border border-white/5">
-            <span className="material-symbols-outlined text-[13px]">graphic_eq</span>
-            <span>48kHz Hi-Fi Lossless</span>
-          </div>
-
           {/* Online Users Avatar Stack */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container border border-white/5">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container border border-white/5">
             <div className="flex -space-x-2 items-center">
               {(() => {
                 const myId = String(user?.userId || user?.id || '');
@@ -1035,19 +1029,6 @@ export default function App() {
             </div>
             <span className="font-mono text-[10px] text-primary-container font-semibold">
               {Math.max(1, (activeWebUsers?.length || 0) + 1)} ONLINE
-            </span>
-          </div>
-
-          {/* User Profile */}
-          <div className="flex items-center gap-2 pl-2 border-l border-white/10">
-            <img
-              src={user.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
-              alt=""
-              className="w-7 h-7 rounded-full object-cover border border-primary-container/40 shrink-0"
-              title={user.displayName || user.username}
-            />
-            <span className="font-medium text-xs text-on-surface hidden md:inline truncate max-w-[100px]">
-              {user.displayName || user.username}
             </span>
           </div>
         </div>
@@ -1072,7 +1053,7 @@ export default function App() {
                   <button
                     key={id}
                     onClick={() => switchTab(id)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left text-[13px] ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left text-[13px] outline-none focus:outline-none focus:ring-0 focus-visible:outline-none select-none ${
                       isActive
                         ? 'bg-surface-container text-primary font-semibold border border-white/5 shadow-sm'
                         : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface'
