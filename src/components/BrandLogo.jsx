@@ -18,23 +18,24 @@ export default function BrandLogo({ size = 'md', onClick, showSubtext = true, cl
     >
       {/* ── 1. BIỂU TƯỢNG LOGO GIF ANNA ────────────────── */}
       <div
-        className="relative shrink-0 rounded-2xl overflow-hidden flex items-center justify-center p-0.5 border border-primary-container/40 shadow-sm transition-transform duration-300 group-hover:scale-105 bg-surface-container"
+        className="relative shrink-0 rounded-xl overflow-hidden flex items-center justify-center p-0.5 border border-border/80 shadow-sm transition-transform duration-200 group-hover:scale-105 bg-surface-container"
         style={{ width: iconSize, height: iconSize }}
       >
         <img
           src="/logo.gif"
           alt="Anna Logo"
-          className="w-full h-full object-cover rounded-xl"
+          className="w-full h-full object-cover rounded-lg"
+          style={{ imageRendering: 'pixelated' }}
           loading="eager"
         />
       </div>
 
       {/* ── 2. BRAND TYPOGRAPHY ──────────────────────────────────────────────── */}
       <div className="flex flex-col justify-center">
-        <div className="flex items-center gap-1 leading-none tracking-tight">
-          <span className={`font-brand ${brandFontSize} font-bold text-primary-container`}>an</span>
-          <span className={`font-brand ${brandFontSize} font-bold text-[#f5a192]`}>na</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-secondary ml-0.5 animate-pulse" />
+        <div className="flex items-center gap-0.5 leading-none tracking-tight">
+          <span className={`font-sans ${brandFontSize} font-extrabold text-primary-container`}>an</span>
+          <span className={`font-sans ${brandFontSize} font-extrabold text-[#ef7864]`}>na</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#ef7864] ml-1 opacity-80" />
         </div>
 
         {showSubtext && (

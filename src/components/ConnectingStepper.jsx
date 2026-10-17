@@ -25,33 +25,31 @@ export default function ConnectingStepper({ text = 'ĐANG KHỞI TẠO...' }) {
             }}
           />
         </div>
-        <div className="brand-name"><span className="y">an</span><b className="c">na</b></div>
-        <div className="brand-subtitle">MUSIC WEB PLAYER</div>
+        <div className="text-2xl font-sans font-extrabold tracking-tight mb-1">
+          <span className="text-primary-container">an</span><span className="text-[#ef7864]">na</span>
+        </div>
+        <div className="font-mono text-[10px] tracking-[0.16em] uppercase text-outline font-semibold">
+          PHIÊN ĐIỀU KHIỂN ÂM THANH
+        </div>
       </div>
       <div style={{ textAlign: 'center' }}>
         <div style={{
-          width: 80,
-          height: 3,
-          background: 'var(--border)',
-          borderRadius: 3,
+          width: 72,
+          height: 2,
+          background: '#22262e',
+          borderRadius: 2,
           overflow: 'hidden',
-          margin: '0 auto 16px',
+          margin: '0 auto 14px',
         }}>
           <div style={{
             height: '100%',
             width: '45%',
-            background: 'var(--yellow)',
-            borderRadius: 3,
+            background: '#e8c977',
+            borderRadius: 2,
             animation: 'stepperSlide 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite',
           }} />
         </div>
-        <p style={{
-          fontFamily: '"DM Mono", monospace',
-          fontSize: 11,
-          letterSpacing: '0.18em',
-          color: 'var(--muted)',
-          margin: 0,
-        }}>
+        <p className="font-mono text-[11px] tracking-wider text-outline m-0">
           {text}
         </p>
       </div>

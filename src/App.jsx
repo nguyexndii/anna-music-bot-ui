@@ -21,6 +21,7 @@ import {
   History,
   AlertCircle,
   Disc3,
+  Disc,
   Play,
   Pause,
   SkipForward,
@@ -32,7 +33,15 @@ import {
   Heart,
   ArrowRight,
   ShieldCheck,
-  RefreshCw
+  RefreshCw,
+  Compass,
+  Clock,
+  SlidersHorizontal,
+  CheckCircle2,
+  Database,
+  Headphones,
+  User as UserIcon,
+  X
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from './config';
 
@@ -49,15 +58,15 @@ function getTrackThumb(track) {
   return DEFAULT_TRACK_THUMB;
 }
 
-// ─── Tab Definitions (Stitch Navigation) ────────────────────────────────────
+// ─── Tab Definitions (Tactile Navigation) ────────────────────────────────────
 const TABS = [
-  { id: 'player',    label: 'Đang Phát', iconName: 'album',        mobileOnly: true },
-  { id: 'search',    label: 'Khám Phá',  iconName: 'explore',      mobileOnly: false },
-  { id: 'favorites', label: 'Yêu Thích', iconName: 'favorite',     mobileOnly: false },
-  { id: 'queue',     label: 'Hàng Chờ',  iconName: 'queue_music',  mobileOnly: false },
-  { id: 'lyrics',    label: 'Lời Nhạc',  iconName: 'mic',          mobileOnly: false },
-  { id: 'history',   label: 'Lịch Sử',   iconName: 'history',      mobileOnly: false },
-  { id: 'settings',  label: 'Cài Đặt',   iconName: 'settings',     mobileOnly: false },
+  { id: 'player',    label: 'Đang Phát', icon: Disc,          mobileOnly: true },
+  { id: 'search',    label: 'Khám Phá',  icon: Compass,       mobileOnly: false },
+  { id: 'favorites', label: 'Yêu Thích', icon: Heart,         mobileOnly: false },
+  { id: 'queue',     label: 'Hàng Chờ',  icon: ListMusic,     mobileOnly: false },
+  { id: 'lyrics',    label: 'Lời Nhạc',  icon: Mic2,          mobileOnly: false },
+  { id: 'history',   label: 'Lịch Sử',   icon: Clock,         mobileOnly: false },
+  { id: 'settings',  label: 'Cài Đặt',   icon: Settings,      mobileOnly: false },
 ];
 
 // ─── PIN 6-digit Split Input Component ────────────────────────────────────────
@@ -176,12 +185,8 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
 
   return (
     <div className="bg-surface font-body text-on-surface antialiased h-screen h-[100dvh] overflow-hidden flex items-center justify-center p-4 md:p-6 select-none relative z-10">
-      {/* Ambient background glow */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary-container/5 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none" />
-
       {/* Main Auth Container Căn Giữa Hoàn Hảo */}
-      <div className="w-full max-w-md bg-surface-container-low border border-white/5 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center relative z-10 backdrop-blur-xl">
+      <div className="w-full max-w-md bg-surface-container-low border border-border/80 rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col items-center relative z-10">
 
         {/* Logo Anna Mới */}
         <div className="flex flex-col items-center mb-5">
@@ -294,8 +299,8 @@ function NoVoiceScreen({ user, onRefresh, isRefreshing, onLogout }) {
       </header>
 
       <main className="w-full max-w-md my-auto bg-surface-container-low border border-outline-variant/30 rounded-2xl p-6 shadow-2xl flex flex-col gap-4 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-surface-container-highest border border-primary-container/30 flex items-center justify-center mx-auto text-primary-container shadow-inner">
-          <span className="material-symbols-outlined text-3xl">headset_off</span>
+        <div className="w-14 h-14 rounded-xl bg-surface-container-highest border border-primary-container/30 flex items-center justify-center mx-auto text-primary-container shadow-inner">
+          <Headphones size={28} strokeWidth={1.75} />
         </div>
         <div>
           <span className="px-2.5 py-0.5 rounded bg-primary-container/15 text-primary-container font-mono text-[10px] font-bold uppercase tracking-wider">
@@ -631,7 +636,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/api/guilds/${cg}/play`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ct}` },
-        body: JSON.stringify({ track, token: ct }),
+        body: JSON.stringify({ track }),
       });
       if (res.status === 401) { handleAuthExpired(); return; }
       const data = await res.json().catch(() => ({}));
@@ -744,7 +749,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/api/guilds/${cg}/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ct}` },
-        body: JSON.stringify({ action, value, token: ct }),
+        body: JSON.stringify({ action, value }),
       });
       if (res.status === 401) {
         setPendingAction(null);
@@ -840,7 +845,7 @@ export default function App() {
         {/* Center: Search Input Bar (CĂN GIỮA HOÀN HẢO MÀN HÌNH) */}
         <div className="flex-1 max-w-xl mx-auto flex justify-center px-2">
           <div className="w-full flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-xl border border-white/5 focus-within:border-primary-container/50 transition-colors shadow-sm">
-            <span className="material-symbols-outlined text-[17px] text-outline">search</span>
+            <Search size={16} strokeWidth={1.75} className="text-outline shrink-0" />
             <input
               type="text"
               value={searchQuery}
@@ -877,7 +882,7 @@ export default function App() {
                 className="text-outline hover:text-on-surface p-0.5"
                 title="Xóa tìm kiếm"
               >
-                <span className="material-symbols-outlined text-[14px]">close</span>
+                <X size={14} strokeWidth={1.75} />
               </button>
             )}
             {/* Nút bật/tắt Tìm kiếm Nâng Cao */}
@@ -893,7 +898,7 @@ export default function App() {
               className="px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider flex items-center gap-1 shrink-0 transition-all bg-primary-container/20 text-primary-container hover:bg-primary-container/30 border border-primary-container/30"
               title="Chuyển đổi giữa chế độ Chính thức (Official) và Mở rộng (Tất cả nguồn)"
             >
-              <span className="material-symbols-outlined text-[13px]">tune</span>
+              <SlidersHorizontal size={13} strokeWidth={1.75} />
               <span className="hidden sm:inline">
                 {(localStorage.getItem('anna_search_mode') || 'official') === 'all' ? 'NÂNG CAO' : 'CHÍNH CHỦ'}
               </span>
@@ -942,9 +947,9 @@ export default function App() {
               MENU CHÍNH
             </span>
 
-            {/* Navigation Tabs (Chuẩn phong cách Stitch - Xóa sạch viền trắng) */}
+            {/* Navigation Tabs (Tactile Hi-Fi Console) */}
             <nav className="flex flex-col gap-1 text-xs font-medium" aria-label="Điều hướng chính">
-              {TABS.filter(t => !t.mobileOnly).map(({ id, label, iconName }) => {
+              {TABS.filter(t => !t.mobileOnly).map(({ id, label, icon: TabIcon }) => {
                 const isActive = effectiveContentTab === id;
                 const queueCount = id === 'queue' ? (player?.queue?.length || 0) : 0;
                 const favCount = id === 'favorites' ? (player?.favorites?.length || 0) : 0;
@@ -961,7 +966,7 @@ export default function App() {
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`material-symbols-outlined text-[19px] ${isActive ? 'text-primary-container' : ''}`}>{iconName}</span>
+                      <TabIcon size={17} strokeWidth={1.75} className={isActive ? 'text-primary-container' : 'text-outline'} />
                       <span>{label}</span>
                     </div>
                     {badgeCount > 0 && (
@@ -988,9 +993,11 @@ export default function App() {
                   {user.displayName || user.username}
                 </span>
                 <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[11px] text-tertiary">
-                    {user.isAdmin ? 'verified_user' : 'account_circle'}
-                  </span>
+                  {user.isAdmin ? (
+                    <ShieldCheck size={12} strokeWidth={1.75} className="text-tertiary" />
+                  ) : (
+                    <UserIcon size={12} strokeWidth={1.75} className="text-tertiary" />
+                  )}
                   <span className="text-[9px] text-tertiary uppercase font-mono tracking-wider">
                     {user.isAdmin ? 'Quản Trị' : 'Thành Viên'}
                   </span>
@@ -1003,7 +1010,7 @@ export default function App() {
               className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-surface-container hover:bg-secondary-container hover:text-white text-[11px] text-on-surface-variant transition-colors"
               title="Rời phiên nghe nhạc"
             >
-              <span className="material-symbols-outlined text-[14px]">logout</span>
+              <LogOut size={13} strokeWidth={1.75} />
               <span>Rời phòng</span>
             </button>
           </div>
@@ -1017,7 +1024,7 @@ export default function App() {
             <div className="px-4 py-1.5 flex items-center justify-between bg-surface-container-lowest/60 border-b border-white/5 text-xs shrink-0 z-20">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-on-surface">Lời Nhạc Đồng Bộ</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
               </div>
               <div
                 className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] border"
@@ -1028,7 +1035,7 @@ export default function App() {
                 }}
                 title={lyricsSourceInfo.title || undefined}
               >
-                <span className="material-symbols-outlined text-[12px]">database</span>
+                <Database size={12} strokeWidth={1.75} />
                 <span>{lyricsSourceInfo.text}</span>
               </div>
             </div>
@@ -1113,7 +1120,7 @@ export default function App() {
           {/* Header Panel */}
           <div className="flex items-center justify-between pb-1 shrink-0">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-primary-container"></span>
               <span className="font-mono text-[10px] font-bold text-primary tracking-widest uppercase">
                 ĐANG PHÁT
               </span>
@@ -1190,9 +1197,9 @@ export default function App() {
           </div>
         )}
 
-        {/* Bottom Tab Bar (Mobile 6 Tabs) */}
+        {/* Bottom Tab Bar (Mobile Tabs) */}
         <nav className="h-14 bg-surface-container-lowest/95 backdrop-blur-2xl border-t border-white/10 px-2 flex items-center justify-around text-[10px]">
-          {TABS.map(({ id, label, iconName }) => {
+          {TABS.map(({ id, label, icon: TabIcon }) => {
             const isActive = activeTab === id;
             const queueCount = id === 'queue' ? (player?.queue?.length || 0) : 0;
             return (
@@ -1203,7 +1210,7 @@ export default function App() {
                   isActive ? 'text-primary-container font-bold' : 'text-outline hover:text-on-surface'
                 }`}
               >
-                <span className="material-symbols-outlined text-[20px]">{iconName}</span>
+                <TabIcon size={19} strokeWidth={1.75} className={isActive ? 'text-primary-container' : 'text-outline'} />
                 <span className="tracking-tight text-[10px]">{label}</span>
                 {queueCount > 0 && (
                   <span className="absolute top-0.5 right-2 font-mono text-[8px] px-1 rounded-full bg-primary-container text-on-primary font-bold">

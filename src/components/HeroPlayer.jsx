@@ -427,7 +427,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
         <p
           className="text-xs text-primary-container truncate font-medium"
         >
-          {current?.artist || (isLofi ? 'Anna Music • Lofi 24/7' : 'Boutique Soundbot')}
+          {current?.artist || (isLofi ? 'Anna Music • Lofi 24/7' : 'Anna Music')}
         </p>
       </div>
 

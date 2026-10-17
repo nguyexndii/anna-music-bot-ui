@@ -12,7 +12,8 @@ import {
   Volume2,
   Music,
   Hash,
-  Disc
+  Disc,
+  Sparkles
 } from 'lucide-react';
 import { API_BASE } from '../config';
 
@@ -194,7 +195,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 disabled={isSaving}
                 className="w-full min-w-0 bg-surface-container-high border border-white/10 text-on-surface text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
               >
-                <option value="">🚫 Tắt kênh nhật ký</option>
+                <option value="">Tắt kênh nhật ký</option>
                 {textChannels.map((ch) => (
                   <option key={ch.id} value={ch.id}>
                     # {ch.name}
@@ -233,7 +234,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 disabled={isSaving}
                 className="w-full min-w-0 bg-surface-container-high border border-white/10 text-on-surface text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
               >
-                <option value="">🌐 Cho phép dùng lệnh ở mọi kênh</option>
+                <option value="">Cho phép dùng lệnh ở mọi kênh</option>
                 {textChannels.map((ch) => (
                   <option key={ch.id} value={ch.id}>
                     # {ch.name}
@@ -272,10 +273,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                 disabled={isSaving}
                 className="w-full min-w-0 bg-surface-container-high border border-white/10 text-on-surface text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
               >
-                <option value="">🔊 Cho phép bot vào mọi phòng Voice</option>
+                <option value="">Cho phép bot vào mọi phòng Voice</option>
                 {voiceChannels.map((vc) => (
                   <option key={vc.id} value={vc.id}>
-                    🔊 {vc.name}
+                    {vc.name}
                   </option>
                 ))}
               </select>
@@ -368,15 +369,16 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-white/5">
               {[
-                { id: 'ytmix', label: 'YouTube Mix (RD)', badge: '🔴', desc: 'Chuẩn gu thuật toán YouTube' },
-                { id: 'ai', label: 'Gemini DJ AI', badge: '🎧', desc: 'Gợi ý thông minh theo vibe' },
-                { id: 'lastfm', label: 'Last.fm Similar', badge: '📻', desc: 'Thư viện bài hát quốc tế' },
-                { id: 'heuristic', label: 'Heuristic Fallback', badge: '🔍', desc: 'Cùng ca sĩ / bài nổi bật' }
+                { id: 'ytmix', label: 'YouTube Mix (RD)', icon: Disc, desc: 'Chuẩn gu thuật toán YouTube' },
+                { id: 'ai', label: 'Gemini DJ AI', icon: Sparkles, desc: 'Gợi ý thông minh theo vibe' },
+                { id: 'lastfm', label: 'Last.fm Similar', icon: Compass, desc: 'Thư viện bài hát quốc tế' },
+                { id: 'heuristic', label: 'Heuristic Fallback', icon: Music, desc: 'Cùng ca sĩ / bài nổi bật' }
               ].map(layer => {
                 const currentLayers = Array.isArray(serverSettings.autoplayLayers) && serverSettings.autoplayLayers.length > 0
                   ? serverSettings.autoplayLayers
                   : ['ytmix', 'ai', 'lastfm', 'heuristic'];
                 const isChecked = currentLayers.includes(layer.id);
+                const IconComponent = layer.icon;
                 return (
                   <button
                     key={layer.id}
@@ -384,7 +386,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                     onClick={() => {
                       let nextLayers;
                       if (isChecked) {
-                        if (currentLayers.length <= 1) return;
+                         if (currentLayers.length <= 1) return;
                         nextLayers = currentLayers.filter(id => id !== layer.id);
                       } else {
                         nextLayers = [...currentLayers, layer.id];
@@ -398,8 +400,10 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                         : 'bg-surface-container-high/40 border-white/5 text-outline hover:border-white/10'
                     }`}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span>{layer.badge}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center shrink-0 text-primary-container">
+                        <IconComponent size={15} />
+                      </div>
                       <div className="min-w-0">
                         <div className="text-xs font-semibold truncate">{layer.label}</div>
                         <div className="text-[10px] text-outline truncate">{layer.desc}</div>
@@ -535,7 +539,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
                   disabled={isSaving}
                   className="w-full min-w-0 bg-surface-container-high border border-white/10 text-on-surface text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-primary-container font-medium transition cursor-pointer"
                 >
-                  <option value="">🏷️ Chọn vai trò Discord...</option>
+                  <option value="">Chọn vai trò Discord...</option>
                   {roles.map((r) => (
                     <option key={r.id} value={r.id}>
                       @{r.name}

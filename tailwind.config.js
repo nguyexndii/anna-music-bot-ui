@@ -8,11 +8,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Be Vietnam Pro"', '"DM Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['"Be Vietnam Pro"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         body: ['"Be Vietnam Pro"', 'sans-serif'],
-        mono: ['"JetBrains Mono"', '"DM Mono"', 'monospace'],
-        brand: ['"Playfair Display"', 'Georgia', 'serif'],
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+        brand: ['"Be Vietnam Pro"', 'sans-serif'],
         'headline-md': ['"Be Vietnam Pro"', 'sans-serif'],
         'headline-lg': ['"Be Vietnam Pro"', 'sans-serif'],
         'headline-xl': ['"Be Vietnam Pro"', 'sans-serif'],
@@ -22,7 +21,6 @@ export default {
         'label-code': ['"JetBrains Mono"', 'monospace'],
         'label-numeric': ['"JetBrains Mono"', 'monospace'],
         'label-caps': ['"Be Vietnam Pro"', 'sans-serif'],
-        'brand-display': ['"Playfair Display"', 'serif'],
       },
       spacing: {
         'space-xs': '0.25rem',

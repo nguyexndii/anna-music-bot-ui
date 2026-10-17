@@ -112,7 +112,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
             <div
               key={track.url || idx}
               data-tip={`${track.title}${track.artist ? ` • ${track.artist}` : ''}`}
-              className="group flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-container-low hover:bg-surface-container border border-transparent hover:border-white/5 transition-colors cursor-default shadow-sm"
+              className="group flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#181b20] border-b border-white/5 transition-colors cursor-default"
             >
               {/* Thứ tự & Thumbnail */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -120,7 +120,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
                   #{idx < 9 ? `0${idx + 1}` : idx + 1}
                 </span>
 
-                <div className="w-10 h-10 rounded-lg bg-surface-container overflow-hidden shrink-0 border border-white/5 relative shadow-sm">
+                <div className="w-10 h-10 rounded-md bg-surface-container overflow-hidden shrink-0 border border-white/5 relative">
                   <img
                     src={getTrackThumb(track)}
                     alt=""

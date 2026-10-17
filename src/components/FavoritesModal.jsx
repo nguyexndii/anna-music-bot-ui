@@ -43,141 +43,49 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        background: 'rgba(0, 0, 0, 0.78)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        animation: 'fadeIn 0.18s ease-out'
-      }}
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
       <div
-        style={{
-          width: '100%',
-          maxWidth: 620,
-          maxHeight: '86vh',
-          borderRadius: 20,
-          background: 'var(--paper)',
-          border: '1px solid var(--border)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-        }}
+        className="w-full max-w-2xl max-h-[85vh] rounded-xl bg-[#13161b] border border-[#22262e] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
       >
         {/* Header */}
-        <div
-          style={{
-            padding: '18px 24px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-            background: 'rgba(255, 255, 255, 0.015)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <h3
-              style={{
-                margin: 0,
-                fontSize: 17,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                letterSpacing: '-0.02em'
-              }}
-            >
+        <div className="px-5 py-4 border-b border-[#22262e] flex items-center justify-between shrink-0 bg-white/[0.015]">
+          <div className="flex items-center gap-3">
+            <h3 className="text-base font-bold text-[#eceae4] tracking-tight">
               Bài Hát Yêu Thích
             </h3>
-            <span
-              style={{
-                fontFamily: '"DM Mono", monospace',
-                fontSize: 11,
-                fontWeight: 600,
-                padding: '2px 8px',
-                borderRadius: 6,
-                background: 'rgba(232, 201, 119, 0.12)',
-                color: 'var(--yellow)',
-                border: '1px solid rgba(232, 201, 119, 0.25)'
-              }}
-            >
+            <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#e8c977]/15 text-[#e8c977] border border-[#e8c977]/25">
               {favorites.length} BÀI
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="flex items-center gap-2">
             {favorites.length > 0 && (
               <button
                 onClick={handlePlayAll}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border)',
-                  background: 'var(--soft)',
-                  color: 'var(--yellow)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s'
-                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#22262e] bg-[#181b20] hover:bg-[#22262e] text-[#e8c977] text-xs font-semibold transition-colors"
                 title="Thêm tất cả bài yêu thích vào hàng chờ"
               >
-                <Play size={12} fill="var(--yellow)" />
+                <Play size={12} fill="currentColor" />
                 <span>Phát tất cả</span>
               </button>
             )}
 
             <button
               onClick={onClose}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                border: '1px solid var(--border)',
-                background: 'var(--soft)',
-                color: 'var(--muted)',
-                display: 'grid',
-                placeItems: 'center',
-                cursor: 'pointer',
-                transition: 'color 0.15s, border-color 0.15s'
-              }}
+              className="w-8 h-8 rounded-lg border border-[#22262e] bg-[#181b20] hover:bg-[#22262e] text-[#848992] hover:text-[#eceae4] flex items-center justify-center transition-colors"
               aria-label="Đóng popup"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           </div>
         </div>
 
-        {/* Body: Danh sách bài hát (Cuộn vô hạn) */}
-        <div
-          style={{
-            padding: '14px 20px',
-            overflowY: 'auto',
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6
-          }}
-        >
+        {/* Body: Danh sách bài hát */}
+        <div className="p-4 overflow-y-auto custom-scroll flex-1 flex flex-col gap-1.5">
           {favorites.length === 0 ? (
-            <div
-              style={{
-                padding: '48px 16px',
-                textAlign: 'center',
-                color: 'var(--muted)',
-                fontSize: 13
-              }}
-            >
-              <Heart size={32} style={{ color: 'var(--border)', margin: '0 auto 12px', display: 'block' }} />
+            <div className="py-16 text-center text-[#848992] text-xs">
+              <Heart size={28} className="text-[#22262e] mx-auto mb-3" />
               Chưa có bài hát nào trong danh sách yêu thích.
             </div>
           ) : (
@@ -187,115 +95,39 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                 <div
                   key={song.url || idx}
                   onClick={() => onOrderSong?.(song)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '8px 12px',
-                    borderRadius: 12,
-                    background: 'var(--soft)',
-                    border: '1px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'border-color 0.15s, background 0.15s, transform 0.12s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(232, 201, 119, 0.4)';
-                    e.currentTarget.style.background = 'rgba(232, 201, 119, 0.05)';
-                    e.currentTarget.style.transform = 'translateX(2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
-                    e.currentTarget.style.background = 'var(--soft)';
-                    e.currentTarget.style.transform = 'none';
-                  }}
+                  className="group flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#181b20] border-b border-white/5 transition-colors cursor-pointer"
                   data-tip={`${song.title}${song.artist ? ` • ${song.artist}` : ''}`}
                 >
-                  <span
-                    style={{
-                      fontFamily: '"DM Mono", monospace',
-                      fontSize: 11,
-                      color: 'var(--muted)',
-                      width: 22,
-                      textAlign: 'right',
-                      flexShrink: 0
-                    }}
-                  >
-                    #{globalIndex}
+                  <span className="font-mono text-[11px] text-[#848992] w-6 text-center shrink-0">
+                    #{globalIndex < 10 ? `0${globalIndex}` : globalIndex}
                   </span>
 
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 10,
-                      overflow: 'hidden',
-                      flexShrink: 0,
-                      background: '#22252a',
-                      position: 'relative'
-                    }}
-                  >
+                  <div className="w-10 h-10 rounded-md overflow-hidden shrink-0 bg-[#181b20] border border-white/5 relative">
                     <img
                       src={getTrackThumb(song)}
                       alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="w-full h-full object-cover"
                       onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
                     />
                   </div>
 
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: 'var(--ink)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-[#eceae4] truncate group-hover:text-[#e8c977] transition-colors cursor-default">
                       {song.title}
                     </p>
-                    <p
-                      style={{
-                        margin: '2px 0 0',
-                        fontSize: 11.5,
-                        color: 'var(--muted)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {song.artist || 'YouTube'}
+                    <p className="text-[10px] text-[#848992] font-mono truncate mt-0.5">
+                      {song.artist || 'YouTube Music'}
                     </p>
                   </div>
 
-                  <span
-                    style={{
-                      fontFamily: '"DM Mono", monospace',
-                      fontSize: 11,
-                      color: 'var(--muted)',
-                      flexShrink: 0
-                    }}
-                  >
-                    {song.duration || ''}
-                  </span>
+                  {song.duration && (
+                    <span className="font-mono text-[10px] text-[#848992] shrink-0">
+                      {song.duration}
+                    </span>
+                  )}
 
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      background: 'rgba(232, 201, 119, 0.1)',
-                      border: '1px solid rgba(232, 201, 119, 0.2)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      color: 'var(--yellow)',
-                      flexShrink: 0,
-                      marginLeft: 4
-                    }}
-                  >
-                    <Play size={13} fill="var(--yellow)" />
+                  <div className="w-8 h-8 rounded-lg bg-[#e8c977]/10 border border-[#e8c977]/20 flex items-center justify-center text-[#e8c977] group-hover:bg-[#e8c977] group-hover:text-[#111316] transition-all shrink-0">
+                    <Play size={12} fill="currentColor" className="ml-0.5" />
                   </div>
                 </div>
               );
@@ -303,38 +135,14 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
           )}
         </div>
 
-        {/* Footer: Thông tin cuộn mượt */}
+        {/* Footer */}
         {favorites.length > 0 && (
-          <div
-            style={{
-              padding: '10px 20px',
-              borderTop: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexShrink: 0,
-              background: 'rgba(255, 255, 255, 0.01)',
-              fontFamily: '"DM Mono", monospace',
-              fontSize: 11,
-              color: 'var(--muted)'
-            }}
-          >
+          <div className="px-5 py-2.5 border-t border-[#22262e] flex items-center justify-between shrink-0 bg-white/[0.01] font-mono text-[10px] text-[#848992]">
             <span>Tổng số {favorites.length} bài hát yêu thích</span>
             <span>Cuộn chuột để xem thêm</span>
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.96) translateY(8px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
     </div>,
     document.body
   );

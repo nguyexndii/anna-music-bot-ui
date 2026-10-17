@@ -3,7 +3,12 @@ import {
   Loader2,
   SlidersHorizontal,
   AlignLeft,
-  Maximize2
+  Maximize2,
+  Mic2,
+  ChevronsUpDown,
+  Sparkles,
+  MicOff,
+  CheckCircle2
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from '../config';
 import KaraokeFullscreenModal from './KaraokeFullscreenModal';
@@ -349,7 +354,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       <div className="shrink-0 flex items-center justify-between pb-3 pt-1 border-b border-white/5 mb-3 px-1 gap-2">
         {/* Tiêu đề gọn gàng (Bỏ phòng voice vì đã có trên đĩa than & top header) */}
         <div className="flex items-center gap-1.5 min-w-0 shrink-0">
-          <span className="material-symbols-outlined text-primary-container text-base shrink-0">mic</span>
+          <Mic2 size={16} className="text-primary-container shrink-0" />
           <span className="text-xs font-semibold text-on-surface tracking-wide whitespace-nowrap">Lời Bài Hát</span>
         </div>
 
@@ -413,7 +418,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
             }`}
             title="Bật/Tắt tự động cuộn theo câu hát"
           >
-            <span className="material-symbols-outlined text-[13px] shrink-0">{autoScroll ? 'unfold_more' : 'unfold_less'}</span>
+            <ChevronsUpDown size={13} className="shrink-0" />
             <span className="whitespace-nowrap">{autoScroll ? 'TỰ CUỘN: BẬT' : 'TỰ CUỘN: TẮT'}</span>
           </button>
 
@@ -468,7 +473,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       >
         {isLofiTrack ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-3 text-outline">
-            <span className="material-symbols-outlined text-4xl text-primary-container">spa</span>
+            <Sparkles size={36} className="text-primary-container" />
             <div>
               <h3 className="text-base font-bold text-on-surface">Nhạc Lofi 24/7 Thư Giãn</h3>
               <p className="text-xs text-outline mt-1">Bản ghi này là nhạc nền không lời.</p>
@@ -481,7 +486,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           </div>
         ) : !lyricsData ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-3 text-outline">
-            <span className="material-symbols-outlined text-4xl">mic_off</span>
+            <MicOff size={36} />
             <div className="text-xs">Chưa có lời bài hát cho bài này.</div>
           </div>
         ) : viewMode === 'plain' || !lyricsData.synced ? (
@@ -579,14 +584,14 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       <div className="shrink-0 pt-2 border-t border-white/5 flex items-center justify-between text-outline text-[11px] font-mono px-1">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-tertiary">
-            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+            <CheckCircle2 size={13} />
             Đồng bộ thời gian thực
           </span>
           <span>•</span>
           <span>Nhấp dòng để chuyển đoạn hát</span>
         </div>
         <span className="text-[10px] uppercase font-bold text-outline">
-          ANNA KARAOKE ENGINE
+          LỜI BÀI HÁT ĐỒNG BỘ
         </span>
       </div>
 

@@ -12,7 +12,10 @@ import {
   RotateCcw,
   Check,
   CheckSquare,
-  Square
+  Square,
+  ListMusic,
+  ArrowUpToLine,
+  ArrowUpDown
 } from 'lucide-react';
 import { DEFAULT_TRACK_THUMB } from '../config';
 
@@ -354,8 +357,8 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
       >
         {songs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center text-outline border border-white/5">
-              <span className="material-symbols-outlined text-2xl">queue_music</span>
+            <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-outline border border-border">
+              <ListMusic size={24} strokeWidth={1.75} />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-on-surface">
@@ -396,14 +399,14 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 onDragEnd={handleDragEnd}
                 onDrop={(e) => handleDrop(e, idx)}
                 data-tip={`${song.title}${song.artist ? ` • ${song.artist}` : ''}`}
-                className={`queue-item group relative flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all border shadow-sm ${
+                className={`queue-item group relative flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
                   isDragging
-                    ? 'opacity-40 bg-surface-container-high border-dashed border-primary-container'
+                    ? 'opacity-40 bg-surface-container-high border border-dashed border-primary-container'
                     : isDragOver
-                    ? 'border-t-2 border-primary-container bg-surface-container'
+                    ? 'border-t-2 border-primary-container bg-[#181b20]'
                     : isSelected
-                    ? 'bg-surface-container border-primary-container/40'
-                    : 'bg-surface-container-low hover:bg-surface-container border-transparent hover:border-outline-variant/30'
+                    ? 'bg-[#1a1e24] border border-primary-container/40'
+                    : 'bg-transparent hover:bg-[#181b20] border border-transparent'
                 }`}
               >
                 {/* Drag Indicator */}
@@ -516,7 +519,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                         onClick={(e) => handleMoveToTop(idx, e)}
                         className="flex items-center gap-2 px-2.5 py-1.5 text-left rounded-lg hover:bg-surface-container transition-colors w-full"
                       >
-                        <span className="material-symbols-outlined text-[15px] text-primary-container">vertical_align_top</span>
+                        <ArrowUpToLine size={15} className="text-primary-container" />
                         <span>Đưa lên đầu (#1)</span>
                       </button>
                       <button
@@ -527,7 +530,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                         }}
                         className="flex items-center gap-2 px-2.5 py-1.5 text-left rounded-lg hover:bg-surface-container transition-colors w-full"
                       >
-                        <span className="material-symbols-outlined text-[15px] text-primary-container">swap_vert</span>
+                        <ArrowUpDown size={15} className="text-primary-container" />
                         <span>Chuyển vị trí</span>
                       </button>
                       <div className="h-[1px] bg-white/10 my-0.5"></div>

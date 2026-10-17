@@ -82,7 +82,7 @@ export default function Toast({ toasts, toast, onDismiss }) {
           gap: 11px;
           padding: 10px 14px;
           border-radius: 14px;
-          font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          font-family: "Be Vietnam Pro", sans-serif;
           font-size: 13px;
           font-weight: 500;
           line-height: 1.4;

@@ -23,29 +23,25 @@ export default function PermissionModal({ isOpen, onClose, user }) {
       aria-labelledby="permission-modal-title"
     >
       <div
-        className="bg-[#12131a] border border-amber-500/30 w-full max-w-md rounded-3xl p-6 shadow-2xl shadow-amber-500/10 flex flex-col items-center text-center relative overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-[#13161b] border border-[#22262e] w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col items-center text-center relative overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Glowing Ambient Backdrop */}
-        <div className="absolute -top-20 -left-20 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-20 -right-20 w-48 h-48 bg-anna-pink/10 rounded-full blur-3xl pointer-events-none"></div>
-
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-anna-muted hover:text-white p-1.5 rounded-full hover:bg-anna-hover transition z-10"
+          className="absolute top-4 right-4 text-outline hover:text-on-surface p-1.5 rounded-lg hover:bg-surface-container transition z-10"
           aria-label="Đóng thông báo"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        {/* Icon with Glowing Ring */}
+        {/* Icon with Ring */}
         <div className="relative my-2">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
-            <ShieldAlert className="w-8 h-8" />
+          <div className="w-14 h-14 rounded-xl bg-primary-container/10 border border-primary-container/30 flex items-center justify-center text-primary-container">
+            <ShieldAlert className="w-7 h-7" />
           </div>
-          <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#181924] border border-amber-500/40 flex items-center justify-center text-amber-400 text-xs">
-            <Lock className="w-3.5 h-3.5" />
+          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md bg-[#13161b] border border-[#22262e] flex items-center justify-center text-primary-container text-xs">
+            <Lock className="w-3 h-3" />
           </span>
         </div>
 

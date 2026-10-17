@@ -1,5 +1,24 @@
-# Logs
-logs
+# Dependencies & Build Output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Environment & Credentials
+.env
+.env.*
+!.env.example
+
+# Operational & Maintenance Functional Scripts (Các script chức năng vận hành)
+scripts/
+scratch/
+*.scratch.*
+
+# Runtime Data & Temporary Files
+*.tmp
+
+# Logs & Debug Dumps
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,26 +26,26 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Text Dumps & Archives
+*.txt
+*.zip
+*.tar.gz
 
-# Editor directories and files
+# Editor & System Directories
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-.env
-.env.*
-!.env.example
-.agent
-.agents
-.impeccable
+# Agent Tools
+.agent/
+.agents/
+.impeccable/
+memory-bank/
 skills-lock.json

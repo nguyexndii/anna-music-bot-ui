@@ -1,16 +1,42 @@
 export async function onRequest(context) {
+  const origin = context.request.headers.get('Origin') || '';
+  const allowedOriginEnv = (context.env.ALLOWED_ORIGIN || '').trim();
+
+  // Kiểm tra Origin hợp lệ: từ biến môi trường ALLOWED_ORIGIN, domain pages.dev, hoặc localhost
+  const isAllowedOrigin = allowedOriginEnv
+    ? (allowedOriginEnv === '*' || origin === allowedOriginEnv)
+    : (!origin || origin.endsWith('.pages.dev') || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
+
+  const allowOriginHeader = isAllowedOrigin && origin ? origin : (allowedOriginEnv || 'https://anna-music-bot-ui.pages.dev');
+
   if (context.request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': allowOriginHeader,
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Vary': 'Origin',
       }
     });
   }
 
   const url = new URL(context.request.url);
+
+  // Path Whitelist: Chỉ cho phép proxy các đường dẫn bắt đầu bằng /api/ hoặc /health
+  if (!url.pathname.startsWith('/api/') && url.pathname !== '/health' && url.pathname !== '/api') {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Forbidden: Đường dẫn không được phép proxy qua gateway'
+    }), {
+      status: 403,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': allowOriginHeader,
+        'Vary': 'Origin',
+      }
+    });
+  }
 
   const ACTIVE_VPS_TUNNEL = 'https://asking-grain-result-knew.trycloudflare.com';
   let rawEnvBase = (context.env.API_BASE || '').trim().replace(/\/$/, '');
@@ -70,9 +96,10 @@ export async function onRequest(context) {
     }
 
     const responseHeaders = new Headers(response.headers);
-    responseHeaders.set('Access-Control-Allow-Origin', '*');
+    responseHeaders.set('Access-Control-Allow-Origin', allowOriginHeader);
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    responseHeaders.set('Vary', 'Origin');
 
     const resBody = await response.text();
     return new Response(resBody, {
@@ -86,7 +113,11 @@ export async function onRequest(context) {
       error: 'Không thể kết nối đến máy chủ bot. Vui lòng thử lại sau giây lát!'
     }), {
       status: 502,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': allowOriginHeader,
+        'Vary': 'Origin',
+      },
     });
   }
 }

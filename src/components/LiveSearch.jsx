@@ -10,7 +10,9 @@ import {
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
-  ListMusic
+  ListMusic,
+  TrendingUp,
+  ArrowRight
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from '../config';
 import PlaylistDetailModal from './PlaylistDetailModal';
@@ -283,7 +285,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                 <span className="text-[10px] font-mono font-bold text-primary-container uppercase tracking-wider">
                   PHÁT HIỆN {detected.label}
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
               </div>
               <p className="text-xs text-on-surface font-semibold truncate mt-0.5">
                 {detected.cleanUrl}
@@ -337,11 +339,11 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                 <div
                   key={track.url || i}
                   data-tip={`${track.title}${track.artist ? ` • ${track.artist}` : ''}`}
-                  className="flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-container-low hover:bg-surface-container border border-white/5 transition-colors group cursor-pointer"
+                  className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#181b20] border-b border-white/5 transition-colors group cursor-pointer"
                   onClick={() => handleOrderTrack(track)}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-lg bg-surface-container overflow-hidden shrink-0 border border-white/5 relative">
+                    <div className="w-10 h-10 rounded-md bg-surface-container overflow-hidden shrink-0 border border-white/5 relative">
                       <img
                         src={getTrackThumb(track)}
                         alt=""
@@ -458,7 +460,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
               <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col gap-2 shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[15px] text-primary-container">trending_up</span>
+                    <TrendingUp size={15} className="text-primary-container" />
                     <span className="text-xs font-bold text-on-surface uppercase tracking-wider">
                       PHỔ BIẾN TRONG MÁY CHỦ
                     </span>
@@ -548,7 +550,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     className="text-[11px] font-semibold text-primary-container hover:text-primary flex items-center gap-1 transition-colors"
                   >
                     <span>Xem tất cả ({recentPlaylists.length})</span>
-                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                    <ArrowRight size={14} />
                   </button>
                 </div>
 
