@@ -208,7 +208,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                     e.currentTarget.style.background = 'var(--soft)';
                     e.currentTarget.style.transform = 'none';
                   }}
-                  title="Nhấn để thêm vào hàng chờ"
+                  data-tip={`${song.title}${song.artist ? ` • ${song.artist}` : ''}`}
                 >
                   <span
                     style={{
@@ -253,7 +253,6 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
                       }}
-                      title={song.title}
                     >
                       {song.title}
                     </p>

@@ -48,7 +48,12 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
   const songs = queue || [];
   const isEmptyRoom = player?.voiceChannel?.humanMemberCount === 0;
   const isLofiMode = Boolean(
-    player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')
+    player?.current && (
+      player.current.is247 ||
+      player.current.requestedBy === 'Auto (24/7)' ||
+      player.current.requestedBy === 'Auto (24/7 Lofi)' ||
+      player.current.requestedBy?.includes?.('24/7')
+    )
   );
   const isChangingMode = pendingAction === 'toggleLofiMode' || pendingAction === 'switchTo247';
 
@@ -343,7 +348,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
       {/* ── 2. DANH SÁCH BÀI HÁT TRONG HÀNG CHỜ ─────────────────────────────── */}
       <div
         ref={listContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto custom-scroll pr-1 flex flex-col gap-1.5"
+        className={`flex-1 min-h-0 overflow-y-auto custom-scroll pr-1 flex flex-col gap-1.5 ${songs.length > 0 ? 'pb-28' : ''}`}
       >
         {songs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">

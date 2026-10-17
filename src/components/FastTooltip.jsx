@@ -12,7 +12,7 @@ export default function FastTooltip() {
       while (curr && curr !== document.body && curr !== document.documentElement) {
         if (curr.hasAttribute && curr.hasAttribute('title')) {
           const rawTitle = curr.getAttribute('title');
-          if (rawTitle && rawTitle.trim() && !curr.hasAttribute('data-tip')) {
+          if (rawTitle && rawTitle.trim()) {
             curr.setAttribute('data-tip', rawTitle.trim());
           }
           curr.removeAttribute('title');
@@ -55,15 +55,22 @@ export default function FastTooltip() {
       setTooltip(null);
     };
 
+    const handleDismiss = () => {
+      clearTimeout(timerRef.current);
+      setTooltip(null);
+    };
+
     window.addEventListener('mouseover', handleMouseOver, { passive: true });
     window.addEventListener('mouseout', handleMouseOut, { passive: true });
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('pointerdown', handleDismiss, { passive: true });
 
     return () => {
       clearTimeout(timerRef.current);
       window.removeEventListener('mouseover', handleMouseOver);
       window.removeEventListener('mouseout', handleMouseOut);
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('pointerdown', handleDismiss);
     };
   }, []);
 

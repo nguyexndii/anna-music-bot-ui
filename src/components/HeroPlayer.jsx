@@ -66,6 +66,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     current?.is247 ||
     current?.requestedBy === 'Auto (24/7)' ||
     current?.requestedBy === 'Auto (24/7 Lofi)' ||
+    current?.requestedBy?.includes?.('24/7') ||
     (player?.mode247 && (!current || current?.requestedBy?.includes?.('Auto')))
   );
   const isPlayable = Boolean(current && (player?.isPlaying || player?.isPaused) && !player?.isPreparing);
@@ -533,7 +534,14 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
 
         {(() => {
           const loopMode = player?.loopMode || player?.loop || 'off';
-          const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)'));
+          const isLofiCurrent = Boolean(
+            player?.current && (
+              player.current.is247 ||
+              player.current.requestedBy === 'Auto (24/7)' ||
+              player.current.requestedBy === 'Auto (24/7 Lofi)' ||
+              player.current.requestedBy?.includes?.('24/7')
+            )
+          );
           return (
             <button
               onClick={() => onAction('loop')}
@@ -587,7 +595,14 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
       {/* ── 6. SMART LOFI SWITCHER ─────────────────────────────────────────── */}
       <div className="shrink-0 mt-0.5">
         {(() => {
-          const isLofiMode = Boolean(current && (current.is247 || current.requestedBy === 'Auto (24/7)'));
+          const isLofiMode = Boolean(
+            current && (
+              current.is247 ||
+              current.requestedBy === 'Auto (24/7)' ||
+              current.requestedBy === 'Auto (24/7 Lofi)' ||
+              current.requestedBy?.includes?.('24/7')
+            )
+          );
           return (
             <button
               onClick={() => onAction('toggleLofiMode')}

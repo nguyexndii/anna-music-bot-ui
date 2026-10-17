@@ -1259,10 +1259,12 @@ input.no-spin-button[type="number"] {
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(232, 201, 119, 0.45);
 }
-.scrollbar-none::-webkit-scrollbar {
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-.scrollbar-none {
+.scrollbar-none,
+.no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

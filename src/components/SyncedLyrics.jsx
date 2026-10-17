@@ -63,7 +63,12 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
   const songKey = current?.title ? `${current.title}|${current.artist || ''}|${current.url || ''}` : '';
 
   const isLofiTrack = Boolean(
-    current && (current.is247 || current.requestedBy === 'Auto (24/7)')
+    current && (
+      current.is247 ||
+      current.requestedBy === 'Auto (24/7)' ||
+      current.requestedBy === 'Auto (24/7 Lofi)' ||
+      current.requestedBy?.includes?.('24/7')
+    )
   );
 
   const [lyricsData, setLyricsData] = useState(() => {
