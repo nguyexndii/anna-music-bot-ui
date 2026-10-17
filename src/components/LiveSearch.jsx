@@ -112,7 +112,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       executeSearch(trimmed, searchMode);
-    }, 350);
+    }, 420);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
