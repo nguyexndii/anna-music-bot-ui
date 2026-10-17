@@ -401,7 +401,7 @@ export default function KaraokeFullscreenModal({
           <button
             onClick={onClose}
             className="px-3 py-1.5 rounded-lg bg-secondary/15 hover:bg-secondary/25 text-secondary border border-secondary/30 text-[10px] font-mono font-bold flex items-center gap-1.5 transition-all active:scale-95"
-            title="Thoát toàn màn hình (ESC)"
+            data-tip="Thoát toàn màn hình (ESC)"
           >
             <Minimize2 size={12} />
             <span>THOÁT (ESC)</span>
@@ -557,7 +557,7 @@ export default function KaraokeFullscreenModal({
             <div
               className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
               onClick={() => onAction?.(isPlaying ? 'pause' : 'resume')}
-              title={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
+              data-tip={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
             >
               <div className="vinyl-grooves" />
               <div className="vinyl-art">
@@ -575,18 +575,17 @@ export default function KaraokeFullscreenModal({
           </div>
 
           {/* Thông tin bài hát dưới mâm đĩa */}
-          <div className="w-full max-w-xs text-center flex flex-col items-center gap-1 shrink-0">
+          <div
+            className="w-full max-w-xs text-center flex flex-col items-center gap-1 shrink-0 cursor-default"
+            data-tip={current?.title ? `${current.title}${current.artist ? ` • ${current.artist}` : ''}` : undefined}
+          >
             <h2
-              data-tip={current?.title}
-              title={current?.title}
-              className="text-sm sm:text-base font-bold text-on-surface line-clamp-2 leading-snug cursor-default"
+              className="text-sm sm:text-base font-bold text-on-surface line-clamp-2 leading-snug"
             >
               {isLofiCurrent ? '24/7 Lofi Thư Giãn' : (current?.title || 'Chưa có bài hát')}
             </h2>
             <p
-              data-tip={current?.artist}
-              title={current?.artist}
-              className="text-xs text-primary-container font-medium truncate max-w-full cursor-default"
+              className="text-xs text-primary-container font-medium truncate max-w-full"
             >
               {isLofiCurrent ? 'Nhạc nền tự động 24/7' : (current?.artist || 'Anna Music')}
             </p>

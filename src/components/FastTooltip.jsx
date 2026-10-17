@@ -7,6 +7,19 @@ export default function FastTooltip() {
 
   useEffect(() => {
     const handleMouseOver = (e) => {
+      // Tự động chuyển đổi title sang data-tip và xóa bỏ title để tránh browser hiện 2 tooltip đè nhau
+      let curr = e.target;
+      while (curr && curr !== document.body && curr !== document.documentElement) {
+        if (curr.hasAttribute && curr.hasAttribute('title')) {
+          const rawTitle = curr.getAttribute('title');
+          if (rawTitle && rawTitle.trim() && !curr.hasAttribute('data-tip')) {
+            curr.setAttribute('data-tip', rawTitle.trim());
+          }
+          curr.removeAttribute('title');
+        }
+        curr = curr.parentElement;
+      }
+
       const target = e.target.closest('[data-tip]');
       if (!target) return;
 

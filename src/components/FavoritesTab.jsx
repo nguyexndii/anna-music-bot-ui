@@ -112,6 +112,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
             <div
               key={track.url || idx}
               onClick={() => onOrderSong?.(track)}
+              data-tip={`${track.title}${track.artist ? ` • ${track.artist}` : ''}`}
               className="group flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-container-low hover:bg-surface-container border border-transparent hover:border-white/5 transition-colors cursor-pointer shadow-sm"
             >
               {/* Thứ tự & Thumbnail */}
@@ -135,8 +136,6 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
                 {/* Tiêu đề & Nghệ sĩ */}
                 <div className="flex flex-col min-w-0 flex-1">
                   <span
-                    data-tip={track.title}
-                    title={track.title}
                     className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors cursor-default"
                   >
                     {track.title}
@@ -158,7 +157,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
                 <button
                   onClick={() => onOrderSong?.(track)}
                   className="w-8 h-8 rounded-lg bg-primary-container/15 text-primary-container hover:bg-primary-container hover:text-on-primary flex items-center justify-center transition-all"
-                  title="Thêm vào hàng chờ"
+                  data-tip="Thêm vào hàng chờ"
                 >
                   <Plus size={15} />
                 </button>
@@ -166,7 +165,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
                 <button
                   onClick={(e) => handleRemoveFavorite(track, e)}
                   className="w-8 h-8 rounded-lg text-secondary hover:bg-secondary-container/20 flex items-center justify-center transition-all"
-                  title="Bỏ khỏi yêu thích"
+                  data-tip="Bỏ khỏi yêu thích"
                 >
                   <Heart size={15} fill="currentColor" />
                 </button>

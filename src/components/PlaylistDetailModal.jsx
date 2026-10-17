@@ -454,7 +454,7 @@ export default function PlaylistDetailModal({
                     e.currentTarget.style.background = 'var(--soft)';
                     e.currentTarget.style.transform = 'none';
                   }}
-                  title="Nhấn để thêm bài này vào hàng chờ"
+                  data-tip={`${song.title}${song.artist ? ` • ${song.artist}` : ''}`}
                 >
                   <span
                     style={{
@@ -499,7 +499,6 @@ export default function PlaylistDetailModal({
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
                       }}
-                      title={song.title}
                     >
                       {song.title}
                     </p>

@@ -388,6 +388,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnd={handleDragEnd}
                 onDrop={(e) => handleDrop(e, idx)}
+                data-tip={`${song.title}${song.artist ? ` • ${song.artist}` : ''}`}
                 className={`queue-item group relative flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all border shadow-sm ${
                   isDragging
                     ? 'opacity-40 bg-surface-container-high border-dashed border-primary-container'
@@ -429,7 +430,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                       ? 'text-primary-container bg-primary-container/15'
                       : 'text-outline hover:text-primary-container hover:bg-surface-container-high'
                   }`}
-                  title="Nhấp để chuyển vị trí bài hát"
+                  data-tip="Nhấp để chuyển vị trí bài hát"
                 >
                   #{idx < 9 ? `0${idx + 1}` : idx + 1}
                 </button>
@@ -448,8 +449,6 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 <div className="flex flex-col min-w-0 flex-1 px-1">
                   <div className="flex items-center gap-1.5">
                     <span
-                      data-tip={song.title}
-                      title={song.title}
                       className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors cursor-default"
                     >
                       {song.title}
@@ -479,10 +478,10 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                     onClick={(e) => handlePlayNow(idx, e)}
                     disabled={Boolean(pendingAction)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-outline hover:text-primary-container hover:bg-surface-container-high transition-colors disabled:opacity-40"
-                    title="Phát ngay bài này"
+                    data-tip="Phát ngay bài này"
                   >
                     {pendingAction === 'playNow' ? (
-                      <Loader2 size={14} className="animate-spin text-primary-container" />
+                       <Loader2 size={14} className="animate-spin text-primary-container" />
                     ) : (
                       <Play size={16} fill="currentColor" />
                     )}
@@ -491,7 +490,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                   <button
                     onClick={(e) => handleToggleMenu(idx, e)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors"
-                    title="Tùy chọn"
+                    data-tip="Tùy chọn"
                   >
                     <MoreVertical size={16} />
                   </button>

@@ -377,7 +377,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
           aria-label={isLofi ? 'Đĩa nhạc: 24/7 Lofi Thư Giãn' : (current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát')}
           onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
-          title={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
+          data-tip={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
         >
           <div className="vinyl-grooves" />
           <div className="vinyl-art">
@@ -396,7 +396,10 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
       </div>
 
       {/* ── 2. TRACK INFORMATION ────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-0.5 shrink-0 px-1 mt-1">
+      <div
+        className="flex flex-col gap-0.5 shrink-0 px-1 mt-1 cursor-default"
+        data-tip={current?.title ? `${current.title}${current.artist ? ` • ${current.artist}` : ''}` : undefined}
+      >
         <div className="flex items-center justify-between">
           <span className="font-mono text-[9px] text-outline uppercase tracking-wider">
             {getSourceLabel(current)}
@@ -411,23 +414,19 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
             className={`transition-transform active:scale-90 ${
               isFav ? 'text-secondary' : 'text-outline hover:text-on-surface'
             } ${heartPopping ? 'scale-125' : ''}`}
-            title={isFav ? 'Bỏ thích' : 'Thêm vào yêu thích'}
+            data-tip={isFav ? 'Bỏ thích' : 'Thêm vào yêu thích'}
           >
             <Heart size={18} fill={isFav ? 'currentColor' : 'none'} />
           </button>
         </div>
 
         <h2
-          data-tip={current?.title}
-          title={current?.title}
-          className="text-sm sm:text-base font-bold text-on-surface truncate leading-snug cursor-default"
+          className="text-sm sm:text-base font-bold text-on-surface truncate leading-snug"
         >
           {current?.title || 'Chưa có bài hát đang phát'}
         </h2>
         <p
-          data-tip={current?.artist}
-          title={current?.artist}
-          className="text-xs text-primary-container truncate font-medium cursor-default"
+          className="text-xs text-primary-container truncate font-medium"
         >
           {current?.artist || (isLofi ? 'Anna Music • Lofi 24/7' : 'Boutique Soundbot')}
         </p>

@@ -77,6 +77,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
   const debounceRef = useRef(null);
   const abortControllerRef = useRef(null);
   const recentScrollRef = useRef(null);
+  const clientSearchCacheRef = useRef(new Map());
 
   // Đồng bộ với externalQuery từ Top Header nếu có
   useEffect(() => {
@@ -85,20 +86,26 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
     }
   }, [externalQuery]);
 
-  // Lắng nghe thay đổi chế độ tìm kiếm từ Header
+  // Lắng nghe thay đổi chế độ tìm kiếm từ Header - Chuyển chế độ TỨC THÌ 0ms
   useEffect(() => {
     const handleModeChangeEvt = (e) => {
       if (e.detail) {
-        setSearchMode(e.detail);
+        const nextMode = e.detail;
+        setSearchMode(nextMode);
+        const trimmed = query.trim();
+        if (trimmed.length >= 2 && !detected?.isPlaylist) {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          executeSearch(trimmed, nextMode);
+        }
       }
     };
     window.addEventListener('anna_search_mode_change', handleModeChangeEvt);
     return () => window.removeEventListener('anna_search_mode_change', handleModeChangeEvt);
-  }, []);
+  }, [query, detected?.isPlaylist]);
 
   const detected = useMemo(() => detectUrlType(query), [query]);
 
-  // Live search tự động khi người dùng gõ phím
+  // Live search tự động khi người dùng gõ phím (Debounce 420ms)
   useEffect(() => {
     const trimmed = query.trim();
     if (!trimmed || trimmed.length < 2 || detected?.isPlaylist) {
@@ -141,6 +148,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
     setSearchMode(mode);
     localStorage.setItem('anna_search_mode', mode);
     if (query.trim().length >= 2) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       executeSearch(query.trim(), mode);
     }
   };
@@ -155,6 +163,14 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
 
     if (detected?.isPlaylist) {
       setResults([]);
+      setLoading(false);
+      return;
+    }
+
+    // Kiểm tra cache Client: Phản hồi tức thì 0ms không cần gọi lại API
+    const cacheKey = `${trimmed.toLowerCase()}|${mode}`;
+    if (clientSearchCacheRef.current.has(cacheKey)) {
+      setResults(clientSearchCacheRef.current.get(cacheKey));
       setLoading(false);
       return;
     }
@@ -174,6 +190,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
       const data = await res.json();
       setLoading(false);
       if (data.success && data.results) {
+        clientSearchCacheRef.current.set(cacheKey, data.results);
         setResults(data.results);
       } else {
         setResults([]);
@@ -317,6 +334,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
               results.map((track, i) => (
                 <div
                   key={track.url || i}
+                  data-tip={`${track.title}${track.artist ? ` • ${track.artist}` : ''}`}
                   className="flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-container-low hover:bg-surface-container border border-white/5 transition-colors group cursor-pointer"
                   onClick={() => handleOrderTrack(track)}
                 >
@@ -331,8 +349,6 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
                       <span
-                        data-tip={track.title}
-                        title={track.title}
                         className="text-xs font-semibold text-on-surface truncate group-hover:text-primary transition-colors cursor-default"
                       >
                         {track.title}
@@ -351,7 +367,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                       handleOrderTrack(track);
                     }}
                     className="w-7 h-7 rounded-lg bg-primary-container/20 text-primary-container hover:bg-primary-container hover:text-on-primary flex items-center justify-center transition-all shrink-0"
-                    title="Thêm vào hàng chờ"
+                    data-tip="Thêm vào hàng chờ"
                   >
                     <Plus size={16} />
                   </button>
@@ -402,6 +418,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     <div
                       key={track.url || idx}
                       onClick={() => handleOrderTrack(track)}
+                      data-tip={`${track.title}${track.artist ? ` • ${track.artist}` : ''}`}
                       className="w-32 shrink-0 group cursor-pointer flex flex-col"
                     >
                       <div className="w-32 h-20 rounded-xl bg-surface-container overflow-hidden relative border border-white/5 shadow-sm shrink-0">
@@ -421,8 +438,6 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                         )}
                       </div>
                       <div
-                        data-tip={track.title}
-                        title={track.title}
                         className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight cursor-default"
                       >
                         {track.title}
@@ -453,14 +468,14 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     <button
                       onClick={() => topTracksScrollRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}
                       className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
-                      title="Cuộn sang trái"
+                      data-tip="Cuộn sang trái"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     <button
                       onClick={() => topTracksScrollRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}
                       className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
-                      title="Cuộn sang phải"
+                      data-tip="Cuộn sang phải"
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -476,6 +491,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     <div
                       key={track.url || idx}
                       onClick={() => handleOrderTrack(track)}
+                      data-tip={`${track.title}${track.artist ? ` • ${track.artist}` : ''}`}
                       className="w-32 shrink-0 group cursor-pointer flex flex-col"
                     >
                       <div className="w-32 h-20 rounded-xl bg-surface-container overflow-hidden relative border border-white/5 shadow-sm shrink-0">
@@ -500,8 +516,6 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                         )}
                       </div>
                       <div
-                        data-tip={track.title}
-                        title={track.title}
                         className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight cursor-default"
                       >
                         {track.title}
@@ -545,6 +559,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                         setIsPlaylistModalOpen(true);
                       }}
                       className="p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container border border-white/5 transition-colors flex items-center gap-3 cursor-pointer group"
+                      data-tip={`Playlist: ${pl.title || pl.name || 'Danh Sách Phát'}`}
                     >
                       <div className="w-12 h-12 rounded-lg bg-surface-container-highest overflow-hidden shrink-0 border border-white/5">
                         <img

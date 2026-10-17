@@ -72,6 +72,7 @@ export default function HistoryTab({ player, onOrderSong }) {
                 key={`${track.title}-${track.playedAt || i}`}
                 className="song-row"
                 onClick={() => onOrderSong?.(track)}
+                data-tip={`${track.title}${track.artist && track.artist !== 'Unknown' ? ` • ${track.artist}` : ''}`}
                 style={{ borderRadius: 10 }}
               >
                 <div className="song-thumb">
@@ -86,7 +87,7 @@ export default function HistoryTab({ player, onOrderSong }) {
                   )}
                 </div>
                 <div className="song-info">
-                  <span data-tip={track.title} title={track.title} className="song-name cursor-default">{track.title}</span>
+                  <span className="song-name cursor-default">{track.title}</span>
                   <span className="song-sub">{track.artist && track.artist !== 'Unknown' ? track.artist : 'YouTube Music'}</span>
                 </div>
                 <span className="song-dur">{formatRelativeTime(track.playedAt)}</span>
@@ -97,7 +98,7 @@ export default function HistoryTab({ player, onOrderSong }) {
                     background: 'var(--soft)', color: 'var(--ink)', display: 'grid', placeItems: 'center',
                     marginLeft: 6, flexShrink: 0, cursor: 'pointer'
                   }}
-                  title="Phát lại bài này"
+                  data-tip="Phát lại bài này"
                 >
                   <Play size={13} fill="currentColor" style={{ marginLeft: 1 }} />
                 </button>
