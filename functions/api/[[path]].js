@@ -12,20 +12,30 @@ export async function onRequest(context) {
 
   const url = new URL(context.request.url);
 
-  const apiBase = (context.env.API_BASE || 'https://asking-grain-result-knew.trycloudflare.com').replace(/\/$/, '');
+  const ACTIVE_VPS_TUNNEL = 'https://asking-grain-result-knew.trycloudflare.com';
+  let rawEnvBase = (context.env.API_BASE || '').trim().replace(/\/$/, '');
+
+  // Nếu biến môi trường là URL tunnel trycloudflare cũ đã chết hoặc không có, ưu tiên active tunnel đang chạy trên VPS
+  let apiBase = rawEnvBase;
+  if (!apiBase || apiBase.includes('pockets-morrison-sells-nurse') || (apiBase.includes('trycloudflare.com') && apiBase !== ACTIVE_VPS_TUNNEL)) {
+    apiBase = ACTIVE_VPS_TUNNEL;
+  }
+
   const pathname = url.pathname === '/api/health' ? '/health' : url.pathname;
-  const targetUrl = `${apiBase}${pathname}${url.search}`;
+  let targetUrl = `${apiBase}${pathname}${url.search}`;
 
   const requestHeaders = new Headers();
   for (const [key, value] of context.request.headers.entries()) {
     const k = key.toLowerCase();
-    if (['host', 'connection', 'cf-ray', 'cf-connecting-ip', 'cf-visitor', 'cf-ipcountry'].includes(k)) continue;
+    if (['host', 'connection', 'cf-ray', 'cf-visitor', 'cf-ipcountry'].includes(k)) continue;
     requestHeaders.set(key, value);
   }
 
   const realClientIp = context.request.headers.get('cf-connecting-ip') || context.request.headers.get('x-forwarded-for');
   if (realClientIp) {
-    requestHeaders.set('x-real-client-ip', realClientIp.split(',')[0].trim());
+    const cleanIp = realClientIp.split(',')[0].trim();
+    requestHeaders.set('x-real-client-ip', cleanIp);
+    requestHeaders.set('cf-connecting-ip', cleanIp);
   }
 
   let body = undefined;
@@ -38,11 +48,26 @@ export async function onRequest(context) {
   }
 
   try {
-    const response = await fetch(targetUrl, {
-      method: context.request.method,
-      headers: requestHeaders,
-      body: body,
-    });
+    let response;
+    try {
+      response = await fetch(targetUrl, {
+        method: context.request.method,
+        headers: requestHeaders,
+        body: body,
+      });
+    } catch (fetchErr) {
+      // Tự động failover sang active VPS tunnel nếu URL chính gặp lỗi DNS / Timeout
+      if (apiBase !== ACTIVE_VPS_TUNNEL) {
+        targetUrl = `${ACTIVE_VPS_TUNNEL}${pathname}${url.search}`;
+        response = await fetch(targetUrl, {
+          method: context.request.method,
+          headers: requestHeaders,
+          body: body,
+        });
+      } else {
+        throw fetchErr;
+      }
+    }
 
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set('Access-Control-Allow-Origin', '*');

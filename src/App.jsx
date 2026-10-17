@@ -29,7 +29,10 @@ import {
   LogOut,
   Radio,
   Volume2,
-  Heart
+  Heart,
+  ArrowRight,
+  ShieldCheck,
+  RefreshCw
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from './config';
 
@@ -259,7 +262,7 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
             ) : (
               <>
                 <span>Kết Nối</span>
-                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                <ArrowRight size={16} className="shrink-0 text-on-primary" />
               </>
             )}
           </button>
@@ -267,7 +270,7 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
 
         {/* Thông báo phiên an toàn */}
         <div className="mt-4 p-2.5 bg-surface-container rounded-xl flex items-center gap-2 border border-white/5 w-full text-left">
-          <span className="material-symbols-outlined text-primary-container text-base shrink-0">lock_clock</span>
+          <ShieldCheck size={16} className="text-primary-container shrink-0" />
           <span className="text-[11px] text-outline leading-tight">
             Mã PIN có hiệu lực trong phiên này. Đóng tab sẽ tự động ngắt kết nối an toàn.
           </span>
@@ -324,7 +327,7 @@ function NoVoiceScreen({ user, onRefresh, isRefreshing, onLogout }) {
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-base">refresh</span>
+                <RefreshCw size={15} className="shrink-0" />
                 <span>Thử Lại</span>
               </>
             )}
