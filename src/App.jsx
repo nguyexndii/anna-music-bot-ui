@@ -299,9 +299,6 @@ function NoVoiceScreen({ user, onRefresh, isRefreshing, onLogout }) {
       </header>
 
       <main className="w-full max-w-md my-auto bg-surface-container-low border border-outline-variant/30 rounded-2xl p-6 shadow-2xl flex flex-col gap-4 text-center">
-        <div className="w-14 h-14 rounded-xl bg-surface-container-highest border border-primary-container/30 flex items-center justify-center mx-auto text-primary-container shadow-inner">
-          <Headphones size={28} strokeWidth={1.75} />
-        </div>
         <div>
           <span className="px-2.5 py-0.5 rounded bg-primary-container/15 text-primary-container font-mono text-[10px] font-bold uppercase tracking-wider">
             PHIÊN KẾT NỐI

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, Compass } from 'lucide-react';
+import BrandLogo from './BrandLogo';
 
 export default function NotFoundScreen({ onGoHome }) {
   return (
@@ -7,30 +8,9 @@ export default function NotFoundScreen({ onGoHome }) {
       {/* 404 Central Card */}
       <div className="w-full max-w-md bg-surface-container-low border border-border/80 rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col items-center text-center relative z-10">
         
-        {/* Anna Avatar with 404 Badge */}
-        <div className="relative mb-4 group cursor-pointer" onClick={onGoHome} title="Quay về Trang Chủ">
-          <div className="w-20 h-20 rounded-xl overflow-hidden border border-border/80 shadow-md bg-surface-container p-0.5 group-hover:scale-105 transition-transform duration-200">
-            <img
-              src="/logo.gif"
-              alt="Anna Logo"
-              className="w-full h-full object-cover rounded-lg"
-              style={{ imageRendering: 'pixelated' }}
-            />
-          </div>
-          <div className="absolute -bottom-1 -right-1 bg-secondary text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm border border-surface-container-low">
-            404
-          </div>
-        </div>
-
-        {/* Brand Typography */}
-        <div className="flex flex-col items-center mb-4">
-          <div className="flex items-baseline tracking-tight font-sans font-extrabold text-2xl">
-            <span className="text-primary-container leading-none">an</span>
-            <span className="text-[#ef7864] leading-none">na</span>
-          </div>
-          <span className="font-mono text-[9px] tracking-widest text-outline uppercase mt-0.5">
-            PHIÊN ĐIỀU KHIỂN ÂM THANH
-          </span>
+        {/* Brand Logo & 404 Indicator */}
+        <div className="relative mb-5 group cursor-pointer" onClick={onGoHome} title="Quay về Trang Chủ">
+          <BrandLogo size="lg" showSubtext={false} />
         </div>
 
         {/* Status badge */}

@@ -101,6 +101,27 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
   const activeLineRef = useRef(null);
   const containerRef  = useRef(null);
 
+  // Helper gửi offset lên server lưu vào MongoDB và RAM cache
+  const persistOffsetToServer = async (newOffset) => {
+    if (!lyricsData?.trackKey && !current?.title) return;
+    try {
+      const payload = {
+        trackKey: lyricsData?.trackKey || `song_${current.title}`,
+        offsetMs: Number(newOffset) || 0,
+        title: current.title,
+        artist: current.artist || ''
+      };
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const endpoint = guildId ? `${API_BASE}/api/guilds/${guildId}/lyrics/offset` : `${API_BASE}/api/lyrics/offset`;
+      await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      }).catch(() => null);
+    } catch (e) {}
+  };
+
   useEffect(() => {
     const handleOpen = () => setIsFullscreen(true);
     const handleSwitchLofi = () => {
@@ -199,9 +220,16 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         if (!isMounted) return;
 
         if (resData && (resData.syncedLyrics || resData.lyrics)) {
-          if (getSavedOffset(current?.title, isYtCc) === null && resData.autoOffsetMs !== undefined) {
+          // Ưu tiên offset: localStorage -> userSavedOffsetMs (DB) -> autoOffsetMs -> 0
+          const savedLocal = getSavedOffset(current?.title, isYtCc);
+          if (savedLocal !== null) {
+            setManualOffsetMs(savedLocal);
+          } else if (resData.userSavedOffsetMs !== undefined && resData.userSavedOffsetMs !== 0) {
+            setManualOffsetMs(Number(resData.userSavedOffsetMs) || 0);
+          } else if (resData.autoOffsetMs !== undefined) {
             setManualOffsetMs(Number(resData.autoOffsetMs) || 0);
           }
+
           // Chuẩn hóa danh sách các dòng lời có timestamp bắt đầu và kết thúc
           const rawLines = resData.syncedLyrics || resData.lines || [];
           const lines = rawLines.map((l, idx, arr) => {
@@ -340,11 +368,29 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     const next = manualOffsetMs + deltaMs;
     setManualOffsetMs(next);
     saveOffset(current?.title, next, isYtCc);
+    persistOffsetToServer(next);
   };
 
   const handleResetOffset = () => {
     setManualOffsetMs(0);
     saveOffset(current?.title, 0, isYtCc);
+    persistOffsetToServer(0);
+  };
+
+  // Khớp câu đang chọn với thời điểm bài hát đang phát thực tế
+  const handleSyncToLine = (lineTimeMs) => {
+    if (typeof lineTimeMs !== 'number') return;
+    let rawCurrent = 0;
+    if (typeof current?.playbackDurationMs === 'number' && typeof current?.serverTime === 'number') {
+      const networkDelay = Math.max(0, Date.now() - current.serverTime);
+      rawCurrent = current.playbackDurationMs + networkDelay;
+    } else if (current?.startTime) {
+      rawCurrent = Date.now() - current.startTime;
+    }
+    const newOffset = Math.round(lineTimeMs - rawCurrent);
+    setManualOffsetMs(newOffset);
+    saveOffset(current?.title, newOffset, isYtCc);
+    persistOffsetToServer(newOffset);
   };
 
   return (
@@ -466,7 +512,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         </div>
       )}
 
-      {/* ── 3. KHUNG HIỂN THỊ LỜI NHẠC KARAOKE CHUẨN STITCH ─────────────────── */}
+      {/* ── 3. KHUNG HIỂN THỊ LỜI NHẠC KARAOKE ĐỒNG NHẤT KHÔNG GIẬT CỤC ─────── */}
       <div
         ref={containerRef}
         className="flex-1 min-h-0 overflow-y-auto custom-scroll pr-2 flex flex-col relative"
@@ -494,85 +540,64 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
             {formatPlainLyrics(lyricsData.plainLyrics || '')}
           </div>
         ) : (
-          <div className="flex flex-col gap-3 py-16 px-1 sm:px-4">
+          <div className="flex flex-col gap-1.5 py-12 px-1 sm:px-2">
             {lines.map((line, idx) => {
               const isActive = activeLineIdx === idx;
               const isPast = activeLineIdx > idx;
 
-              if (isActive) {
-                return (
-                  /* ── CÂU ĐANG HÁT NỔI BẬT VỚI VẠCH TIẾN TRÌNH THỜI GIAN ── */
-                  <div
-                    key={idx}
-                    ref={activeLineRef}
-                    onClick={() => handleLineClick(line.timeMs)}
-                    className="bg-surface-container/90 border border-primary-container/30 rounded-2xl p-4 shadow-xl my-1 flex flex-col gap-2.5 transition-all duration-300 ease-out cursor-pointer group"
-                    title="Nhấn để tua lại đầu câu này"
-                  >
-                    <div className="flex items-baseline gap-3">
-                      <span className="font-mono text-xs text-primary-container font-bold shrink-0">
-                        {formatTime(line.timeMs)}
-                      </span>
-                      <p className={`font-body font-bold text-primary-container leading-snug tracking-tight transition-all duration-300 ${
-                        fontSizeLevel === 2 ? 'text-2xl sm:text-3xl' : fontSizeLevel === 0 ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'
-                      }`}>
-                        {capitalizeFirstLetter(line.text)}
-                      </p>
-                    </div>
-
-                    {/* Vạch tiến trình đồng bộ thời gian thực của bài hát (chạy liên tục, không reset khi đổi câu) */}
-                    <div
-                      className="flex items-center gap-3 ml-12 max-w-md select-none group/seek"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span className="font-mono text-[11px] text-primary-container font-semibold shrink-0">
-                        {formatTime(effectiveCurrentMs)}
-                      </span>
-                      <div
-                        onClick={(e) => {
-                          if (totalTrackMs <= 0) return;
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const clickX = e.clientX - rect.left;
-                          const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-                          const targetSec = Math.floor((ratio * totalTrackMs) / 1000);
-                          onAction('seek', targetSec);
-                        }}
-                        className="h-1.5 flex-1 min-w-[120px] bg-surface-container-highest rounded-full overflow-hidden cursor-pointer relative"
-                        title="Nhấp để tua nhạc"
-                      >
-                        <div
-                          className="h-full bg-primary-container rounded-full transition-all duration-100 ease-linear"
-                          style={{ width: `${trackPercent}%` }}
-                        />
-                      </div>
-                      <span className="font-mono text-[11px] text-outline font-semibold shrink-0">
-                        {current?.duration || formatTime(totalTrackMs)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              }
-
-              /* ── CÁC CÂU CHƯA HÁT HOẶC ĐÃ QUA ── */
               return (
                 <div
                   key={idx}
+                  ref={isActive ? activeLineRef : null}
                   onClick={() => handleLineClick(line.timeMs)}
-                  className={`flex items-baseline gap-4 py-2 px-3 rounded-xl transition-all duration-300 ease-out cursor-pointer ${
-                    isPast
-                      ? 'opacity-35 hover:opacity-80 text-outline'
-                      : 'opacity-70 hover:opacity-100 text-on-surface'
+                  className={`group relative flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg border cursor-pointer select-none transition-[color,background-color,border-color,opacity,transform] duration-200 ease-out ${
+                    isActive
+                      ? 'bg-[#181b20] border-[#e8c977]/35 shadow-sm'
+                      : isPast
+                      ? 'bg-transparent border-transparent opacity-40 hover:opacity-85 hover:bg-white/[0.03]'
+                      : 'bg-transparent border-transparent opacity-75 hover:opacity-100 hover:bg-white/[0.03]'
                   }`}
-                  title={`Nhảy tới ${formatTime(line.timeMs)}`}
+                  title={line.timeMs >= 0 ? `Nhảy tới ${formatTime(line.timeMs)}` : undefined}
                 >
-                  <span className="font-mono text-[11px] text-outline w-12 shrink-0">
-                    {formatTime(line.timeMs)}
-                  </span>
-                  <p className={`font-body font-medium transition-all duration-300 ${
-                    fontSizeLevel === 2 ? 'text-lg sm:text-xl' : fontSizeLevel === 0 ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-                  }`}>
-                    {capitalizeFirstLetter(line.text)}
-                  </p>
+                  <div className="flex items-baseline gap-3 min-w-0 flex-1">
+                    <span className={`font-mono text-xs shrink-0 select-none ${
+                      isActive ? 'text-primary-container font-bold' : 'text-outline font-medium'
+                    }`}>
+                      {formatTime(line.timeMs)}
+                    </span>
+                    <p className={`font-body leading-relaxed select-text transition-[color,font-weight] duration-200 ${
+                      isActive
+                        ? 'font-bold text-primary-container'
+                        : isPast
+                        ? 'font-medium text-outline'
+                        : 'font-medium text-on-surface'
+                    } ${
+                      fontSizeLevel === 2
+                        ? 'text-lg sm:text-xl'
+                        : fontSizeLevel === 0
+                        ? 'text-sm sm:text-base'
+                        : 'text-base sm:text-lg'
+                    }`}>
+                      {capitalizeFirstLetter(line.text)}
+                    </p>
+                  </div>
+
+                  {/* Nút khớp câu này: hiển thị khi hover hoặc khi câu đang active */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSyncToLine(line.timeMs);
+                    }}
+                    className={`shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-[10px] font-mono px-2 py-0.5 rounded border whitespace-nowrap ${
+                      isActive
+                        ? 'opacity-85 hover:opacity-100 bg-[#22262e] border-[#e8c977]/40 text-[#e8c977]'
+                        : 'bg-[#181b20] border-white/10 text-outline hover:text-on-surface'
+                    }`}
+                    title="Căn nhịp bài hát khớp với câu này tại giây hiện tại"
+                  >
+                    Khớp câu này
+                  </button>
                 </div>
               );
             })}

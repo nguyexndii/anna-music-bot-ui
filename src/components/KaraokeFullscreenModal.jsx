@@ -629,12 +629,12 @@ export default function KaraokeFullscreenModal({
                       }
                     }}
                     title={timeMs > 0 ? `Nhảy tới ${formatTime(timeMs)}` : undefined}
-                    className={`w-full max-w-xl text-center px-4 py-2.5 rounded-2xl cursor-pointer transition-all duration-300 ${
+                    className={`w-full max-w-xl text-center px-4 py-2.5 rounded-2xl cursor-pointer border transition-[color,background-color,border-color,opacity,transform] duration-200 ease-out ${
                       isActive
-                        ? `${activeClass} text-primary-container bg-surface-container/80 border border-primary-container/30 shadow-lg scale-[1.02]`
+                        ? `${activeClass} text-primary-container bg-surface-container/80 border-primary-container/35 shadow-lg scale-[1.02]`
                         : isPassed
-                        ? `${baseClass} text-on-surface/40 hover:text-on-surface/70`
-                        : `${baseClass} text-on-surface/20 hover:text-on-surface/50`
+                        ? `${baseClass} border-transparent text-on-surface/40 hover:text-on-surface/70`
+                        : `${baseClass} border-transparent text-on-surface/20 hover:text-on-surface/50`
                     }`}
                   >
                     {line.text}
