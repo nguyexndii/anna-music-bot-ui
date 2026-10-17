@@ -5,7 +5,6 @@ import {
   GripVertical,
   MoreVertical,
   X,
-  Sparkles,
   Radio,
   Loader2,
   Coffee,

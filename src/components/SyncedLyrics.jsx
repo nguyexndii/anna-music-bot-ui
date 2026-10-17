@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Loader2,
   SlidersHorizontal,
-  Sparkles,
   AlignLeft,
   Maximize2
 } from 'lucide-react';
@@ -440,30 +439,6 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           </div>
         ) : (
           <div className="flex flex-col gap-3 py-16 px-1 sm:px-4">
-            {/* Thanh tiến trình đoạn dạo đầu trước câu hát đầu tiên */}
-            {effectiveCurrentMs < (lines[0]?.timeMs || 0) && (lines[0]?.timeMs || 0) > 2000 && (
-              <div className="bg-surface-container/70 border border-primary-container/20 rounded-2xl p-3.5 shadow-md mb-2 flex items-center justify-between gap-3 animate-fade-in">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="material-symbols-outlined text-primary-container text-lg animate-pulse">graphic_eq</span>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-on-surface">Đoạn nhạc dạo đầu</span>
-                    <span className="font-mono text-[10px] text-outline">Đang chuẩn bị vào câu hát đầu tiên...</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2.5 shrink-0">
-                  <div className="h-1.5 w-24 sm:w-36 bg-surface-container-highest rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary-container rounded-full transition-all duration-150 ease-linear"
-                      style={{ width: `${Math.min(100, Math.max(0, (effectiveCurrentMs / lines[0].timeMs) * 100))}%` }}
-                    />
-                  </div>
-                  <span className="font-mono text-[11px] text-primary-container font-semibold">
-                    {formatTime(effectiveCurrentMs)} / {formatTime(lines[0].timeMs)}
-                  </span>
-                </div>
-              </div>
-            )}
-
             {lines.map((line, idx) => {
               const isActive = activeLineIdx === idx;
               const isPast = activeLineIdx > idx;
@@ -573,6 +548,11 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         activeLineIdx={activeLineIdx}
         onLineClick={handleLineClick}
         onAction={onAction}
+        manualOffsetMs={manualOffsetMs}
+        onUpdateOffset={(offset) => {
+          setManualOffsetMs(offset);
+          saveOffset(current?.title, offset, isYtCc);
+        }}
       />
 
     </div>

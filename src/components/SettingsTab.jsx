@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Sliders,
   Radio,
-  Sparkles,
+  Palette,
+  Compass,
   ShieldCheck,
   User,
   Mic2,
@@ -179,7 +180,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
         <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
           <div className="pr-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-anna-accent" />
+              <Palette className="w-4 h-4 text-anna-accent" />
               <p className="text-xs font-bold text-white">Nền mờ động theo màu bài hát (Ambient Glow)</p>
             </div>
             <p className="text-[11px] text-anna-muted mt-1 leading-relaxed">
@@ -363,7 +364,7 @@ export default function SettingsTab({ guildId, guildName, token, player, onActio
           <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-anna-card border border-anna-border/80 hover:border-anna-border transition">
             <div className="pr-4">
               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-anna-accent" />
+                <Compass className="w-3.5 h-3.5 text-anna-accent" />
                 <span>Tự Động Phát Bài Tương Tự (Autoplay)</span>
               </p>
               <p className="text-[11px] text-anna-muted mt-0.5 leading-relaxed">

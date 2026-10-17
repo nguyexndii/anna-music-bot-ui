@@ -75,7 +75,7 @@ export default function NotFoundScreen({ onGoHome }) {
       </div>
 
       <footer className="absolute bottom-4 font-mono text-[10px] text-outline/50 uppercase tracking-widest">
-        ANNA MUSIC • VINYL LOUNGE
+        ANNA MUSIC • WEB PLAYER
       </footer>
     </div>
   );

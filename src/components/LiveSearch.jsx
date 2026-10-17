@@ -10,7 +10,6 @@ import {
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   ListMusic
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from '../config';

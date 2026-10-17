@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { CheckCircle2, AlertCircle, Sparkles, Loader2, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, Loader2, X } from 'lucide-react';
 
 export default function Toast({ toasts, toast, onDismiss }) {
   // Support both array 'toasts' or single object 'toast'
@@ -26,7 +26,7 @@ export default function Toast({ toasts, toast, onDismiss }) {
               ) : isActionLoading ? (
                 <Loader2 size={15} className="animate-spin text-[#e8c977]" />
               ) : isInfo ? (
-                <Sparkles size={15} className="text-[#e8c977]" />
+                <Info size={15} className="text-[#e8c977]" />
               ) : (
                 <CheckCircle2 size={15} className="text-[#6fcf97]" />
               )}

@@ -26,7 +26,6 @@ import {
   Loader2,
   Share2,
   LogOut,
-  Sparkles,
   Radio,
   Volume2,
   Heart
@@ -286,7 +285,7 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
       </div>
 
       <footer className="absolute bottom-4 font-mono text-[10px] text-outline/50 uppercase tracking-widest">
-        ANNA MUSIC • VINYL LOUNGE
+        ANNA MUSIC • WEB PLAYER
       </footer>
     </div>
   );
@@ -841,10 +840,10 @@ export default function App() {
             <div className="w-8 h-8 rounded-lg bg-surface-container overflow-hidden border border-primary-container/40 shadow shrink-0">
               <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
             </div>
-            <div className="flex items-baseline tracking-tight">
+            <div className="flex items-center gap-1.5 tracking-tight">
               <span className="font-brand text-2xl font-bold text-primary-container leading-none">an</span>
               <span className="font-brand text-2xl font-bold text-[#f5a192] leading-none">na</span>
-              <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-primary-container/15 text-primary-container tracking-wider uppercase border border-primary-container/20 hidden sm:inline-block">
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-primary-container/15 text-primary-container tracking-wider uppercase border border-primary-container/20 hidden sm:inline-block">
                 PLAYER
               </span>
             </div>
@@ -970,9 +969,6 @@ export default function App() {
                       <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-high text-primary-container font-bold">
                         {badgeCount > 99 ? '99+' : badgeCount}
                       </span>
-                    )}
-                    {isActive && badgeCount === 0 && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
                     )}
                   </button>
                 );
@@ -1119,11 +1115,8 @@ export default function App() {
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
               <span className="font-mono text-[10px] font-bold text-primary tracking-widest uppercase">
-                ĐANG PHÁT HI-FI
+                ĐANG PHÁT
               </span>
-            </div>
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container border border-white/5 text-[9px] font-mono text-tertiary">
-              <span>DIRECT DRIVE</span>
             </div>
           </div>
 

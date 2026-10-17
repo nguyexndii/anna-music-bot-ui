@@ -399,7 +399,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
       <div className="flex flex-col gap-0.5 shrink-0 px-1 mt-1">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[9px] text-outline uppercase tracking-wider">
-            {getSourceLabel(current)} • LOSSLESS
+            {getSourceLabel(current)}
           </span>
           <button
             onClick={() => {
