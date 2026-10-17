@@ -1,5 +1,4 @@
 export async function onRequest(context) {
-  // Handle CORS preflight
   if (context.request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -38,6 +37,11 @@ export async function onRequest(context) {
     requestHeaders.set(key, value);
   }
 
+  const realClientIp = context.request.headers.get('cf-connecting-ip') || context.request.headers.get('x-forwarded-for');
+  if (realClientIp) {
+    requestHeaders.set('x-real-client-ip', realClientIp.split(',')[0].trim());
+  }
+
   let body = undefined;
   if (context.request.method !== 'GET' && context.request.method !== 'HEAD') {
     try {
@@ -58,7 +62,6 @@ export async function onRequest(context) {
     responseHeaders.set('Access-Control-Allow-Origin', '*');
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    responseHeaders.set('X-Debug-Target', targetUrl);
 
     const resBody = await response.text();
     return new Response(resBody, {
@@ -69,8 +72,7 @@ export async function onRequest(context) {
   } catch (err) {
     return new Response(JSON.stringify({
       success: false,
-      error: `Không thể kết nối đến máy chủ bot: ${err.message}`,
-      targetUrl
+      error: 'Không thể kết nối đến máy chủ bot. Vui lòng thử lại sau giây lát!'
     }), {
       status: 502,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
