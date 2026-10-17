@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Search,
   X,
@@ -79,81 +79,11 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
   const recentScrollRef = useRef(null);
   const clientSearchCacheRef = useRef(new Map());
 
-  // Đồng bộ với externalQuery từ Top Header nếu có
-  useEffect(() => {
-    if (externalQuery !== undefined && externalQuery !== query) {
-      setQuery(externalQuery);
-    }
-  }, [externalQuery]);
-
-  // Lắng nghe thay đổi chế độ tìm kiếm từ Header - Chuyển chế độ TỨC THÌ 0ms
-  useEffect(() => {
-    const handleModeChangeEvt = (e) => {
-      if (e.detail) {
-        const nextMode = e.detail;
-        setSearchMode(nextMode);
-        const trimmed = query.trim();
-        if (trimmed.length >= 2 && !detected?.isPlaylist) {
-          if (debounceRef.current) clearTimeout(debounceRef.current);
-          executeSearch(trimmed, nextMode);
-        }
-      }
-    };
-    window.addEventListener('anna_search_mode_change', handleModeChangeEvt);
-    return () => window.removeEventListener('anna_search_mode_change', handleModeChangeEvt);
-  }, [query, detected?.isPlaylist]);
-
+  // 1. Nhận diện URL trước để các hook và hàm phía dưới sử dụng an toàn (chống TDZ)
   const detected = useMemo(() => detectUrlType(query), [query]);
 
-  // Live search tự động khi người dùng gõ phím (Debounce 420ms)
-  useEffect(() => {
-    const trimmed = query.trim();
-    if (!trimmed || trimmed.length < 2 || detected?.isPlaylist) {
-      if (!trimmed) {
-        setResults([]);
-        setLoading(false);
-      }
-      return;
-    }
-
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      executeSearch(trimmed, searchMode);
-    }, 420);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, searchMode, detected?.isPlaylist]);
-
-  // Lấy trước ảnh bìa cho Playlist Spotify khi người dùng dán link
-  useEffect(() => {
-    if (detected?.type === 'spotify_playlist' && detected.cleanUrl) {
-      let cancelled = false;
-      fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(detected.cleanUrl)}`)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (!cancelled && data?.thumbnail_url) {
-            setPlaylistPreviewThumb(data.thumbnail_url);
-          }
-        })
-        .catch(() => {});
-      return () => { cancelled = true; };
-    } else {
-      setPlaylistPreviewThumb(null);
-    }
-  }, [detected?.type, detected?.cleanUrl]);
-
-  const handleModeChange = (mode) => {
-    setSearchMode(mode);
-    localStorage.setItem('anna_search_mode', mode);
-    if (query.trim().length >= 2) {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      executeSearch(query.trim(), mode);
-    }
-  };
-
-  const executeSearch = async (searchQuery = query, mode = searchMode) => {
+  // 2. Hàm tìm kiếm chính bọc trong useCallback và khai báo trước khi các useEffect gọi đến
+  const executeSearch = useCallback(async (searchQuery = query, mode = searchMode) => {
     const trimmed = (searchQuery || '').trim();
     if (!trimmed || trimmed.length < 2) {
       setResults([]);
@@ -199,6 +129,78 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
       if (err.name !== 'AbortError') {
         setLoading(false);
       }
+    }
+  }, [query, searchMode, detected?.isPlaylist]);
+
+  // 3. Đồng bộ với externalQuery từ Top Header nếu có
+  useEffect(() => {
+    if (externalQuery !== undefined && externalQuery !== query) {
+      setQuery(externalQuery);
+    }
+  }, [externalQuery, query]);
+
+  // 4. Lắng nghe thay đổi chế độ tìm kiếm từ Header - Chuyển chế độ TỨC THÌ 0ms
+  useEffect(() => {
+    const handleModeChangeEvt = (e) => {
+      if (e.detail) {
+        const nextMode = e.detail;
+        setSearchMode(nextMode);
+        const trimmed = query.trim();
+        if (trimmed.length >= 2 && !detected?.isPlaylist) {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          executeSearch(trimmed, nextMode);
+        }
+      }
+    };
+    window.addEventListener('anna_search_mode_change', handleModeChangeEvt);
+    return () => window.removeEventListener('anna_search_mode_change', handleModeChangeEvt);
+  }, [query, detected?.isPlaylist, executeSearch]);
+
+  // 5. Live search tự động khi người dùng gõ phím (Debounce 420ms)
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed || trimmed.length < 2 || detected?.isPlaylist) {
+      if (!trimmed) {
+        setResults([]);
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      executeSearch(trimmed, searchMode);
+    }, 420);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query, searchMode, detected?.isPlaylist, executeSearch]);
+
+  // 6. Lấy trước ảnh bìa cho Playlist Spotify khi người dùng dán link
+  useEffect(() => {
+    if (detected?.type === 'spotify_playlist' && detected.cleanUrl) {
+      let cancelled = false;
+      fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(detected.cleanUrl)}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (!cancelled && data?.thumbnail_url) {
+            setPlaylistPreviewThumb(data.thumbnail_url);
+          }
+        })
+        .catch(() => {});
+      return () => { cancelled = true; };
+    } else {
+      setPlaylistPreviewThumb(null);
+    }
+  }, [detected?.type, detected?.cleanUrl]);
+
+  const handleModeChange = (mode) => {
+    setSearchMode(mode);
+    localStorage.setItem('anna_search_mode', mode);
+    if (query.trim().length >= 2) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      executeSearch(query.trim(), mode);
     }
   };
 
