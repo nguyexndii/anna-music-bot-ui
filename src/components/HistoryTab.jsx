@@ -86,7 +86,7 @@ export default function HistoryTab({ player, onOrderSong }) {
                   )}
                 </div>
                 <div className="song-info">
-                  <span className="song-name">{track.title}</span>
+                  <span data-tip={track.title} title={track.title} className="song-name cursor-default">{track.title}</span>
                   <span className="song-sub">{track.artist && track.artist !== 'Unknown' ? track.artist : 'YouTube Music'}</span>
                 </div>
                 <span className="song-dur">{formatRelativeTime(track.playedAt)}</span>

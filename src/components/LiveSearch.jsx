@@ -312,7 +312,11 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                       />
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-xs font-semibold text-on-surface truncate group-hover:text-primary transition-colors">
+                      <span
+                        data-tip={track.title}
+                        title={track.title}
+                        className="text-xs font-semibold text-on-surface truncate group-hover:text-primary transition-colors cursor-default"
+                      >
                         {track.title}
                       </span>
                       <div className="flex items-center gap-2 text-[10px] text-outline font-mono truncate">
@@ -376,7 +380,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                   onWheel={handleWheelHorizontal}
                   className="flex gap-2.5 overflow-x-auto scrollbar-none py-1"
                 >
-                  {history.slice(0, 16).map((track, idx) => (
+                  {history.slice(0, 50).map((track, idx) => (
                     <div
                       key={track.url || idx}
                       onClick={() => handleOrderTrack(track)}
@@ -398,7 +402,11 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                           </span>
                         )}
                       </div>
-                      <div className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight">
+                      <div
+                        data-tip={track.title}
+                        title={track.title}
+                        className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight cursor-default"
+                      >
                         {track.title}
                       </div>
                       <div className="text-[10px] text-outline font-mono truncate block w-full leading-tight mt-0.5">
@@ -473,7 +481,11 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                           </span>
                         )}
                       </div>
-                      <div className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight">
+                      <div
+                        data-tip={track.title}
+                        title={track.title}
+                        className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight cursor-default"
+                      >
                         {track.title}
                       </div>
                       <div className="text-[10px] text-outline font-mono truncate block w-full leading-tight mt-0.5">

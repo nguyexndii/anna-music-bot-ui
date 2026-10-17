@@ -9,7 +9,8 @@ import PermissionModal from './components/PermissionModal';
 import ConnectingStepper from './components/ConnectingStepper';
 import LofiConfirmModal from './components/LofiConfirmModal';
 import Toast from './components/Toast';
-import DynamicAmbientBackground from './components/DynamicAmbientBackground';
+import BrandLogo from './components/BrandLogo';
+import FastTooltip from './components/FastTooltip';
 import NotFoundScreen from './components/NotFoundScreen';
 import FavoritesTab from './components/FavoritesTab';
 import {
@@ -179,22 +180,12 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
       {/* Main Auth Container Căn Giữa Hoàn Hảo */}
       <div className="w-full max-w-md bg-surface-container-low border border-white/5 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center relative z-10 backdrop-blur-xl">
 
-        {/* Logo Anna + Equalizer Động */}
+        {/* Logo Anna Mới */}
         <div className="flex flex-col items-center mb-5">
-          <div className="w-16 h-16 rounded-2xl bg-surface-container overflow-hidden shadow-lg border border-primary-container/40 p-0.5 mb-3 shrink-0">
-            <img src="/logo.gif" alt="Anna Music Logo" className="w-full h-full object-cover rounded-xl" />
-          </div>
-
-          <div className="flex items-baseline tracking-tight">
-            <span className="font-brand text-primary-container text-3xl font-bold leading-none">an</span>
-            <span className="font-brand text-[#f5a192] text-3xl font-bold leading-none">na</span>
-          </div>
-          <span className="font-mono text-[9px] tracking-widest text-outline uppercase mt-1">
-            MUSIC WEB PLAYER
-          </span>
+          <BrandLogo size="lg" showSubtext={true} />
 
           {/* Sóng nhạc 5 bars động uốn cong theo viền */}
-          <div className="flex items-center justify-center gap-1.5 h-6 px-3 bg-surface-container rounded-full border border-white/10 mt-3 shadow-inner">
+          <div className="flex items-center justify-center gap-1.5 h-6 px-3 bg-surface-container rounded-full border border-white/10 mt-4 shadow-inner">
             <span className="w-1 bg-primary-container rounded-full animate-equalizer-1" />
             <span className="w-1 bg-primary-container rounded-full animate-equalizer-2" />
             <span className="w-1 bg-secondary rounded-full animate-equalizer-3" />
@@ -296,11 +287,7 @@ function NoVoiceScreen({ user, onRefresh, isRefreshing, onLogout }) {
   return (
     <div className="bg-surface font-body text-on-surface antialiased h-screen h-[100dvh] overflow-hidden flex flex-col justify-between p-4 md:p-6 items-center select-none relative z-10">
       <header className="w-full max-w-md flex items-center justify-center shrink-0">
-        <div className="flex items-center gap-2.5">
-          <img src="/logo.gif" alt="Anna Logo" className="w-8 h-8 rounded-lg object-cover border border-primary-container/40" />
-          <span className="font-brand text-primary-container text-2xl font-bold">anna</span>
-          <span className="text-secondary font-sans font-medium text-xs tracking-wider uppercase">Voice Sync</span>
-        </div>
+        <BrandLogo size="md" showSubtext={false} />
       </header>
 
       <main className="w-full max-w-md my-auto bg-surface-container-low border border-outline-variant/30 rounded-2xl p-6 shadow-2xl flex flex-col gap-4 text-center">
@@ -825,29 +812,15 @@ export default function App() {
 
   return (
     <div className="h-screen h-[100dvh] w-screen overflow-hidden flex flex-col bg-surface text-on-surface relative select-none font-body">
-      {/* Dynamic Ambient Background */}
-      <DynamicAmbientBackground currentTrack={player?.current} isPlaying={player?.isPlaying} />
-
       {/* ── 1. TOP HEADER (Fixed 56px, Thanh Search Căn Giữa Hoàn Hảo) ── */}
       <header className="h-[56px] flex-shrink-0 bg-surface-container-lowest border-b border-white/5 px-4 flex items-center justify-between z-30 select-none">
         {/* Left: Brand Logo + Chip Voice Room (Cột trái w-64 cố định) */}
         <div className="flex items-center gap-2.5 w-64 shrink-0">
-          <button
+          <BrandLogo
+            size="sm"
             onClick={() => switchTab('search')}
-            className="flex items-center gap-2.5 text-left group"
-            title="Quay về Khám Phá"
-          >
-            <div className="w-8 h-8 rounded-lg bg-surface-container overflow-hidden border border-primary-container/40 shadow shrink-0">
-              <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-            </div>
-            <div className="flex items-center gap-1.5 tracking-tight">
-              <span className="font-brand text-2xl font-bold text-primary-container leading-none">an</span>
-              <span className="font-brand text-2xl font-bold text-[#f5a192] leading-none">na</span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-primary-container/15 text-primary-container tracking-wider uppercase border border-primary-container/20 hidden sm:inline-block">
-                PLAYER
-              </span>
-            </div>
-          </button>
+            showSubtext={true}
+          />
 
           {/* Quick Room Chip Voice Status (Sạch sẽ, bỏ 48kHz Opus, chống lặp icon) */}
           <div className="hidden xl:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface-container border border-white/5 text-xs shrink-0">
@@ -1094,7 +1067,7 @@ export default function App() {
             </div>
 
             {/* Tab Cài Đặt */}
-            <div className={`flex-1 min-h-0 ${effectiveContentTab === 'settings' ? 'flex flex-col' : 'hidden'}`}>
+            <div className={`flex-1 min-h-0 overflow-y-auto custom-scroll ${effectiveContentTab === 'settings' ? 'flex flex-col' : 'hidden'}`}>
               <SettingsTab
                 guildId={guildId}
                 guildName={guild?.name}
@@ -1229,6 +1202,7 @@ export default function App() {
         queueCount={player?.queue?.length || 0}
       />
       <Toast toasts={toasts} onDismiss={handleDismissToast} />
+      <FastTooltip />
     </div>
   );
 }

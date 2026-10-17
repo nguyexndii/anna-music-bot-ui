@@ -417,10 +417,18 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
           </button>
         </div>
 
-        <h2 className="text-sm sm:text-base font-bold text-on-surface truncate leading-snug">
+        <h2
+          data-tip={current?.title}
+          title={current?.title}
+          className="text-sm sm:text-base font-bold text-on-surface truncate leading-snug cursor-default"
+        >
           {current?.title || 'Chưa có bài hát đang phát'}
         </h2>
-        <p className="text-xs text-primary-container truncate font-medium">
+        <p
+          data-tip={current?.artist}
+          title={current?.artist}
+          className="text-xs text-primary-container truncate font-medium cursor-default"
+        >
           {current?.artist || (isLofi ? 'Anna Music • Lofi 24/7' : 'Boutique Soundbot')}
         </p>
       </div>

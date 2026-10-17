@@ -16,6 +16,7 @@ import {
   Radio
 } from 'lucide-react';
 import { DEFAULT_TRACK_THUMB } from '../config';
+import BrandLogo from './BrandLogo';
 
 function formatTime(ms) {
   if (!ms || isNaN(ms) || ms < 0) return '0:00';
@@ -307,18 +308,10 @@ export default function KaraokeFullscreenModal({
         {/* Left: Brand & Source Badge */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center gap-2">
-            <img
-              src="/logo.gif"
-              alt="Anna Logo"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover border border-primary-container/40 shrink-0"
-            />
-            <div className="flex items-center gap-1.5 tracking-tight">
-              <span className="font-brand text-xl sm:text-2xl font-bold text-primary-container leading-none">an</span>
-              <span className="font-brand text-xl sm:text-2xl font-bold text-[#f5a192] leading-none">na</span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-primary-container/15 text-primary-container tracking-wider uppercase border border-primary-container/20">
-                KARAOKE
-              </span>
-            </div>
+            <BrandLogo size="sm" showSubtext={false} />
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-primary-container/15 text-primary-container tracking-wider uppercase border border-primary-container/20">
+              KARAOKE
+            </span>
           </div>
 
           {lyricsSourceInfo && (
@@ -568,10 +561,18 @@ export default function KaraokeFullscreenModal({
 
           {/* Thông tin bài hát dưới mâm đĩa */}
           <div className="w-full max-w-xs text-center flex flex-col items-center gap-1 shrink-0">
-            <h2 className="text-sm sm:text-base font-bold text-on-surface line-clamp-2 leading-snug">
+            <h2
+              data-tip={current?.title}
+              title={current?.title}
+              className="text-sm sm:text-base font-bold text-on-surface line-clamp-2 leading-snug cursor-default"
+            >
               {isLofiCurrent ? '24/7 Lofi Thư Giãn' : (current?.title || 'Chưa có bài hát')}
             </h2>
-            <p className="text-xs text-primary-container font-medium truncate max-w-full">
+            <p
+              data-tip={current?.artist}
+              title={current?.artist}
+              className="text-xs text-primary-container font-medium truncate max-w-full cursor-default"
+            >
               {isLofiCurrent ? 'Nhạc nền tự động 24/7' : (current?.artist || 'Anna Music')}
             </p>
             <div className="flex items-center gap-1.5 mt-1">

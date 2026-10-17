@@ -136,7 +136,11 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
 
                 {/* Tiêu đề & Nghệ sĩ */}
                 <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors">
+                  <span
+                    data-tip={track.title}
+                    title={track.title}
+                    className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors cursor-default"
+                  >
                     {track.title}
                   </span>
                   <div className="flex items-center gap-2 text-[10px] text-outline font-mono truncate">

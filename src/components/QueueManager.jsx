@@ -315,7 +315,11 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 {/* Thông tin bài hát */}
                 <div className="flex flex-col min-w-0 flex-1 px-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors">
+                    <span
+                      data-tip={song.title}
+                      title={song.title}
+                      className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors cursor-default"
+                    >
                       {song.title}
                     </span>
                     {isNext && (
