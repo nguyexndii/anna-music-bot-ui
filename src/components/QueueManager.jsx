@@ -1,4 +1,3 @@
-import React, { useState, useRef, useEffect } from 'react';
 import {
   Trash2,
   Play,
@@ -10,6 +9,7 @@ import {
   Loader2,
   Coffee,
   RotateCcw,
+  Check,
   CheckSquare,
   Square
 } from 'lucide-react';
@@ -170,14 +170,20 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
           <button
             onClick={toggleSelectAll}
             disabled={songs.length === 0}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-xs font-semibold text-primary-container transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-xs font-semibold text-on-surface transition-colors disabled:opacity-40"
           >
-            {selectedIndices.size > 0 && selectedIndices.size === songs.length ? (
-              <CheckSquare size={14} className="text-primary-container" />
-            ) : (
-              <Square size={14} className="text-outline" />
-            )}
-            <span>
+            <div
+              className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
+                selectedIndices.size > 0 && selectedIndices.size === songs.length
+                  ? 'bg-primary-container border-primary-container text-on-primary shadow-sm'
+                  : selectedIndices.size > 0
+                  ? 'bg-primary-container/40 border-primary-container text-on-primary'
+                  : 'border-outline/40 bg-surface-container-highest/40'
+              }`}
+            >
+              {selectedIndices.size > 0 && <Check size={11} strokeWidth={3} />}
+            </div>
+            <span className={selectedIndices.size > 0 ? 'text-primary-container' : 'text-on-surface-variant'}>
               {selectedIndices.size > 0 ? `Đã chọn (${selectedIndices.size})` : `Tất Cả (${songs.length})`}
             </span>
           </button>
@@ -265,13 +271,19 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                   <GripVertical size={16} />
                 </div>
 
-                {/* Checkbox */}
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={(e) => toggleSelect(idx, e)}
-                  className="w-4 h-4 rounded bg-surface-container-highest accent-primary-container cursor-pointer shrink-0"
-                />
+                {/* Custom Checkbox */}
+                <button
+                  type="button"
+                  onClick={(e) => toggleSelect(idx, e)}
+                  className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all shrink-0 ${
+                    isSelected
+                      ? 'bg-primary-container border-primary-container text-on-primary shadow-sm'
+                      : 'border-outline/40 hover:border-primary-container/60 bg-surface-container-highest/40'
+                  }`}
+                  aria-label={isSelected ? 'Bỏ chọn bài hát' : 'Chọn bài hát'}
+                >
+                  {isSelected && <Check size={11} strokeWidth={3} />}
+                </button>
 
                 {/* Thứ tự bài #01, #02... */}
                 <button

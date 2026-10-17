@@ -235,6 +235,8 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
 
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const lines = lyricsData?.lines || [];
+  const totalTrackMs = parseDurationToMs(current?.duration);
+  const trackPercent = totalTrackMs > 0 ? Math.min(100, Math.max(0, (effectiveCurrentMs / totalTrackMs) * 100)) : 0;
 
   // Tính toán câu hát đang phát và thanh tiến trình vạch tua câu hát
   useEffect(() => {
@@ -487,19 +489,33 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
                       </p>
                     </div>
 
-                    {/* Vạch tiến trình đồng bộ thời gian thực của câu hát */}
-                    <div className="flex items-center gap-3 ml-12 pointer-events-none select-none max-w-md">
-                      <span className="font-mono text-[11px] text-primary-container/90 font-semibold shrink-0">
-                        {formatTime(Math.min(line.endTimeMs, Math.max(line.timeMs, effectiveCurrentMs)))}
+                    {/* Vạch tiến trình đồng bộ thời gian thực của bài hát (chạy liên tục, không reset khi đổi câu) */}
+                    <div
+                      className="flex items-center gap-3 ml-12 max-w-md select-none group/seek"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="font-mono text-[11px] text-primary-container font-semibold shrink-0">
+                        {formatTime(effectiveCurrentMs)}
                       </span>
-                      <div className="h-1.5 flex-1 min-w-[120px] bg-surface-container-highest rounded-full overflow-hidden">
+                      <div
+                        onClick={(e) => {
+                          if (totalTrackMs <= 0) return;
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const clickX = e.clientX - rect.left;
+                          const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+                          const targetSec = Math.floor((ratio * totalTrackMs) / 1000);
+                          onAction('seek', targetSec);
+                        }}
+                        className="h-1.5 flex-1 min-w-[120px] bg-surface-container-highest rounded-full overflow-hidden cursor-pointer relative"
+                        title="Nhấp để tua nhạc"
+                      >
                         <div
-                          className="h-full bg-primary-container rounded-full transition-all duration-150 ease-linear"
-                          style={{ width: `${currentLineProgress}%` }}
+                          className="h-full bg-primary-container rounded-full transition-all duration-100 ease-linear"
+                          style={{ width: `${trackPercent}%` }}
                         />
                       </div>
                       <span className="font-mono text-[11px] text-outline font-semibold shrink-0">
-                        {formatTime(line.endTimeMs)}
+                        {current?.duration || formatTime(totalTrackMs)}
                       </span>
                     </div>
                   </div>

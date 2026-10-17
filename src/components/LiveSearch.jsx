@@ -381,13 +381,13 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     <div
                       key={track.url || idx}
                       onClick={() => handleOrderTrack(track)}
-                      className="w-28 shrink-0 group cursor-pointer"
+                      className="w-32 shrink-0 group cursor-pointer flex flex-col"
                     >
-                      <div className="w-28 h-18 rounded-lg bg-surface-container overflow-hidden relative border border-white/5 shadow-sm">
+                      <div className="w-32 h-20 rounded-xl bg-surface-container overflow-hidden relative border border-white/5 shadow-sm shrink-0">
                         <img
                           src={getTrackThumb(track)}
                           alt=""
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
                         />
                         <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow">
@@ -399,10 +399,10 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] font-semibold text-on-surface truncate mt-1 group-hover:text-primary transition-colors">
+                      <div className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight">
                         {track.title}
                       </div>
-                      <div className="text-[9px] text-outline font-mono truncate">
+                      <div className="text-[10px] text-outline font-mono truncate block w-full leading-tight mt-0.5">
                         {track.artist || 'Anna Music'}
                       </div>
                     </div>
@@ -411,84 +411,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
               </div>
             )}
 
-            {/* HÀNG 2: BÀI HÁT YÊU THÍCH (Hàng ngang + Scroll chuột ngang) */}
-            {favorites.length > 0 && (
-              <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col gap-2 shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Heart size={14} className="text-secondary fill-secondary" />
-                    <span className="text-xs font-bold text-on-surface uppercase tracking-wider">
-                      BÀI HÁT YÊU THÍCH
-                    </span>
-                    <span className="font-mono text-[10px] text-outline">
-                      ({favorites.length})
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => setIsFavoritesModalOpen(true)}
-                      className="text-[11px] font-semibold text-primary-container hover:text-primary flex items-center gap-1 mr-1"
-                    >
-                      <span>Xem tất cả</span>
-                      <span className="material-symbols-outlined text-[13px]">north_east</span>
-                    </button>
-                    <button
-                      onClick={() => favoritesScrollRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}
-                      className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
-                      title="Cuộn sang trái"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      onClick={() => favoritesScrollRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}
-                      className="w-6 h-6 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface flex items-center justify-center transition-colors"
-                      title="Cuộn sang phải"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                <div
-                  ref={favoritesScrollRef}
-                  onWheel={handleWheelHorizontal}
-                  className="flex gap-2.5 overflow-x-auto scrollbar-none py-1"
-                >
-                  {favorites.slice(0, 16).map((fav, idx) => (
-                    <div
-                      key={fav.url || idx}
-                      onClick={() => handleOrderTrack(fav)}
-                      className="w-28 shrink-0 group cursor-pointer"
-                    >
-                      <div className="w-28 h-18 rounded-lg bg-surface-container overflow-hidden relative border border-white/5 shadow-sm">
-                        <img
-                          src={getTrackThumb(fav)}
-                          alt=""
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
-                        />
-                        <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-secondary-container text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow">
-                          <Play size={12} fill="currentColor" className="ml-0.5" />
-                        </div>
-                        {fav.duration && (
-                          <span className="absolute bottom-1 left-1 text-[9px] font-mono px-1 rounded bg-black/70 text-outline">
-                            {fav.duration}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] font-semibold text-on-surface truncate mt-1 group-hover:text-primary transition-colors">
-                        {fav.title}
-                      </div>
-                      <div className="text-[9px] text-outline font-mono truncate">
-                        {fav.artist || 'Anna Music'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* HÀNG 3: PHỔ BIẾN TRONG MÁY CHỦ / TOP TUẦN (Hàng ngang + Scroll chuột ngang) */}
+            {/* HÀNG 2: PHỔ BIẾN TRONG MÁY CHỦ / TOP TUẦN (Hàng ngang + Scroll chuột ngang) */}
             {topTracks.length > 0 && (
               <div className="bg-surface-container-low rounded-xl border border-white/5 p-3 flex flex-col gap-2 shrink-0">
                 <div className="flex items-center justify-between">
@@ -528,13 +451,13 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     <div
                       key={track.url || idx}
                       onClick={() => handleOrderTrack(track)}
-                      className="w-28 shrink-0 group cursor-pointer"
+                      className="w-32 shrink-0 group cursor-pointer flex flex-col"
                     >
-                      <div className="w-28 h-18 rounded-lg bg-surface-container overflow-hidden relative border border-white/5 shadow-sm">
+                      <div className="w-32 h-20 rounded-xl bg-surface-container overflow-hidden relative border border-white/5 shadow-sm shrink-0">
                         <img
                           src={getTrackThumb(track)}
                           alt=""
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
                         />
                         <span className={`absolute top-1 left-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded shadow ${
@@ -551,10 +474,10 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] font-semibold text-on-surface truncate mt-1 group-hover:text-primary transition-colors">
+                      <div className="text-xs font-semibold text-on-surface truncate mt-1.5 group-hover:text-primary transition-colors block w-full leading-tight">
                         {track.title}
                       </div>
-                      <div className="text-[9px] text-outline font-mono truncate">
+                      <div className="text-[10px] text-outline font-mono truncate block w-full leading-tight mt-0.5">
                         {track.artist || 'Anna Music'}
                       </div>
                     </div>

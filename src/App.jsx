@@ -11,6 +11,7 @@ import LofiConfirmModal from './components/LofiConfirmModal';
 import Toast from './components/Toast';
 import DynamicAmbientBackground from './components/DynamicAmbientBackground';
 import NotFoundScreen from './components/NotFoundScreen';
+import FavoritesTab from './components/FavoritesTab';
 import {
   Search,
   ListMusic,
@@ -27,7 +28,8 @@ import {
   LogOut,
   Sparkles,
   Radio,
-  Volume2
+  Volume2,
+  Heart
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from './config';
 
@@ -46,12 +48,13 @@ function getTrackThumb(track) {
 
 // ─── Tab Definitions (Stitch Navigation) ────────────────────────────────────
 const TABS = [
-  { id: 'player',   label: 'Đang Phát', iconName: 'album',        mobileOnly: true },
-  { id: 'search',   label: 'Khám Phá',  iconName: 'explore',      mobileOnly: false },
-  { id: 'queue',    label: 'Hàng Chờ',  iconName: 'queue_music',  mobileOnly: false },
-  { id: 'lyrics',   label: 'Lời Nhạc',  iconName: 'mic',          mobileOnly: false },
-  { id: 'history',  label: 'Lịch Sử',   iconName: 'history',      mobileOnly: false },
-  { id: 'settings', label: 'Cài Đặt',   iconName: 'settings',     mobileOnly: false },
+  { id: 'player',    label: 'Đang Phát', iconName: 'album',        mobileOnly: true },
+  { id: 'search',    label: 'Khám Phá',  iconName: 'explore',      mobileOnly: false },
+  { id: 'favorites', label: 'Yêu Thích', iconName: 'favorite',     mobileOnly: false },
+  { id: 'queue',     label: 'Hàng Chờ',  iconName: 'queue_music',  mobileOnly: false },
+  { id: 'lyrics',    label: 'Lời Nhạc',  iconName: 'mic',          mobileOnly: false },
+  { id: 'history',   label: 'Lịch Sử',   iconName: 'history',      mobileOnly: false },
+  { id: 'settings',  label: 'Cài Đặt',   iconName: 'settings',     mobileOnly: false },
 ];
 
 // ─── PIN 6-digit Split Input Component ────────────────────────────────────────
@@ -107,9 +110,6 @@ function PinCodeInput({ length = 6, value = '', onChange, onComplete, disabled =
       onChange(extracted);
       const focusIndex = Math.min(extracted.length, length - 1);
       inputRefs.current[focusIndex]?.focus();
-      if (extracted.length === length && onComplete) {
-        onComplete(extracted);
-      }
     }
   };
 
@@ -127,9 +127,17 @@ function PinCodeInput({ length = 6, value = '', onChange, onComplete, disabled =
             disabled={disabled}
             value={digits[i] || ''}
             onChange={(e) => handleChange(e, i)}
-            onKeyDown={(e) => handleKeyDown(e, i)}
+            onKeyDown={(e) => {
+              handleKeyDown(e, i);
+              if (e.key === 'Enter') {
+                const curVal = digits.join('');
+                if (curVal.length === length && onComplete) {
+                  onComplete(curVal);
+                }
+              }
+            }}
             aria-label={`Số thứ ${i + 1}`}
-            className="w-full h-12 sm:h-13 py-2 bg-surface-container-lowest text-center font-mono text-xl sm:text-2xl text-on-surface font-semibold rounded-lg shadow-inner border border-outline-variant/30 focus:border-primary-container focus:outline-none focus:bg-surface-container-high transition-all"
+            className="w-full h-12 sm:h-13 py-2 bg-surface-container-lowest text-center font-mono text-xl sm:text-2xl text-on-surface font-semibold rounded-xl shadow-inner border border-outline-variant/30 focus:border-primary-container focus:outline-none focus:bg-surface-container-high transition-all"
           />
           <div
             className={`absolute bottom-1 left-2 right-2 h-0.5 rounded-full transition-all ${
@@ -142,7 +150,7 @@ function PinCodeInput({ length = 6, value = '', onChange, onComplete, disabled =
   );
 }
 
-// ─── PIN / Auth screen (Chuẩn Google Stitch + Logo thật) ─────────────────────
+// ─── PIN / Auth screen (Chuẩn Google Stitch Tối Giản) ───────────────────────
 function AuthScreen({ onVerify, authError, isVerifying }) {
   const [pin, setPin] = useState('');
   const [localError, setLocalError] = useState('');
@@ -168,228 +176,121 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
   };
 
   return (
-    <div className="bg-surface font-body text-on-surface antialiased h-screen h-[100dvh] overflow-hidden flex flex-col justify-between p-4 md:p-6 items-center select-none relative z-10">
-      {/* Header Bar */}
-      <header className="w-full max-w-5xl flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl overflow-hidden border border-primary-container/40 shadow-md shrink-0 bg-surface-container">
-            <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover" />
+    <div className="bg-surface font-body text-on-surface antialiased h-screen h-[100dvh] overflow-hidden flex items-center justify-center p-4 md:p-6 select-none relative z-10">
+      {/* Ambient background glow */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary-container/5 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-secondary-container/10 blur-3xl pointer-events-none" />
+
+      {/* Main Auth Container Căn Giữa Hoàn Hảo */}
+      <div className="w-full max-w-md bg-surface-container-low border border-white/5 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center relative z-10 backdrop-blur-xl">
+
+        {/* Logo Anna + Equalizer Động */}
+        <div className="flex flex-col items-center mb-5">
+          <div className="w-16 h-16 rounded-2xl bg-surface-container overflow-hidden shadow-lg border border-primary-container/40 p-0.5 mb-3 shrink-0">
+            <img src="/logo.gif" alt="Anna Music Logo" className="w-full h-full object-cover rounded-xl" />
           </div>
-          <span className="font-brand text-primary-container text-2xl font-bold tracking-tight">
-            an<span className="text-secondary font-normal">na</span>{' '}
-            <span className="text-on-surface-variant font-sans font-medium text-xs tracking-wider uppercase ml-1">
-              Music
-            </span>
+
+          <div className="flex items-baseline tracking-tight">
+            <span className="font-brand text-primary-container text-3xl font-bold leading-none">an</span>
+            <span className="font-brand text-[#f5a192] text-3xl font-bold leading-none">na</span>
+          </div>
+          <span className="font-mono text-[9px] tracking-widest text-outline uppercase mt-1">
+            MUSIC WEB PLAYER
+          </span>
+
+          {/* Sóng nhạc 5 bars động */}
+          <div className="flex items-end gap-1 h-5 px-3 py-1 bg-surface-container rounded-full border border-white/5 mt-3">
+            <span className="w-1 bg-primary-container rounded-full animate-equalizer-1" />
+            <span className="w-1 bg-primary-container rounded-full animate-equalizer-2" />
+            <span className="w-1 bg-secondary rounded-full animate-equalizer-3" />
+            <span className="w-1 bg-primary-container rounded-full animate-equalizer-4" />
+            <span className="w-1 bg-primary-container rounded-full animate-equalizer-5" />
+          </div>
+        </div>
+
+        {/* Tiêu đề & Hướng dẫn */}
+        <div className="text-center mb-5">
+          <h1 className="text-xl font-bold text-on-surface tracking-tight">
+            Nhập mã PIN kết nối
+          </h1>
+          <p className="text-xs text-on-surface-variant mt-1">
+            Dùng lệnh{' '}
+            <code className="px-1.5 py-0.5 bg-surface-container-highest rounded text-primary-container font-mono text-[11px] font-bold border border-white/5">
+              /web
+            </code>{' '}
+            trong Discord để nhận mã PIN 6 số.
+          </p>
+        </div>
+
+        {/* Form nhập PIN 6 số */}
+        <form className="w-full space-y-4" onSubmit={submit}>
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[10px] text-outline uppercase tracking-wider font-bold">
+                MÃ PIN 6 CHỮ SỐ
+              </label>
+              {pin && (
+                <button
+                  type="button"
+                  onClick={() => setPin('')}
+                  className="font-mono text-[11px] text-outline hover:text-on-surface transition-colors"
+                >
+                  Xóa tất cả
+                </button>
+              )}
+            </div>
+
+            <PinCodeInput
+              length={6}
+              value={pin}
+              onChange={(val) => {
+                setPin(val);
+                setLocalError('');
+              }}
+              onComplete={handleComplete}
+              disabled={isVerifying}
+              autoFocus={true}
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-error flex items-center gap-1.5 bg-error-container/20 p-2.5 rounded-xl border border-error/30 animate-fade-in">
+              <AlertCircle size={14} className="shrink-0" />
+              <span>{error}</span>
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isVerifying || pin.length < 6}
+            className="w-full h-11 bg-primary-container hover:bg-primary active:scale-[0.99] text-on-primary font-sans text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isVerifying ? (
+              <>
+                <Loader2 size={16} className="animate-spin text-on-primary" />
+                <span>Đang kết nối...</span>
+              </>
+            ) : (
+              <>
+                <span>Kết Nối</span>
+                <span className="material-symbols-outlined text-base">arrow_forward</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Thông báo phiên an toàn */}
+        <div className="mt-4 p-2.5 bg-surface-container rounded-xl flex items-center gap-2 border border-white/5 w-full text-left">
+          <span className="material-symbols-outlined text-primary-container text-base shrink-0">lock_clock</span>
+          <span className="text-[11px] text-outline leading-tight">
+            Mã PIN có hiệu lực trong phiên này. Đóng tab sẽ tự động ngắt kết nối an toàn.
           </span>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 bg-surface-container-low rounded-full border border-outline-variant/30 text-xs font-mono text-outline">
-          <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
-          <span>LOSSLESS 384KBPS • OPUS</span>
-        </div>
-      </header>
 
-      {/* Main Auth Container */}
-      <main className="w-full max-w-5xl my-auto flex items-center justify-center py-2">
-        <div className="grid grid-cols-1 lg:grid-cols-12 w-full max-h-[460px] shadow-2xl rounded-2xl overflow-hidden bg-surface-container-low border border-outline-variant/30">
-          {/* CỘT TRÁI: Khối thương hiệu Audiophile Lounge */}
-          <div className="lg:col-span-5 flex flex-col justify-between p-6 bg-surface-container-lowest relative overflow-hidden">
-            <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-primary/5 blur-2xl pointer-events-none"></div>
-            <div className="absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-secondary-container/10 blur-2xl pointer-events-none"></div>
+      </div>
 
-            <div className="relative z-10 flex flex-col gap-3">
-              {/* Logo Anna + Equalizer */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-surface-container overflow-hidden shadow-lg border border-primary-container/40 p-0.5 shrink-0">
-                    <img src="/logo.gif" alt="Anna Music Logo" className="w-full h-full object-cover rounded-lg" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans text-[10px] tracking-widest text-outline uppercase font-semibold">
-                      Boutique Soundbot
-                    </span>
-                    <span className="font-mono text-xs text-tertiary flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-tertiary inline-block animate-pulse"></span>
-                      Lossless 384kbps
-                    </span>
-                  </div>
-                </div>
-
-                {/* Sóng nhạc 5 bars */}
-                <div className="flex items-end gap-1 h-6 px-2.5 py-1 bg-surface-container rounded-lg border border-outline-variant/20">
-                  <span className="w-1 h-2.5 bg-primary-container rounded-full animate-pulse"></span>
-                  <span className="w-1 h-5 bg-primary rounded-full"></span>
-                  <span className="w-1 h-3.5 bg-secondary rounded-full"></span>
-                  <span className="w-1 h-5.5 bg-primary rounded-full"></span>
-                  <span className="w-1 h-3 bg-primary-fixed-dim rounded-full animate-pulse"></span>
-                </div>
-              </div>
-
-              {/* Typography Branding */}
-              <div className="mt-1">
-                <div className="flex items-baseline tracking-tight">
-                  <span className="font-brand text-primary text-5xl">an</span>
-                  <span className="font-brand text-secondary text-5xl">na</span>
-                </div>
-                <p className="font-mono text-[11px] text-outline tracking-widest uppercase">
-                  MUSIC WEB PLAYER
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <h2 className="font-sans text-base text-on-surface font-semibold leading-snug">
-                  Trải nghiệm thính phòng kỹ thuật số trên Discord.
-                </h2>
-                <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2">
-                  Không gian đĩa than cổ điển kết hợp chất âm số tinh khiết. Đường truyền chuẩn rạp, không gián đoạn.
-                </p>
-              </div>
-
-              {/* Badges */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="p-2 bg-surface-container/80 rounded-lg flex items-center gap-2 border border-outline-variant/15">
-                  <span className="material-symbols-outlined text-primary text-lg">graphic_eq</span>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">KHÔNG GIẬT LAG</span>
-                    <span className="text-[11px] text-on-surface-variant truncate">Đệm âm thanh 0s</span>
-                  </div>
-                </div>
-                <div className="p-2 bg-surface-container/80 rounded-lg flex items-center gap-2 border border-outline-variant/15">
-                  <span className="material-symbols-outlined text-primary text-lg">instant_mix</span>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] font-bold text-on-surface uppercase tracking-wider">HI-RES AUDIO</span>
-                    <span className="text-[11px] text-on-surface-variant truncate">24-bit / 96kHz</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative z-10 pt-3 border-t border-outline-variant/15 flex items-center justify-between text-outline text-[11px]">
-              <span className="font-mono">v2.5.0 • VINYL_LOUNGE</span>
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm">security</span>
-                <span className="font-mono">ENCRYPTED STREAM</span>
-              </div>
-            </div>
-          </div>
-
-          {/* CỘT PHẢI: Form Xác Thực Mã PIN 6 Số */}
-          <div className="lg:col-span-7 flex flex-col justify-between p-6 bg-surface-container relative">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="px-2.5 py-0.5 bg-surface-container-high rounded text-primary-container font-sans text-[10px] uppercase font-bold tracking-wider border border-outline-variant/30">
-                  KẾT NỐI TÀI KHOẢN
-                </span>
-                <span className="font-mono text-[11px] text-outline flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-ping"></span>
-                  DISCORD BOT READY
-                </span>
-              </div>
-
-              <div className="mb-4">
-                <h1 className="text-2xl text-on-surface font-semibold tracking-tight">
-                  Nhập mã PIN
-                </h1>
-                <p className="text-xs text-on-surface-variant flex items-center gap-1.5 mt-0.5">
-                  Dùng lệnh{' '}
-                  <span className="px-1.5 py-0.5 bg-surface-container-highest rounded text-primary-container font-mono text-[11px] font-semibold border border-outline-variant/40">
-                    /web
-                  </span>{' '}
-                  trong Discord để nhận mã PIN 6 số.
-                </p>
-              </div>
-
-              <form className="space-y-4" onSubmit={submit}>
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] text-outline uppercase tracking-wider font-bold">
-                      MÃ PIN 6 CHỮ SỐ
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setPin('')}
-                      className="font-mono text-[11px] text-outline hover:text-on-surface transition-colors"
-                    >
-                      Xóa tất cả
-                    </button>
-                  </div>
-
-                  <PinCodeInput
-                    length={6}
-                    value={pin}
-                    onChange={(val) => {
-                      setPin(val);
-                      setLocalError('');
-                    }}
-                    onComplete={handleComplete}
-                    disabled={isVerifying}
-                    autoFocus={true}
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-xs text-error flex items-center gap-1.5 bg-error-container/20 p-2 rounded-lg border border-error/30">
-                    <AlertCircle size={14} className="shrink-0" />
-                    <span>{error}</span>
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isVerifying || pin.length < 6}
-                  className="w-full h-11 bg-primary-container hover:bg-primary active:scale-[0.99] text-on-primary font-sans text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isVerifying ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin text-on-primary" />
-                      <span>Đang kết nối...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Kết Nối</span>
-                      <span className="material-symbols-outlined text-base">arrow_forward</span>
-                    </>
-                  )}
-                </button>
-              </form>
-
-              <div className="mt-3.5 p-2.5 bg-surface-container-low rounded-lg flex items-center gap-2.5 border border-outline-variant/20">
-                <span className="material-symbols-outlined text-primary-container text-lg shrink-0">lock_clock</span>
-                <div className="flex flex-col">
-                  <span className="text-xs text-on-surface font-medium leading-tight">Phiên làm việc an toàn</span>
-                  <span className="text-[11px] text-on-surface-variant leading-tight">
-                    Mã PIN có hiệu lực trong phiên này. Đóng tab sẽ tự động ngắt kết nối.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-outline-variant/15 flex items-center justify-between text-outline text-[11px]">
-              <span className="uppercase tracking-widest text-[10px] font-bold">
-                ANNA MUSIC • WEB PLAYER 24/7
-              </span>
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-sm hover:text-on-surface cursor-pointer transition-colors" title="Bảo mật kết nối">
-                  verified
-                </span>
-                <span className="material-symbols-outlined text-sm hover:text-on-surface cursor-pointer transition-colors" title="Trạng thái hệ thống">
-                  wifi_tethering
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer kiểm chuẩn font */}
-      <footer className="w-full max-w-5xl shrink-0">
-        <div className="w-full p-2 bg-surface-container-lowest/80 backdrop-blur-sm rounded-xl border border-outline-variant/25 flex flex-col md:flex-row items-center justify-between gap-1.5 text-xs text-outline">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary-container text-sm">spellcheck</span>
-            <span className="font-mono text-[10px] uppercase">Font chuẩn: Be Vietnam Pro</span>
-            <span className="text-on-surface-variant select-all">ĐANG PHÁT · KHÁM PHÁ · LỜI NHẠC · HÀNG CHỜ</span>
-          </div>
-          <span className="font-mono text-[10px]">ANNA BOUTIQUE SOUND</span>
-        </div>
+      <footer className="absolute bottom-4 font-mono text-[10px] text-outline/50 uppercase tracking-widest">
+        ANNA MUSIC • VINYL LOUNGE
       </footer>
     </div>
   );
@@ -932,10 +833,10 @@ export default function App() {
       {/* Dynamic Ambient Background */}
       <DynamicAmbientBackground currentTrack={player?.current} isPlaying={player?.isPlaying} />
 
-      {/* ── 1. TOP HEADER (Fixed 56px, h-[56px] flex-shrink-0 chạy suốt đỉnh màn hình) ── */}
+      {/* ── 1. TOP HEADER (Fixed 56px, Thanh Search Căn Giữa Hoàn Hảo) ── */}
       <header className="h-[56px] flex-shrink-0 bg-surface-container-lowest border-b border-white/5 px-4 flex items-center justify-between z-30 select-none">
-        {/* Left: Brand Logo + Chip Voice Room */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Left: Brand Logo + Chip Voice Room (Cột trái w-64 cố định) */}
+        <div className="flex items-center gap-2.5 w-64 shrink-0">
           <button
             onClick={() => switchTab('search')}
             className="flex items-center gap-2.5 text-left group"
@@ -953,61 +854,64 @@ export default function App() {
             </div>
           </button>
 
-          {/* Quick Room Chip Voice Status */}
-          <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-container border border-white/5 text-xs shrink-0">
+          {/* Quick Room Chip Voice Status (Sạch sẽ, bỏ 48kHz Opus, chống lặp icon) */}
+          <div className="hidden xl:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface-container border border-white/5 text-xs shrink-0">
             <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse shrink-0"></span>
-            <span className="font-mono text-[11px] text-tertiary font-semibold truncate max-w-[150px]">
-              🔊︱{player?.voiceChannel?.name || guild?.name || 'Phòng Voice Tổng'}
+            <span className="font-mono text-[11px] text-tertiary font-semibold truncate max-w-[110px]" title={player?.voiceChannel?.name || guild?.name || 'Phòng Voice'}>
+              {(() => {
+                const raw = player?.voiceChannel?.name || guild?.name || 'Phòng Voice';
+                return `🔊︱${raw.replace(/^🔊︱/, '').replace(/^🔊/, '').trim()}`;
+              })()}
             </span>
-            <span className="font-mono text-[10px] text-outline">• 48kHz Opus</span>
           </div>
         </div>
 
-        {/* Center: Search Input Bar */}
-        <div className="flex-1 max-w-md lg:max-w-lg mx-3 flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-white/5 focus-within:border-primary-container/50 transition-colors">
-          <span className="material-symbols-outlined text-[17px] text-outline">search</span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSearchQuery(val);
-              if (activeTab !== 'search') setActiveTab('search');
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+        {/* Center: Search Input Bar (CĂN GIỮA HOÀN HẢO MÀN HÌNH) */}
+        <div className="flex-1 max-w-xl mx-auto flex justify-center px-2">
+          <div className="w-full flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-xl border border-white/5 focus-within:border-primary-container/50 transition-colors shadow-sm">
+            <span className="material-symbols-outlined text-[17px] text-outline">search</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
                 if (activeTab !== 'search') setActiveTab('search');
-              }
-            }}
-            placeholder="Dán liên kết YouTube / Spotify hoặc gõ tên bài..."
-            className="bg-transparent border-none text-xs text-on-surface placeholder:text-outline w-full focus:outline-none"
-          />
-          {searchQuery && (
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (activeTab !== 'search') setActiveTab('search');
+                }
+              }}
+              placeholder="Dán liên kết YouTube / Spotify hoặc gõ tên bài..."
+              className="bg-transparent border-none text-xs text-on-surface placeholder:text-outline w-full focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-outline hover:text-on-surface p-0.5"
+                title="Xóa tìm kiếm"
+              >
+                <span className="material-symbols-outlined text-[14px]">close</span>
+              </button>
+            )}
             <button
-              onClick={() => setSearchQuery('')}
-              className="text-outline hover:text-on-surface p-0.5"
-              title="Xóa tìm kiếm"
+              onClick={() => {
+                if (activeTab !== 'search') setActiveTab('search');
+              }}
+              className="px-2 py-0.5 rounded bg-primary-container/20 text-primary-container hover:bg-primary-container/30 text-[10px] font-bold tracking-wider flex items-center gap-1 shrink-0 transition-colors"
             >
-              <span className="material-symbols-outlined text-[14px]">close</span>
+              <span className="material-symbols-outlined text-[12px]">tune</span>
+              <span className="hidden sm:inline">TÌM</span>
             </button>
-          )}
-          <button
-            onClick={() => {
-              if (activeTab !== 'search') setActiveTab('search');
-            }}
-            className="px-2 py-0.5 rounded bg-primary-container/20 text-primary-container hover:bg-primary-container/30 text-[10px] font-bold tracking-wider flex items-center gap-1 shrink-0 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[12px]">tune</span>
-            <span className="hidden sm:inline">TÌM</span>
-          </button>
-          <kbd className="hidden sm:inline-block font-mono text-[9px] text-outline bg-surface-container-high px-1 py-0.5 rounded border border-white/5">
-            ↵
-          </kbd>
+            <kbd className="hidden sm:inline-block font-mono text-[9px] text-outline bg-surface-container-high px-1 py-0.5 rounded border border-white/5">
+              ↵
+            </kbd>
+          </div>
         </div>
 
-        {/* Right Header Utilities: Online Counter */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Online Users Avatar Stack */}
+        {/* Right Header Utilities: Online Counter (Cột phải w-64 cố định) */}
+        <div className="w-64 flex items-center justify-end gap-2.5 shrink-0">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container border border-white/5">
             <div className="flex -space-x-2 items-center">
               {(() => {
@@ -1044,31 +948,34 @@ export default function App() {
               MENU CHÍNH
             </span>
 
-            {/* Navigation 5 Tabs (Chuẩn phong cách Stitch) */}
+            {/* Navigation Tabs (Chuẩn phong cách Stitch - Xóa sạch viền trắng) */}
             <nav className="flex flex-col gap-1 text-xs font-medium" aria-label="Điều hướng chính">
               {TABS.filter(t => !t.mobileOnly).map(({ id, label, iconName }) => {
                 const isActive = effectiveContentTab === id;
                 const queueCount = id === 'queue' ? (player?.queue?.length || 0) : 0;
+                const favCount = id === 'favorites' ? (player?.favorites?.length || 0) : 0;
+                const badgeCount = queueCount || favCount;
+
                 return (
                   <button
                     key={id}
                     onClick={() => switchTab(id)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left text-[13px] outline-none focus:outline-none focus:ring-0 focus-visible:outline-none select-none ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left text-[13px] border-0 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none select-none ${
                       isActive
-                        ? 'bg-surface-container text-primary font-semibold border border-white/5 shadow-sm'
+                        ? 'bg-surface-container text-primary-container font-semibold shadow-sm'
                         : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className={`material-symbols-outlined text-[19px] ${isActive ? 'text-primary' : ''}`}>{iconName}</span>
+                      <span className={`material-symbols-outlined text-[19px] ${isActive ? 'text-primary-container' : ''}`}>{iconName}</span>
                       <span>{label}</span>
                     </div>
-                    {queueCount > 0 && (
-                      <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-high text-primary font-bold">
-                        {queueCount > 99 ? '99+' : queueCount}
+                    {badgeCount > 0 && (
+                      <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-high text-primary-container font-bold">
+                        {badgeCount > 99 ? '99+' : badgeCount}
                       </span>
                     )}
-                    {isActive && queueCount === 0 && (
+                    {isActive && badgeCount === 0 && (
                       <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
                     )}
                   </button>
@@ -1161,6 +1068,15 @@ export default function App() {
                 token={token}
                 externalQuery={searchQuery}
                 onQueryChange={setSearchQuery}
+              />
+            </div>
+
+            {/* Tab Bài Hát Yêu Thích */}
+            <div className={`flex-1 min-h-0 ${effectiveContentTab === 'favorites' ? 'flex flex-col' : 'hidden'}`}>
+              <FavoritesTab
+                favorites={player?.favorites || []}
+                onOrderSong={handleOrderSong}
+                onAction={handlePlayerAction}
               />
             </div>
 
