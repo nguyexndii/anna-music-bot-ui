@@ -377,8 +377,6 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
         <div
           className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
           aria-label={isLofi ? 'Đĩa nhạc: 24/7 Lofi Thư Giãn' : (current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát')}
-          onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
-          data-tip={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
         >
           <div className="vinyl-grooves" />
           <div className="vinyl-art">

@@ -111,9 +111,8 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
           filteredSongs.map((track, idx) => (
             <div
               key={track.url || idx}
-              onClick={() => onOrderSong?.(track)}
               data-tip={`${track.title}${track.artist ? ` • ${track.artist}` : ''}`}
-              className="group flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-container-low hover:bg-surface-container border border-transparent hover:border-white/5 transition-colors cursor-pointer shadow-sm"
+              className="group flex items-center justify-between gap-3 p-2 rounded-xl bg-surface-container-low hover:bg-surface-container border border-transparent hover:border-white/5 transition-colors cursor-default shadow-sm"
             >
               {/* Thứ tự & Thumbnail */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -125,18 +124,15 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
                   <img
                     src={getTrackThumb(track)}
                     alt=""
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover"
                     onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
                   />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <Play size={14} fill="white" className="text-white ml-0.5" />
-                  </div>
                 </div>
 
                 {/* Tiêu đề & Nghệ sĩ */}
                 <div className="flex flex-col min-w-0 flex-1">
                   <span
-                    className="text-xs font-semibold text-on-surface truncate group-hover:text-primary-container transition-colors cursor-default"
+                    className="text-xs font-semibold text-on-surface truncate cursor-default"
                   >
                     {track.title}
                   </span>
@@ -156,7 +152,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
               <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => onOrderSong?.(track)}
-                  className="w-8 h-8 rounded-lg bg-primary-container/15 text-primary-container hover:bg-primary-container hover:text-on-primary flex items-center justify-center transition-all"
+                  className="w-8 h-8 rounded-lg bg-primary-container/15 text-primary-container hover:bg-primary-container hover:text-on-primary flex items-center justify-center transition-all active:scale-95 shadow-sm"
                   data-tip="Thêm vào hàng chờ"
                 >
                   <Plus size={15} />
@@ -164,7 +160,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
 
                 <button
                   onClick={(e) => handleRemoveFavorite(track, e)}
-                  className="w-8 h-8 rounded-lg text-secondary hover:bg-secondary-container/20 flex items-center justify-center transition-all"
+                  className="w-8 h-8 rounded-lg text-secondary hover:bg-secondary-container/20 flex items-center justify-center transition-all active:scale-95"
                   data-tip="Bỏ khỏi yêu thích"
                 >
                   <Heart size={15} fill="currentColor" />

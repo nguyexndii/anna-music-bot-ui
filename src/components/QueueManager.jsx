@@ -261,16 +261,6 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
             </span>
           </button>
 
-          {selectedIndices.size > 0 && (
-            <button
-              onClick={() => setShowBatchModal(true)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary-container/40 text-secondary hover:bg-secondary-container/60 text-xs font-semibold transition-colors"
-            >
-              <Trash2 size={13} />
-              <span>Xóa ({selectedIndices.size})</span>
-            </button>
-          )}
-
           {songs.length > 0 && (
             <span className="font-mono text-[10px] text-outline hidden md:inline-block">
               {songs.length} bài{formattedTotalDuration ? ` • ${formattedTotalDuration}` : ''}
@@ -334,12 +324,24 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
 
           {songs.length > 0 && (
             <button
-              onClick={() => setShowClearModal(true)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container hover:bg-secondary-container/40 hover:text-secondary text-xs text-outline transition-colors"
-              title="Xóa toàn bộ hàng chờ"
+              onClick={() => {
+                if (selectedIndices.size > 0) {
+                  setShowBatchModal(true);
+                } else {
+                  setShowClearModal(true);
+                }
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all ${
+                selectedIndices.size > 0
+                  ? 'bg-secondary-container/40 text-secondary hover:bg-secondary-container/60 font-semibold shadow-sm'
+                  : 'bg-surface-container hover:bg-secondary-container/40 hover:text-secondary text-outline'
+              }`}
+              data-tip={selectedIndices.size > 0 ? `Xóa ${selectedIndices.size} bài đã chọn` : 'Xóa toàn bộ hàng chờ'}
             >
               <Trash2 size={13} />
-              <span className="hidden sm:inline">Xóa Hết</span>
+              <span className={selectedIndices.size > 0 ? 'inline' : 'hidden sm:inline'}>
+                {selectedIndices.size > 0 ? `Xóa (${selectedIndices.size})` : 'Xóa Hết'}
+              </span>
             </button>
           )}
         </div>
