@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Play, Search, X } from 'lucide-react';
 
 function formatRelativeTime(dateString) {
@@ -76,7 +76,11 @@ export default function HistoryTab({ player, onOrderSong }) {
               >
                 <div className="song-thumb">
                   {track.thumbnail ? (
-                    <img src={track.thumbnail} alt="" />
+                    <img
+                      src={track.thumbnail}
+                      alt=""
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
+                    />
                   ) : (
                     <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 10, color: 'rgba(255,255,255,.6)' }}>{i + 1}</span>
                   )}

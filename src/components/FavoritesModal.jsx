@@ -236,6 +236,7 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
                       src={getTrackThumb(song)}
                       alt=""
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
                     />
                   </div>
 

@@ -186,7 +186,12 @@ export default function PlaylistDetailModal({
               }}
             >
               {thumb ? (
-                <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={thumb}
+                  alt=""
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
+                />
               ) : (
                 <Music size={20} style={{ color: 'var(--yellow)' }} />
               )}
@@ -479,6 +484,7 @@ export default function PlaylistDetailModal({
                       src={getTrackThumb(song)}
                       alt=""
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
                     />
                   </div>
 

@@ -1,6 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, Radio, Lock, Heart, Loader2, Coffee, RotateCcw } from 'lucide-react';
-
+import {
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  Shuffle,
+  Repeat,
+  Volume2,
+  VolumeX,
+  Radio,
+  Lock,
+  Heart,
+  Loader2,
+  Coffee,
+  RotateCcw
+} from 'lucide-react';
+import { DEFAULT_TRACK_THUMB } from '../config';
 
 function formatTime(ms) {
   if (!ms || isNaN(ms) || ms < 0) return '0:00';
@@ -24,15 +39,27 @@ function getSourceLabel(track) {
   const s = (track.source || '').toLowerCase();
   if (s === 'soundcloud' || u.includes('soundcloud.com')) return 'SOUNDCLOUD';
   if (s === 'spotify' || u.includes('spotify.com')) return 'SPOTIFY';
-  if (s === 'youtube' || u.includes('youtube.com') || u.includes('youtu.be')) return 'YOUTUBE';
+  if (s === 'youtube' || u.includes('youtube.com') || u.includes('youtu.be')) return 'YOUTUBE MUSIC';
   if (track.album && track.album !== 'Unknown' && !track.album.toLowerCase().includes('unknown')) {
     return track.album.toUpperCase();
   }
   return 'YOUTUBE MUSIC';
 }
 
-export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pendingAction }) {
+function getTrackThumb(track) {
+  if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
+    return track.thumbnail;
+  }
+  if (track?.url) {
+    const match = track.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (match && match[1]) {
+      return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
+    }
+  }
+  return DEFAULT_TRACK_THUMB;
+}
 
+export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pendingAction, isMobileCenter = false }) {
   const isPlaying = player?.isPlaying && !player?.isPaused;
   const current   = player?.current;
   const isLofi    = Boolean(
@@ -56,24 +83,6 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   const [heartPopping, setHeartPopping] = useState(false);
   const [wasPlaying, setWasPlaying]   = useState(isPlaying);
   const [lastTrackId, setLastTrackId] = useState(current?.title);
-  const [isSwinging, setIsSwinging]   = useState(false);
-
-  // Detect play state change or track change to trigger mechanical swing
-  useEffect(() => {
-    const playChanged = wasPlaying !== isPlaying;
-    const trackChanged = lastTrackId !== current?.title;
-    if (trackChanged) {
-      setProgressMs(0);
-      progressBaseRef.current = { baseMs: 0, snapshotAt: Date.now(), playing: isPlaying };
-    }
-    if (playChanged || trackChanged) {
-      setWasPlaying(isPlaying);
-      setLastTrackId(current?.title);
-      setIsSwinging(true);
-      const timer = setTimeout(() => setIsSwinging(false), 950);
-      return () => clearTimeout(timer);
-    }
-  }, [isPlaying, wasPlaying, current?.title, lastTrackId]);
 
   const progressBarRef   = useRef(null);
   const progressBaseRef = useRef({ baseMs: 0, snapshotAt: Date.now(), playing: false });
@@ -102,7 +111,7 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     setProgressMs(Math.min(baseMs, totalMs || Infinity));
   }, [current?.title, current?.startTime, current?.playbackDurationMs, current?.serverTime, isPlaying, totalMs, isDragging]);
 
-  // 250ms rAF-driven smooth progress ticker (lockstep with server & seek)
+  // 250ms rAF progress ticker
   useEffect(() => {
     let animId;
     let lastTick = 0;
@@ -120,557 +129,410 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
     };
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [totalMs, isDragging]);
+  }, [isDragging, totalMs]);
 
-  const calculateTimeFromEvent = useCallback((clientX) => {
-    if (!progressBarRef.current || totalMs <= 0) return 0;
-    const r = progressBarRef.current.getBoundingClientRect();
-    return Math.floor((Math.max(0, Math.min(clientX - r.left, r.width)) / r.width) * totalMs);
-  }, [totalMs]);
+  // Keyboard Shortcuts (Space, M, ArrowLeft, ArrowRight)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (isPlayable && !pendingAction) onAction(isPlaying ? 'pause' : 'resume');
+      } else if (e.code === 'KeyM') {
+        e.preventDefault();
+        toggleMute();
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        seekRelative(5);
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        seekRelative(-5);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlayable, isPlaying, pendingAction, totalMs, progressMs]);
 
-  const handleSeekCommit = useCallback((ms) => {
-    const s = Math.max(0, Math.min(Math.floor(totalMs / 1000), Math.floor(ms / 1000)));
+  const seekRelative = (sec) => {
+    if (!isPlayable || pendingAction || totalMs <= 0) return;
+    const cur = isDragging ? dragMs : progressMs;
+    const nxt = Math.max(0, Math.min(cur + sec * 1000, totalMs));
+    setProgressMs(nxt);
+    progressBaseRef.current = { baseMs: nxt, snapshotAt: Date.now(), playing: isPlaying };
     lastSeekTimeRef.current = Date.now();
-    progressBaseRef.current = { baseMs: ms, snapshotAt: Date.now(), playing: isPlaying };
-    setProgressMs(ms); setIsDragging(false);
-    onAction('seek', s);
-  }, [totalMs, onAction, isPlaying]);
-
-  const handlePointerDown = (e) => {
-    if (!isPlayable || !current || totalMs <= 0) return;
-    const x = e.clientX ?? e.touches?.[0]?.clientX;
-    if (x === undefined) return;
-    setIsDragging(true); setDragMs(calculateTimeFromEvent(x));
+    onAction('seek', Math.floor(nxt / 1000));
   };
 
-  useEffect(() => {
-    if (!isDragging) return;
-    const move = (e) => { const x = e.clientX ?? e.touches?.[0]?.clientX; if (x !== undefined) setDragMs(calculateTimeFromEvent(x)); };
-    const up   = (e) => { const x = e.clientX ?? e.changedTouches?.[0]?.clientX; handleSeekCommit(x !== undefined ? calculateTimeFromEvent(x) : dragMs); };
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-    window.addEventListener('touchmove', move); window.addEventListener('touchend', up);
-    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); window.removeEventListener('touchmove', move); window.removeEventListener('touchend', up); };
-  }, [isDragging, dragMs, calculateTimeFromEvent, handleSeekCommit]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const kd = (e) => {
-      if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
-      if (!isPlayable && e.code !== 'KeyM') return;
-      if (e.code === 'Space') { e.preventDefault(); onAction(isPlaying ? 'pause' : 'resume'); }
-      else if (e.code === 'KeyM') { e.preventDefault(); toggleMute(); }
-      else if (e.code === 'ArrowLeft') { e.preventDefault(); if (current && totalMs > 0) handleSeekCommit(Math.max(0, (isDragging ? dragMs : progressMs) - 5000)); }
-      else if (e.code === 'ArrowRight') { e.preventDefault(); if (current && totalMs > 0) handleSeekCommit(Math.min(totalMs, (isDragging ? dragMs : progressMs) + 5000)); }
-    };
-    window.addEventListener('keydown', kd);
-    return () => window.removeEventListener('keydown', kd);
-  }, [isPlayable, isPlaying, current, totalMs, isDragging, dragMs, progressMs, handleSeekCommit]);
-
   const toggleMute = () => {
-    if ((player?.volume || 0) > 0) {
-      setPreviousVolume(player?.volume || 100);
+    if (localVolume > 0) {
+      setPreviousVolume(localVolume);
       setLocalVolume(0);
       onAction('volume', 0);
     } else {
-      const restored = previousVolume || 100;
+      const restored = previousVolume || 80;
       setLocalVolume(restored);
       onAction('volume', restored);
     }
   };
 
-  const handleFavoriteClick = (e) => {
-    e.stopPropagation();
-    if (!current || isLofi) return;
-    setHeartPopping(true);
-    setTimeout(() => setHeartPopping(false), 550);
-    onAction('toggleFavorite', current);
+  const calcProgressFromEvent = useCallback((e) => {
+    if (!progressBarRef.current || totalMs <= 0) return 0;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    return Math.floor((clickX / rect.width) * totalMs);
+  }, [totalMs]);
+
+  const handlePointerDown = (e) => {
+    if (!isPlayable || pendingAction || totalMs <= 0) return;
+    setIsDragging(true);
+    const ms = calcProgressFromEvent(e);
+    setDragMs(ms);
   };
+
+  const handlePointerMove = useCallback((e) => {
+    if (!isDragging || totalMs <= 0) return;
+    const ms = calcProgressFromEvent(e);
+    setDragMs(ms);
+  }, [isDragging, totalMs, calcProgressFromEvent]);
+
+  const handlePointerUp = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setProgressMs(dragMs);
+    progressBaseRef.current = { baseMs: dragMs, snapshotAt: Date.now(), playing: isPlaying };
+    lastSeekTimeRef.current = Date.now();
+    onAction('seek', Math.floor(dragMs / 1000));
+  }, [isDragging, dragMs, isPlaying, onAction]);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handlePointerMove);
+      window.addEventListener('mouseup', handlePointerUp);
+      window.addEventListener('touchmove', handlePointerMove);
+      window.addEventListener('touchend', handlePointerUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('mouseup', handlePointerUp);
+      window.removeEventListener('touchmove', handlePointerMove);
+      window.removeEventListener('touchend', handlePointerUp);
+    };
+  }, [isDragging, handlePointerMove, handlePointerUp]);
 
   const currentDisplayMs = isDragging ? dragMs : progressMs;
   const percent = totalMs > 0 ? Math.min(100, Math.max(0, (currentDisplayMs / totalMs) * 100)) : 0;
 
-  // Cần kim mâm than: chỉ quét trong vùng rãnh đen (16.5° -> 33.5°), tuyệt đối không chạm/lấn vào ảnh ở tâm đĩa
-  const tonearmAngle = (isPlaying || isDragging) ? (16.5 + (percent / 100) * 17) : -24;
-  const tonearmTransition = isSwinging
-    ? 'transform 0.9s cubic-bezier(0.34, 1.25, 0.64, 1)'
-    : isDragging
-    ? 'transform 0.08s ease-out'
-    : 'transform 1s linear';
+  // Tính góc xoay cần kim tonearm cơ học chạm rãnh (từ 0° tới ~16° khi chơi nhạc)
+  const tonearmAngle = isPlaying ? (2 + (percent / 100) * 14) : -22;
+
+  const coverUrl = getTrackThumb(current);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0 }}>
+    <div className={`w-full flex flex-col justify-between ${isMobileCenter ? 'py-2 px-1 max-w-md mx-auto min-h-[500px]' : 'h-full gap-2'}`}>
 
-      {/* ── Top Upper Section: Vinyl Record + Track Meta ─────── */}
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        
-        {/* Vinyl Player Deck */}
-        <div className="vinyl-deck">
-          {/* Tonearm (Needle - Phong cách Mâm Đĩa Than Cổ Điển) */}
+      {/* ── 1. MÂM ĐĨA THAN VINYL CỔ ĐIỂN (Direct Drive Turntable) ─────────────── */}
+      <div className="relative w-full h-[200px] sm:h-[210px] bg-gradient-to-b from-[#0e1013] to-[#181a1f] rounded-2xl flex items-center justify-center overflow-hidden shadow-inner border border-white/5 shrink-0 my-1">
+        {/* Radial Platter */}
+        <div className="w-[176px] h-[176px] rounded-full p-[4px] bg-[#14161a] shadow-[0_12px_28px_rgba(0,0,0,0.9)] flex items-center justify-center border border-[#2b2d35]/60 relative">
+          {/* Đĩa Vinyl quay 33⅓ RPM */}
           <div
-            className={`tonearm-assembly ${isPlaying ? 'on-record' : ''}`}
+            className={`relative w-[166px] h-[166px] rounded-full flex items-center justify-center shadow-2xl cursor-pointer ${
+              isPlaying ? 'animate-spin-record' : ''
+            }`}
             style={{
-              transform: `rotate(${tonearmAngle}deg)`,
-              transition: tonearmTransition,
+              background: 'radial-gradient(circle, rgb(14, 16, 19) 38%, rgb(24, 28, 35) 42%, rgb(13, 15, 18) 46%, rgb(28, 32, 41) 52%, rgb(14, 16, 20) 58%, rgb(25, 29, 38) 64%, rgb(11, 13, 16) 72%, rgb(26, 30, 39) 82%, rgb(9, 10, 13) 92%, rgb(20, 22, 28) 100%)',
+              animationPlayState: isPlaying ? 'running' : 'paused'
             }}
-            title={isPlaying ? `Kim đĩa than: ${Math.round(percent)}% bài hát` : 'Kim đĩa than đang ở vị trí nghỉ'}
-            aria-hidden="true"
-          >
-            <svg
-              className="tonearm-svg"
-              viewBox="0 0 76 210"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                {/* Antique Champagne Brass Metallic Gradient */}
-                <linearGradient id="vintageBrass" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#fffaea" />
-                  <stop offset="25%" stopColor="#e5c178" />
-                  <stop offset="55%" stopColor="#a07832" />
-                  <stop offset="85%" stopColor="#634714" />
-                  <stop offset="100%" stopColor="#96702c" />
-                </linearGradient>
-
-                {/* Gunmetal Base Gradient */}
-                <radialGradient id="baseMetal" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#525866" />
-                  <stop offset="45%" stopColor="#2e323b" />
-                  <stop offset="80%" stopColor="#181a1f" />
-                  <stop offset="100%" stopColor="#0f1013" />
-                </radialGradient>
-
-                {/* Counterweight Knurled Brass */}
-                <linearGradient id="counterweightMetal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#544018" />
-                  <stop offset="20%" stopColor="#d8b265" />
-                  <stop offset="45%" stopColor="#fffaeb" />
-                  <stop offset="65%" stopColor="#ad822e" />
-                  <stop offset="90%" stopColor="#4a3610" />
-                  <stop offset="100%" stopColor="#7a581e" />
-                </linearGradient>
-
-                {/* Cartridge Vintage Gold / Matte Black */}
-                <linearGradient id="cartridgeGold" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#f3d082" />
-                  <stop offset="50%" stopColor="#9c7229" />
-                  <stop offset="100%" stopColor="#3d2a0a" />
-                </linearGradient>
-              </defs>
-
-              {/* 1. Counterweight (Quả đối trọng kim loại phía sau trục) */}
-              <rect x="27" y="6" width="22" height="15" rx="3" fill="url(#counterweightMetal)" stroke="#221808" strokeWidth="0.8" />
-              {/* Calibration Rings (Vạch chia độ cân kim cơ học) */}
-              <line x1="27" y1="10" x2="49" y2="10" stroke="#1c1404" strokeWidth="0.8" />
-              <line x1="27" y1="13.5" x2="49" y2="13.5" stroke="#fffaea" strokeWidth="0.5" opacity="0.6" />
-              <line x1="27" y1="17" x2="49" y2="17" stroke="#1c1404" strokeWidth="0.8" />
-
-              {/* Rear arm stub */}
-              <rect x="36" y="19" width="4" height="12" rx="1.5" fill="url(#vintageBrass)" />
-
-              {/* 2. Base & Gimbal Housing (Bệ trục đỡ cơ khí cổ điển) */}
-              <circle cx="38" cy="40" r="19" fill="url(#baseMetal)" stroke="#666c78" strokeWidth="1.2" />
-              <circle cx="38" cy="40" r="15" fill="#15171b" stroke="#363a42" strokeWidth="0.8" />
-              {/* Pivot Dome / Bearing Screw */}
-              <circle cx="38" cy="40" r="9" fill="url(#vintageBrass)" stroke="#3a2b10" strokeWidth="0.8" />
-              <circle cx="38" cy="40" r="4.5" fill="#2a1f0a" />
-              <circle cx="37" cy="39" r="1.8" fill="#fff5d6" opacity="0.85" />
-
-              {/* 3. Classic S-Shaped Curved Tonearm Tube (Cần kim cong vintage) */}
-              {/* Soft shadow under tube */}
-              <path
-                d="M38 48 Q38 78 35 102 Q32 130 39 155 L42 174"
-                fill="none"
-                stroke="rgba(0,0,0,0.5)"
-                strokeWidth="4.5"
-                strokeLinecap="round"
-              />
-              {/* Main brass tube */}
-              <path
-                d="M38 48 Q38 78 35 102 Q32 130 39 155 L42 174"
-                fill="none"
-                stroke="url(#vintageBrass)"
-                strokeWidth="3.6"
-                strokeLinecap="round"
-              />
-              {/* Highlight along tube */}
-              <path
-                d="M37.3 49 Q37.3 78 34.3 102 Q31.3 130 38.3 155 L41.3 173"
-                fill="none"
-                stroke="#fffef7"
-                strokeWidth="0.8"
-                opacity="0.65"
-                strokeLinecap="round"
-              />
-
-              {/* 4. Headshell Connector Ring */}
-              <rect x="39" y="171" width="6" height="5" rx="1" transform="rotate(-6 42 174)" fill="url(#counterweightMetal)" stroke="#1a1407" strokeWidth="0.5" />
-
-              {/* 5. Vintage Headshell (Máng kim cổ điển có góc nghiêng theo rãnh đĩa) */}
-              <g transform="rotate(-14 42 178)">
-                {/* Headshell body */}
-                <path
-                  d="M37 175 L47 175 L46 200 L38 200 Z"
-                  fill="#181a1e"
-                  stroke="url(#vintageBrass)"
-                  strokeWidth="1.2"
-                />
-                {/* Finger lift (Tay nâng kim uốn cong) */}
-                <path
-                  d="M47 179 C51 179 53 184 50 189"
-                  fill="none"
-                  stroke="url(#vintageBrass)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                {/* Ventilation slots on headshell */}
-                <line x1="40" y1="181" x2="44" y2="181" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
-                <line x1="40" y1="185" x2="44" y2="185" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
-                <line x1="40" y1="189" x2="44" y2="189" stroke="#33373f" strokeWidth="1" strokeLinecap="round" />
-
-                {/* Cartridge Gold Badge / Shure-style emblem */}
-                <rect x="38.5" y="193" width="7" height="6" rx="1" fill="url(#cartridgeGold)" stroke="#221808" strokeWidth="0.5" />
-
-                {/* Stylus Cantilever & Needle Tip (Mũi kim đọc đĩa) */}
-                <line x1="42" y1="200" x2="42" y2="206" stroke="#e0e4eb" strokeWidth="1.2" strokeLinecap="round" />
-                {/* Diamond/Ruby Stylus jewel tip */}
-                <circle cx="42" cy="206" r="1.1" fill="#ff4d4d" />
-              </g>
-            </svg>
-          </div>
-
-          {/* Vinyl Disc (Đĩa than cổ điển vân rãnh xoay tròn) */}
-          <div
-            className={`vinyl-wrap ${isPlaying ? 'spinning' : current ? 'spinning-paused' : ''}`}
-            aria-label={isLofi ? 'Đĩa nhạc: 24/7 Lofi Thư Giãn' : (current?.title ? `Đĩa nhạc: ${current.title}` : 'Chưa có bài hát')}
-          >
-            <div className="vinyl-grooves" />
-            <div className="vinyl-art">
-              {isLofi ? (
-                <div style={{
-                  width: '100%',
-                  height: '100%',
-                  background: 'radial-gradient(circle, #2d2238 0%, #120e1c 100%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--yellow, #e8c977)',
-                  gap: 3,
-                  userSelect: 'none'
-                }}>
-                  <Coffee size={24} style={{ filter: 'drop-shadow(0 0 6px rgba(232,201,119,0.5))' }} />
-                  <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.12em', fontFamily: '"DM Mono", monospace' }}>
-                    24/7 LOFI
-                  </span>
-                </div>
-              ) : current?.thumbnail ? (
-                <img src={current.thumbnail} alt={`Bìa album: ${current.title}`} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              ) : (
-                <div className="vinyl-art-fallback">
-                  <span>{current?.title?.[0] || '♪'}</span>
-                </div>
-              )}
-            </div>
-            {/* Center Spindle Hole */}
-            <div className="vinyl-spindle-hole">
-              <div className="spindle-dot" />
-            </div>
-          </div>
-        </div>
-
-        {/* Track Meta */}
-        <div className="track-meta" style={{ marginTop: 8 }}>
-          <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-            <p className="track-eyebrow">
-              {isLofi ? 'CHẾ ĐỘ PHÁT NỀN 24/7' : getSourceLabel(current)}
-            </p>
-            <h1 className="track-title" title={isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || current?.name || 'Chưa có bài hát')}>
-              {isLofi ? '24/7 Lofi Thư Giãn' : (current?.title || current?.name || (player?.isPlaying ? 'Đang phát âm thanh' : 'Chưa có bài hát'))}
-            </h1>
-            <p className="track-artist" title={isLofi ? 'Tự động phát khi phòng chờ • Thư thái & Tập trung' : current?.artist}>
-              {isLofi ? 'Tự động phát khi phòng chờ • Thư thái & Tập trung' : (current?.artist && current.artist !== 'Unknown' ? current.artist : 'Anna Music')}
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {current && !isLofi && (
-              <button
-                className={`fav-btn${isFav ? ' liked' : ''}${heartPopping ? ' heart-pop-anim' : ''}`}
-                onClick={handleFavoriteClick}
-                aria-label={isFav ? 'Bỏ thích' : 'Thích bài hát'}
-                title={isFav ? 'Bỏ thích' : 'Thêm vào yêu thích'}
-              >
-                <Heart size={21} fill={isFav ? 'currentColor' : 'none'} />
-              </button>
-            )}
-          </div>
-        </div>
-
-      </div>
-
-      {/* ── Bottom Section: Progress + Controls + Volume + Voice ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', marginTop: 'auto', paddingTop: 10 }}>
-
-        {/* Progress Bar */}
-        <div className="progress-wrap" style={{ marginTop: 6 }}>
-          <div
-            ref={progressBarRef}
-            className="progress-track"
-            onMouseDown={handlePointerDown}
-            onTouchStart={handlePointerDown}
-            onMouseMove={(e) => {
-              if (!progressBarRef.current || totalMs <= 0 || !isPlayable) return;
-              const r = progressBarRef.current.getBoundingClientRect();
-              const x = Math.max(0, Math.min(e.clientX - r.left, r.width));
-              setHoverInfo({ percent: x / r.width * 100, timeStr: formatTime(Math.floor(x / r.width * totalMs)), x });
-            }}
-            onMouseLeave={() => setHoverInfo(null)}
-            role="slider"
-            aria-valuemin={0}
-            aria-valuemax={Math.floor(totalMs / 1000)}
-            aria-valuenow={Math.floor(currentDisplayMs / 1000)}
-            aria-label="Tua bài hát"
-            style={{
-              cursor: (!isPlayable || pendingAction || totalMs <= 0) ? 'not-allowed' : 'pointer',
-              opacity: !isPlayable ? 0.35 : (pendingAction === 'seek' ? 0.65 : 1),
-              pointerEvents: (!isPlayable || pendingAction) ? 'none' : 'auto'
-            }}
-          >
-            <div className="progress-fill" style={{ width: `${percent}%` }} />
-            {hoverInfo && totalMs > 0 && !isDragging && isPlayable && (
-              <div style={{
-                position: 'absolute', top: -28, left: `${hoverInfo.percent}%`,
-                transform: 'translateX(-50%)',
-                background: '#0d0f11', border: '1px solid var(--border)',
-                borderRadius: 6, padding: '2px 7px',
-                fontFamily: '"DM Mono", monospace', fontSize: 10, color: 'var(--ink)',
-                pointerEvents: 'none', whiteSpace: 'nowrap',
-              }}>
-                {hoverInfo.timeStr}
-              </div>
-            )}
-          </div>
-          <div className="time-row">
-            <span style={{ color: isDragging ? 'var(--yellow)' : undefined }}>
-              {formatTime(totalMs > 0 ? Math.min(currentDisplayMs, totalMs) : (current ? currentDisplayMs : 0))}
-            </span>
-            <span>{current?.duration || '0:00'}</span>
-          </div>
-        </div>
-
-        {/* Controls Deck */}
-        <div className="player-controls" style={{ marginTop: 14 }}>
-          <button
-            className={`ctrl-btn${player?.shuffle ? ' active' : ''}`}
-            onClick={() => onAction('shuffle')}
-            disabled={!isPlayable || Boolean(pendingAction)}
-            aria-label="Xáo trộn"
-            title="Xáo trộn hàng chờ"
-            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
-          >
-            <Shuffle size={17} />
-          </button>
-          <button
-            className="ctrl-btn"
-            onClick={() => onAction('previous')}
-            disabled={!isPlayable || Boolean(pendingAction)}
-            aria-label="Bài trước"
-            title={pendingAction === 'previous' ? 'Đang quay lại...' : 'Bài trước'}
-            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
-          >
-            {pendingAction === 'previous' ? (
-              <Loader2 size={19} className="animate-spin" />
-            ) : (
-              <SkipBack size={21} fill="currentColor" />
-            )}
-          </button>
-          <button
-            className="ctrl-btn ctrl-play"
             onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
-            disabled={!isPlayable || Boolean(pendingAction)}
-            aria-label={isPlaying ? 'Tạm dừng' : 'Phát'}
-            title={pendingAction === 'playback' ? 'Đang xử lý...' : (isPlaying ? 'Tạm dừng' : 'Phát')}
-            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(0.6)' } : (pendingAction ? { opacity: 0.7, cursor: 'not-allowed' } : undefined)}
+            title={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
           >
-            {pendingAction === 'playback' ? (
-              <Loader2 size={22} className="animate-spin text-black" />
-            ) : isPlaying ? (
-              <Pause size={22} fill="currentColor" />
-            ) : (
-              <Play size={22} fill="currentColor" style={{ marginLeft: 2 }} />
-            )}
-          </button>
-          <button
-            className="ctrl-btn"
-            onClick={() => onAction('skip')}
-            disabled={!isPlayable || Boolean(pendingAction)}
-            aria-label="Bài tiếp"
-            title={pendingAction === 'skip' ? 'Đang chuyển bài...' : 'Bài tiếp'}
-            style={!isPlayable ? { opacity: 0.35, cursor: 'not-allowed' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : undefined)}
-          >
-            {pendingAction === 'skip' ? (
-              <Loader2 size={19} className="animate-spin" />
-            ) : (
-              <SkipForward size={21} />
-            )}
-          </button>
-          {(() => {
-            const loopMode = player?.loopMode || player?.loop || 'off';
-            const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')) || Boolean(player?.mode247 && !player?.current);
-            return (
-              <button
-                className={`ctrl-btn${loopMode !== 'off' ? ' active' : ''}`}
-                onClick={() => onAction('loop')}
-                disabled={!isPlayable || Boolean(pendingAction) || isLofiCurrent}
-                aria-label="Lặp lại"
-                title={isLofiCurrent ? 'Chế độ Lofi 24/7 tự động phát radio liên tục, không hỗ trợ lặp bài' : `Lặp lại: ${loopMode === 'song' ? 'Lặp lại 1 bài' : loopMode === 'queue' ? 'Lặp lại cả hàng chờ' : 'Tắt lặp lại'}`}
-                style={{
-                  position: 'relative',
-                  ...((!isPlayable || isLofiCurrent) ? { opacity: 0.35, cursor: 'not-allowed', filter: 'grayscale(1)' } : (pendingAction ? { opacity: 0.6, cursor: 'not-allowed' } : {}))
-                }}
-              >
-                <Repeat size={17} />
-                {loopMode === 'song' && (
-                  <span style={{ position: 'absolute', top: -4, right: -4, fontSize: 8, fontWeight: 700, background: 'var(--yellow)', color: '#1c1e21', borderRadius: '50%', width: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
-                )}
-                {loopMode === 'queue' && (
-                  <span style={{ position: 'absolute', top: -4, right: -4, fontSize: 8, fontWeight: 700, background: 'var(--coral)', color: '#ffffff', borderRadius: '50%', width: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>∞</span>
-                )}
-              </button>
-            );
-          })()}
-        </div>
-
-        {/* Footer: Volume + 24/7 */}
-        <div className="now-footer" style={{ marginTop: 16 }}>
-          <div className="volume-row">
-            <button
-              onClick={toggleMute}
-              style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--muted)', flexShrink: 0 }}
-              aria-label={(player?.volume || 0) === 0 ? 'Bật tiếng' : 'Tắt tiếng'}
-              title="Tắt/Bật tiếng (M)"
-            >
-              {(player?.volume || 0) === 0
-                ? <VolumeX size={15} style={{ color: 'var(--coral)' }} />
-                : <Volume2 size={15} />}
-            </button>
-            <input
-              type="range" min={0} max={100} value={localVolume}
-              onChange={(e) => {
-                const v = Number(e.target.value);
-                setLocalVolume(v);
-                if (volumeDebounceRef.current) clearTimeout(volumeDebounceRef.current);
-                volumeDebounceRef.current = setTimeout(() => { volumeDebounceRef.current = null; onAction('volume', v); }, 400);
+            {/* Vinyl Sheen phản xạ ánh sáng */}
+            <div
+              className="absolute inset-0 rounded-full mix-blend-screen opacity-70 pointer-events-none"
+              style={{
+                background: 'conic-gradient(from 40deg, transparent 0deg, rgba(255,255,255,0.06) 30deg, rgba(255,255,255,0.2) 55deg, rgba(255,255,255,0.04) 80deg, transparent 110deg, transparent 180deg, rgba(255,255,255,0.06) 210deg, rgba(255,255,255,0.2) 235deg, rgba(255,255,255,0.04) 260deg, transparent 290deg)'
               }}
-              aria-label="Âm lượng"
-              style={{ flex: 1, accentColor: 'var(--yellow)', height: 3, cursor: 'pointer' }}
             />
-            <span style={{ fontFamily: '"DM Mono", monospace', fontSize: 9, color: 'var(--muted)', minWidth: 24 }}>{localVolume}%</span>
-          </div>
+            <div className="absolute inset-[15px] rounded-full border border-black/30 pointer-events-none" />
+            <div className="absolute inset-[32px] rounded-full border border-black/40 pointer-events-none" />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {(() => {
-              const isRoomEmpty = Boolean(player?.voiceChannel && player.voiceChannel.humanMemberCount === 0);
-              const isLofiMode = Boolean(
-                current && (current.is247 || current.requestedBy === 'Auto (24/7)')
-              );
-              const queueCount = player?.queue?.length || 0;
-              const isSwitching = pendingAction === 'toggleLofiMode' || pendingAction === 'switchTo247';
-
-              let btnLabel = 'VỀ NHẠC LOFI';
-              let btnTitle = 'Lưu hàng chờ và chuyển sang nhạc Lofi 24/7';
-              let btnIcon = <Coffee size={12} />;
-              let btnStyle = {
-                border: '1px solid rgba(232,201,119,0.35)',
-                background: 'rgba(232,201,119,0.08)',
-                color: 'var(--yellow)'
-              };
-
-              if (isRoomEmpty) {
-                btnLabel = 'PHÒNG TRỐNG (24/7)';
-                btnTitle = 'Phòng Voice hiện không có ai, bot duy trì phát Lofi 24/7';
-                btnIcon = <Coffee size={12} />;
-                btnStyle = {
-                  border: '1px solid var(--border)',
-                  background: 'rgba(255,255,255,0.03)',
-                  color: 'var(--muted)',
-                  opacity: 0.65,
-                  cursor: 'not-allowed'
-                };
-              } else if (isLofiMode) {
-                btnLabel = 'TIẾP TỤC PHÁT NHẠC';
-                btnTitle = queueCount > 0 ? `Tiếp tục phát ${queueCount} bài trong hàng chờ` : 'Phát lại bài hát gần nhất';
-                btnIcon = <Play size={11} fill="currentColor" />;
-                btnStyle = {
-                  border: '1px solid rgba(74,222,128,0.5)',
-                  background: 'rgba(74,222,128,0.12)',
-                  color: '#4ade80'
-                };
-              }
-
-              return (
-                <button
-                  onClick={() => {
-                    if (isSwitching) return;
-                    if (isRoomEmpty) {
-                      onAction('notifyEmptyRoom');
-                      return;
-                    }
-                    onAction('toggleLofiMode');
-                  }}
-                  disabled={isSwitching}
-                  title={btnTitle}
-                  style={{
-                    borderRadius: 9,
-                    padding: '5px 10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    fontFamily: '"DM Mono", monospace',
-                    fontSize: 9.5,
-                    letterSpacing: '0.06em',
-                    fontWeight: 700,
-                    cursor: isRoomEmpty ? 'not-allowed' : (isSwitching ? 'wait' : 'pointer'),
-                    transition: 'all .18s ease',
-                    whiteSpace: 'nowrap',
-                    opacity: isSwitching ? 0.65 : 1,
-                    ...btnStyle
-                  }}
-                >
-                  {isSwitching ? <Loader2 size={11} className="animate-spin" /> : btnIcon}
-                  <span>{isSwitching ? 'ĐANG CHUYỂN...' : btnLabel}</span>
-                </button>
-              );
-            })()}
+            {/* Label tâm mâm đĩa màu Champagne */}
+            <div className="relative w-[66px] h-[66px] rounded-full bg-[#e8c977] p-[2px] shadow-md flex items-center justify-center select-none overflow-hidden border border-[#9b7829]">
+              <div className="w-full h-full rounded-full flex flex-col items-center justify-between py-1 bg-gradient-to-b from-[#f5df9d] via-[#e8c977] to-[#cfab52] text-[#332503]">
+                <span className="text-[5.5px] font-bold font-mono tracking-widest uppercase">ANNA VINYL</span>
+                <div className="w-6 h-6 rounded-full overflow-hidden border border-[#584400]/40 bg-black/20">
+                  <img
+                    src={coverUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
+                  />
+                </div>
+                <span className="text-[5px] font-mono tracking-wider font-semibold">33⅓ RPM</span>
+              </div>
+              <div className="absolute w-3 h-3 rounded-full bg-[#181a1f] border border-[#d8dce6] flex items-center justify-center">
+                <div className="w-1 h-1 rounded-full bg-[#0a0c0e]"></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Voice channel info */}
-        {player?.voiceChannel?.name && (
-          <div style={{
-            marginTop: 12, padding: '8px 12px',
-            border: '1px solid var(--border)', borderRadius: 10,
-            background: 'var(--paper)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-              <p style={{ margin: 0, fontSize: 12, color: 'var(--ink)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {player.voiceChannel.name}
-              </p>
-              <p style={{ margin: '2px 0 0', fontFamily: '"DM Mono", monospace', fontSize: 8.5, letterSpacing: '0.1em', color: 'var(--muted)' }}>
-                {player.voiceChannel.memberCount || 0} THÀNH VIÊN
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: -6, flexShrink: 0 }}>
-              {player.voiceChannel.members?.slice(0, 4).map((m, i) => (
-                <img key={i} src={m.avatar} alt={m.name} title={m.name}
-                  style={{ width: 22, height: 22, borderRadius: '50%', border: '2px solid var(--paper)', objectFit: 'cover', marginLeft: i > 0 ? -6 : 0 }} />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Cần Kim Tonearm Đồng Thau Chữ S Xoay Cơ Học */}
+        <div
+          className="absolute top-1 right-2 z-20 pointer-events-none select-none origin-top-right transition-transform duration-700 ease-out"
+          style={{ transform: `rotate(${tonearmAngle}deg)` }}
+        >
+          <svg fill="none" height="155" viewBox="0 0 84 150" width="84">
+            <circle cx="64" cy="18" fill="#1e2025" r="13" stroke="#383b44" stroke-width="1.5"></circle>
+            <circle cx="64" cy="18" fill="#282a30" r="9"></circle>
+            <circle cx="64" cy="18" fill="#e8c977" r="4.5" stroke="#a58532" stroke-width="1"></circle>
+            <path d="M64 24 L64 62 Q64 82 56 98 L36 132" fill="none" stroke="#d5d8e2" stroke-linecap="round" stroke-width="3"></path>
+            <rect fill="#181a1f" height="15" rx="1.5" stroke="#4b505c" stroke-width="0.8" transform="rotate(-24 33 130)" width="7" x="30" y="123"></rect>
+            <polygon fill="#e8c977" points="27,138 31,136 29,143"></polygon>
+            <circle cx="28.5" cy="143" fill="#ffffff" r="0.8"></circle>
+          </svg>
+        </div>
 
+        {/* Direct Drive Badge */}
+        <div className="absolute bottom-2 right-2.5 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/60 border border-white/5 font-mono text-[9px] text-primary-container tracking-wider uppercase pointer-events-none">
+          <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-emerald-400 animate-pulse' : 'bg-outline'}`}></span>
+          <span>33⅓ RPM • DIRECT DRIVE</span>
+        </div>
       </div>
+
+      {/* ── 2. TRACK INFORMATION ────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-0.5 shrink-0 px-1 mt-1">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[9px] text-outline uppercase tracking-wider">
+            {getSourceLabel(current)} • LOSSLESS
+          </span>
+          <button
+            onClick={() => {
+              setHeartPopping(true);
+              setTimeout(() => setHeartPopping(false), 300);
+              onAction('toggleFavorite', current);
+            }}
+            disabled={!current}
+            className={`transition-transform active:scale-90 ${
+              isFav ? 'text-secondary' : 'text-outline hover:text-on-surface'
+            } ${heartPopping ? 'scale-125' : ''}`}
+            title={isFav ? 'Bỏ thích' : 'Thêm vào yêu thích'}
+          >
+            <Heart size={18} fill={isFav ? 'currentColor' : 'none'} />
+          </button>
+        </div>
+
+        <h2 className="text-sm sm:text-base font-bold text-on-surface truncate leading-snug">
+          {current?.title || 'Chưa có bài hát đang phát'}
+        </h2>
+        <p className="text-xs text-primary-container truncate font-medium">
+          {current?.artist || (isLofi ? 'Anna Music • Lofi 24/7' : 'Boutique Soundbot')}
+        </p>
+      </div>
+
+      {/* ── 3. TIMELINE & PROGRESS BAR ──────────────────────────────────────── */}
+      <div className="flex flex-col gap-1 shrink-0 px-1 mt-1">
+        <div
+          ref={progressBarRef}
+          onMouseDown={handlePointerDown}
+          onTouchStart={handlePointerDown}
+          onMouseMove={(e) => {
+            if (!progressBarRef.current || totalMs <= 0 || !isPlayable) return;
+            const r = progressBarRef.current.getBoundingClientRect();
+            const x = Math.max(0, Math.min(e.clientX - r.left, r.width));
+            setHoverInfo({ percent: (x / r.width) * 100, timeStr: formatTime(Math.floor((x / r.width) * totalMs)) });
+          }}
+          onMouseLeave={() => setHoverInfo(null)}
+          className="relative w-full h-1.5 bg-surface-container-highest rounded-full cursor-pointer group"
+          role="slider"
+          aria-valuemin={0}
+          aria-valuemax={Math.floor(totalMs / 1000)}
+          aria-valuenow={Math.floor(currentDisplayMs / 1000)}
+        >
+          <div
+            className="h-full bg-primary-container rounded-full transition-all"
+            style={{ width: `${percent}%` }}
+          />
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 bg-inverse-surface rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ left: `${percent}%` }}
+          />
+          {hoverInfo && totalMs > 0 && !isDragging && isPlayable && (
+            <div
+              className="absolute -top-7 -translate-x-1/2 bg-surface-container-lowest border border-white/10 rounded px-1.5 py-0.5 font-mono text-[9px] text-on-surface pointer-events-none whitespace-nowrap"
+              style={{ left: `${hoverInfo.percent}%` }}
+            >
+              {hoverInfo.timeStr}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between font-mono text-[10px] text-outline">
+          <span className={isDragging ? 'text-primary-container font-bold' : ''}>
+            {formatTime(totalMs > 0 ? Math.min(currentDisplayMs, totalMs) : currentDisplayMs)}
+          </span>
+          <span>{current?.duration || '0:00'}</span>
+        </div>
+      </div>
+
+      {/* ── 4. MAIN PLAYBACK CONTROLS ───────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-2 shrink-0 my-1">
+        <button
+          onClick={() => onAction('shuffle')}
+          disabled={!isPlayable || Boolean(pendingAction)}
+          className={`p-1.5 rounded-lg transition-colors ${
+            player?.shuffle ? 'text-primary-container' : 'text-outline hover:text-on-surface'
+          }`}
+          title="Xáo trộn bài hát"
+        >
+          <Shuffle size={18} />
+        </button>
+
+        <button
+          onClick={() => onAction('previous')}
+          disabled={!isPlayable || Boolean(pendingAction)}
+          className="p-1.5 rounded-lg text-outline hover:text-on-surface transition-colors active:scale-95"
+          title="Bài trước đó"
+        >
+          {pendingAction === 'previous' ? (
+            <Loader2 size={19} className="animate-spin text-primary-container" />
+          ) : (
+            <SkipBack size={20} />
+          )}
+        </button>
+
+        <button
+          onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
+          disabled={!isPlayable || Boolean(pendingAction)}
+          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary-container hover:bg-primary text-on-primary flex items-center justify-center transition-all active:scale-95 shadow-md disabled:opacity-50"
+          title={isPlaying ? 'Tạm dừng' : 'Phát nhạc'}
+        >
+          {pendingAction === 'playback' ? (
+            <Loader2 size={22} className="animate-spin text-on-primary" />
+          ) : isPlaying ? (
+            <Pause size={22} fill="currentColor" />
+          ) : (
+            <Play size={22} fill="currentColor" className="ml-0.5" />
+          )}
+        </button>
+
+        <button
+          onClick={() => onAction('skip')}
+          disabled={!isPlayable || Boolean(pendingAction)}
+          className="p-1.5 rounded-lg text-outline hover:text-on-surface transition-colors active:scale-95"
+          title="Bài kế tiếp"
+        >
+          {pendingAction === 'skip' ? (
+            <Loader2 size={19} className="animate-spin text-primary-container" />
+          ) : (
+            <SkipForward size={20} />
+          )}
+        </button>
+
+        {(() => {
+          const loopMode = player?.loopMode || player?.loop || 'off';
+          const isLofiCurrent = Boolean(player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)'));
+          return (
+            <button
+              onClick={() => onAction('loop')}
+              disabled={!isPlayable || Boolean(pendingAction) || isLofiCurrent}
+              className={`p-1.5 rounded-lg transition-colors relative ${
+                loopMode !== 'off' ? 'text-primary-container font-bold' : 'text-outline hover:text-on-surface'
+              }`}
+              title={isLofiCurrent ? 'Nhạc Lofi 24/7 phát tự động, không lặp lại' : `Lặp lại: ${loopMode}`}
+            >
+              <Repeat size={18} />
+              {loopMode === 'song' && (
+                <span className="absolute -top-1 -right-1 font-mono text-[8px] bg-primary-container text-on-primary font-bold px-1 rounded-full">
+                  1
+                </span>
+              )}
+              {loopMode === 'queue' && (
+                <span className="absolute -top-1 -right-1 font-mono text-[8px] bg-secondary text-white font-bold px-1 rounded-full">
+                  ∞
+                </span>
+              )}
+            </button>
+          );
+        })()}
+      </div>
+
+      {/* ── 5. VOLUME CONTROL BAR ───────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 px-1 shrink-0">
+        <button onClick={toggleMute} className="text-outline hover:text-on-surface p-1">
+          {localVolume === 0 ? <VolumeX size={16} className="text-secondary" /> : <Volume2 size={16} />}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={localVolume}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            setLocalVolume(v);
+            if (volumeDebounceRef.current) clearTimeout(volumeDebounceRef.current);
+            volumeDebounceRef.current = setTimeout(() => {
+              volumeDebounceRef.current = null;
+              onAction('volume', v);
+            }, 350);
+          }}
+          className="flex-1 h-1 bg-surface-container-highest rounded-full cursor-pointer accent-primary-container"
+          aria-label="Âm lượng"
+        />
+        <span className="font-mono text-[9px] text-outline w-7 text-right">{localVolume}%</span>
+      </div>
+
+      {/* ── 6. SMART LOFI SWITCHER ─────────────────────────────────────────── */}
+      <div className="shrink-0 mt-0.5">
+        {(() => {
+          const isLofiMode = Boolean(current && (current.is247 || current.requestedBy === 'Auto (24/7)'));
+          return (
+            <button
+              onClick={() => onAction('toggleLofiMode')}
+              disabled={Boolean(pendingAction)}
+              className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all active:scale-[0.99] ${
+                isLofiMode
+                  ? 'bg-secondary-container/20 border-secondary/30 text-secondary hover:bg-secondary-container/30'
+                  : 'bg-surface-container hover:bg-surface-container-high border-white/5 text-primary-container'
+              }`}
+            >
+              {isLofiMode ? (
+                <>
+                  <RotateCcw size={14} />
+                  <span>TIẾP TỤC PHÁT NHẠC CỦA BẠN</span>
+                </>
+              ) : (
+                <>
+                  <Coffee size={14} />
+                  <span>CHUYỂN VỀ NHẠC LOFI THƯ GIÃN</span>
+                </>
+              )}
+            </button>
+          );
+        })()}
+      </div>
+
+      {/* ── 7. DISCORD VOICE ROOM STATUS WIDGET ──────────────────────────────── */}
+      <div className="flex items-center justify-between p-2 rounded-lg bg-surface-container border border-white/5 shrink-0 mt-0.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-6 h-6 rounded bg-surface-container-highest flex items-center justify-center text-tertiary shrink-0">
+            <Radio size={13} />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[11px] font-semibold text-on-surface truncate">
+              {player?.voiceChannel?.name || 'Phòng Voice Tổng'}
+            </span>
+            <span className="font-mono text-[9px] text-outline">
+              {player?.voiceChannel?.humanMemberCount ?? 1} thành viên • 48kHz
+            </span>
+          </div>
+        </div>
+        <span className="font-mono text-[9px] text-tertiary uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-tertiary-container/30">
+          LIVE
+        </span>
+      </div>
+
     </div>
   );
 }
