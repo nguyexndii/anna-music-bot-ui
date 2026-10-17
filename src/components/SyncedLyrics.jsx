@@ -341,20 +341,20 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden select-none bg-surface/40">
 
       {/* ── 1. SUB-HEADER CỦA LYRICS CANVAS (Chuẩn Stitch) ────────────────── */}
-      <div className="shrink-0 flex items-center justify-between pb-3 pt-1 border-b border-white/5 mb-3 px-1">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="shrink-0 flex items-center justify-between pb-3 pt-1 border-b border-white/5 mb-3 px-1 gap-2">
+        {/* Tiêu đề gọn gàng (Bỏ phòng voice vì đã có trên đĩa than & top header) */}
+        <div className="flex items-center gap-1.5 min-w-0 shrink-0">
           <span className="material-symbols-outlined text-primary-container text-base shrink-0">mic</span>
-          <span className="font-mono text-xs text-on-surface-variant font-medium truncate">
-            {player?.voiceChannel?.name ? `Phòng: #${player.voiceChannel.name}` : 'Lời Nhạc Đồng Bộ'}
-          </span>
+          <span className="text-xs font-semibold text-on-surface tracking-wide whitespace-nowrap">Lời Bài Hát</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Thanh công cụ chống nhảy dòng hoàn toàn (whitespace-nowrap & no-scrollbar) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
           {/* Cỡ chữ A- / A+ */}
-          <div className="flex items-center gap-1 bg-surface-container px-1 py-0.5 rounded-lg border border-white/5">
+          <div className="flex items-center gap-0.5 bg-surface-container p-0.5 rounded-lg border border-white/5 shrink-0">
             <button
               onClick={() => setFontSizeLevel(p => Math.max(0, p - 1))}
-              className={`px-1.5 py-0.5 rounded text-xs font-bold transition-colors ${
+              className={`h-6 px-1.5 rounded text-xs font-bold transition-colors whitespace-nowrap ${
                 fontSizeLevel === 0 ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
               }`}
               title="Giảm cỡ chữ"
@@ -363,7 +363,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
             </button>
             <button
               onClick={() => setFontSizeLevel(p => Math.min(2, p + 1))}
-              className={`px-1.5 py-0.5 rounded text-xs font-bold transition-colors ${
+              className={`h-6 px-1.5 rounded text-xs font-bold transition-colors whitespace-nowrap ${
                 fontSizeLevel === 2 ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
               }`}
               title="Tăng cỡ chữ"
@@ -373,19 +373,19 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           </div>
 
           {/* Nút Chế độ: Lời chạy / Toàn bộ */}
-          <div className="flex items-center gap-0.5 bg-surface-container p-0.5 rounded-lg border border-white/5 text-[11px]">
+          <div className="flex items-center gap-0.5 bg-surface-container p-0.5 rounded-lg border border-white/5 text-[11px] shrink-0">
             <button
               onClick={() => setViewMode('synced')}
-              className={`px-2 py-0.5 rounded transition-colors ${
-                viewMode === 'synced' ? 'bg-primary-container text-on-primary font-bold' : 'text-outline hover:text-on-surface'
+              className={`h-6 px-2.5 rounded transition-colors whitespace-nowrap ${
+                viewMode === 'synced' ? 'bg-primary-container text-on-primary font-bold shadow-sm' : 'text-outline hover:text-on-surface'
               }`}
             >
               Lời Chạy
             </button>
             <button
               onClick={() => setViewMode('plain')}
-              className={`px-2 py-0.5 rounded transition-colors ${
-                viewMode === 'plain' ? 'bg-primary-container text-on-primary font-bold' : 'text-outline hover:text-on-surface'
+              className={`h-6 px-2.5 rounded transition-colors whitespace-nowrap ${
+                viewMode === 'plain' ? 'bg-primary-container text-on-primary font-bold shadow-sm' : 'text-outline hover:text-on-surface'
               }`}
             >
               Toàn Bộ
@@ -401,29 +401,29 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
               localStorage.setItem('anna_karaoke_autoscroll', String(next));
               window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
             }}
-            className={`px-2 py-0.5 rounded text-[11px] font-bold font-mono transition-colors flex items-center gap-1 border ${
+            className={`h-7 px-2.5 rounded-lg text-[11px] font-bold font-mono transition-colors flex items-center gap-1.5 border whitespace-nowrap shrink-0 ${
               autoScroll
                 ? 'bg-primary-container/20 border-primary-container/40 text-primary-container'
                 : 'bg-surface-container border-white/5 text-outline hover:text-on-surface'
             }`}
             title="Bật/Tắt tự động cuộn theo câu hát"
           >
-            <span className="material-symbols-outlined text-[13px]">{autoScroll ? 'unfold_more' : 'unfold_less'}</span>
-            <span className="hidden sm:inline">{autoScroll ? 'TỰ CUỘN: BẬT' : 'TỰ CUỘN: TẮT'}</span>
+            <span className="material-symbols-outlined text-[13px] shrink-0">{autoScroll ? 'unfold_more' : 'unfold_less'}</span>
+            <span className="whitespace-nowrap">{autoScroll ? 'TỰ CUỘN: BẬT' : 'TỰ CUỘN: TẮT'}</span>
           </button>
 
           {/* Bù trễ */}
           <button
             onClick={() => setShowSyncAdjust(!showSyncAdjust)}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition-colors ${
+            className={`h-7 flex items-center gap-1.5 px-2.5 rounded-lg border text-xs transition-colors whitespace-nowrap shrink-0 ${
               showSyncAdjust ? 'bg-primary-container text-on-primary font-bold border-primary-container' : 'bg-surface-container border-white/5 text-outline hover:text-on-surface'
             }`}
-            title="Chỉnh độ trễ"
+            title="Chỉnh độ trễ lời bài hát"
           >
-            <SlidersHorizontal size={13} />
-            <span className="hidden sm:inline">Bù Trễ</span>
+            <SlidersHorizontal size={13} className="shrink-0" />
+            <span className="whitespace-nowrap">Bù Trễ</span>
             {manualOffsetMs !== 0 && (
-              <span className="font-mono text-[9px] px-1 rounded bg-black/40 text-primary-container">
+              <span className="font-mono text-[9px] px-1 rounded bg-black/40 text-primary-container font-semibold whitespace-nowrap">
                 {manualOffsetMs > 0 ? `+${(manualOffsetMs / 1000).toFixed(1)}s` : `${(manualOffsetMs / 1000).toFixed(1)}s`}
               </span>
             )}
@@ -432,10 +432,10 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           {/* Toàn màn hình */}
           <button
             onClick={() => setIsFullscreen(true)}
-            className="p-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-outline hover:text-primary-container border border-white/5 transition-colors"
+            className="h-7 w-7 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-container-high text-outline hover:text-primary-container border border-white/5 transition-colors shrink-0"
             title="Toàn màn hình Karaoke"
           >
-            <Maximize2 size={15} />
+            <Maximize2 size={14} className="shrink-0" />
           </button>
         </div>
       </div>
