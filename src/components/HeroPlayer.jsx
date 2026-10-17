@@ -231,66 +231,75 @@ export default function HeroPlayer({ player, onAction, user, onRequireAdmin, pen
   return (
     <div className={`w-full flex flex-col justify-between ${isMobileCenter ? 'py-2 px-1 max-w-md mx-auto min-h-[500px]' : 'h-full gap-2'}`}>
 
-      {/* ── 1. MÂM ĐĨA THAN VINYL CỔ ĐIỂN (Direct Drive Turntable) ─────────────── */}
-      <div className="relative w-full h-[200px] sm:h-[210px] bg-gradient-to-b from-[#0e1013] to-[#181a1f] rounded-2xl flex items-center justify-center overflow-hidden shadow-inner border border-white/5 shrink-0 my-1">
-        {/* Radial Platter */}
-        <div className="w-[176px] h-[176px] rounded-full p-[4px] bg-[#14161a] shadow-[0_12px_28px_rgba(0,0,0,0.9)] flex items-center justify-center border border-[#2b2d35]/60 relative">
-          {/* Đĩa Vinyl quay 33⅓ RPM */}
+      {/* ── 1. MÂM ĐĨA THAN AUDIOPHILE CHÂN THỰC (Audiophile Vinyl Lounge) ───────── */}
+      <div className="relative w-full h-[200px] sm:h-[210px] bg-gradient-to-b from-[#0c0e11] via-[#14161b] to-[#1c1e24] rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl border border-white/5 shrink-0 my-1">
+        {/* Platter Hợp Kim Nhôm & Đế Mâm Kim Loại */}
+        <div className="w-[180px] h-[180px] rounded-full p-[4px] bg-[#121316] shadow-[0_12px_32px_rgba(0,0,0,0.95)] flex items-center justify-center border border-[#2b2d35] relative">
+          {/* Đĩa Than Vinyl 33⅓ RPM Quay Tròn */}
           <div
-            className={`relative w-[166px] h-[166px] rounded-full flex items-center justify-center shadow-2xl cursor-pointer ${
+            className={`relative w-[170px] h-[170px] rounded-full flex items-center justify-center cursor-pointer overflow-hidden ${
               isPlaying ? 'animate-spin-record' : ''
             }`}
             style={{
-              background: 'radial-gradient(circle, rgb(14, 16, 19) 38%, rgb(24, 28, 35) 42%, rgb(13, 15, 18) 46%, rgb(28, 32, 41) 52%, rgb(14, 16, 20) 58%, rgb(25, 29, 38) 64%, rgb(11, 13, 16) 72%, rgb(26, 30, 39) 82%, rgb(9, 10, 13) 92%, rgb(20, 22, 28) 100%)',
+              background: 'radial-gradient(circle, #0e0f11 0%, #151619 40%, #0d0e10 65%, #18191c 78%, #0a0a0c 100%)',
               animationPlayState: isPlaying ? 'running' : 'paused'
             }}
             onClick={() => onAction(isPlaying ? 'pause' : 'resume')}
             title={isPlaying ? 'Nhấn để tạm dừng' : 'Nhấn để phát'}
           >
-            {/* Vinyl Sheen phản xạ ánh sáng */}
+            {/* Microgrooves Rãnh Đĩa Thật */}
             <div
-              className="absolute inset-0 rounded-full mix-blend-screen opacity-70 pointer-events-none"
+              className="absolute inset-0 rounded-full pointer-events-none"
               style={{
-                background: 'conic-gradient(from 40deg, transparent 0deg, rgba(255,255,255,0.06) 30deg, rgba(255,255,255,0.2) 55deg, rgba(255,255,255,0.04) 80deg, transparent 110deg, transparent 180deg, rgba(255,255,255,0.06) 210deg, rgba(255,255,255,0.2) 235deg, rgba(255,255,255,0.04) 260deg, transparent 290deg)'
+                background: 'repeating-radial-gradient(circle at center, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1.5px, transparent 3.5px)'
               }}
             />
-            <div className="absolute inset-[15px] rounded-full border border-black/30 pointer-events-none" />
-            <div className="absolute inset-[32px] rounded-full border border-black/40 pointer-events-none" />
+            <div className="absolute inset-[10px] rounded-full border border-white/[0.04] pointer-events-none" />
+            <div className="absolute inset-[24px] rounded-full border border-white/[0.03] pointer-events-none" />
+            <div className="absolute inset-[40px] rounded-full border border-[#ffe08e]/10 pointer-events-none" />
 
-            {/* Label tâm mâm đĩa màu Champagne */}
-            <div className="relative w-[66px] h-[66px] rounded-full bg-[#e8c977] p-[2px] shadow-md flex items-center justify-center select-none overflow-hidden border border-[#9b7829]">
-              <div className="w-full h-full rounded-full flex flex-col items-center justify-between py-1 bg-gradient-to-b from-[#f5df9d] via-[#e8c977] to-[#cfab52] text-[#332503]">
-                <span className="text-[5.5px] font-bold font-mono tracking-widest uppercase">ANNA VINYL</span>
-                <div className="w-6 h-6 rounded-full overflow-hidden border border-[#584400]/40 bg-black/20">
-                  <img
-                    src={coverUrl}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
-                  />
+            {/* Vệt Sáng Quang Học Phản Chiếu Conic 4 Cánh */}
+            <div
+              className="absolute inset-0 rounded-full opacity-40 pointer-events-none mix-blend-screen"
+              style={{
+                background: 'conic-gradient(from 45deg, transparent 0deg, rgba(255,230,169,0.2) 45deg, transparent 90deg, rgba(255,255,255,0.1) 135deg, transparent 180deg, rgba(255,230,169,0.2) 225deg, transparent 270deg, rgba(255,255,255,0.1) 315deg, transparent 360deg)'
+              }}
+            />
+
+            {/* TÂM MÂM ĐĨA: Ảnh Album Bìa Bài Hát Tròn Lớn Viền Đồng Thau Kép */}
+            <div className="relative w-[70px] h-[70px] rounded-full p-[2px] bg-gradient-to-tr from-[#69530b] via-[#c49b2c] to-[#ffe08e] shadow-xl flex items-center justify-center shrink-0 border border-[#ffe08e]/60 z-10 select-none">
+              <div className="w-full h-full rounded-full overflow-hidden relative flex items-center justify-center bg-[#18150e]">
+                <img
+                  src={coverUrl}
+                  alt={current?.title || 'Album Art'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
+                />
+                {/* Lỗ Trục Spindle Đồng Thau & Đen Kim Loại CNC */}
+                <div className="absolute inset-0 m-auto w-3 h-3 rounded-full bg-gradient-to-b from-[#ffe08e] to-[#584400] flex items-center justify-center p-[1px] shadow-md pointer-events-none">
+                  <div className="w-full h-full rounded-full bg-[#0a0a0c] border border-black/50 flex items-center justify-center">
+                    <div className="w-1 h-1 rounded-full bg-[#999]" />
+                  </div>
                 </div>
-                <span className="text-[5px] font-mono tracking-wider font-semibold">33⅓ RPM</span>
-              </div>
-              <div className="absolute w-3 h-3 rounded-full bg-[#181a1f] border border-[#d8dce6] flex items-center justify-center">
-                <div className="w-1 h-1 rounded-full bg-[#0a0c0e]"></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Cần Kim Tonearm Đồng Thau Chữ S Xoay Cơ Học */}
+        {/* CẦN KIM CHỮ S ĐỒNG THAU (Tonearm) Xoay Cơ Học */}
         <div
           className="absolute top-1 right-2 z-20 pointer-events-none select-none origin-top-right transition-transform duration-700 ease-out"
           style={{ transform: `rotate(${tonearmAngle}deg)` }}
         >
-          <svg fill="none" height="155" viewBox="0 0 84 150" width="84">
-            <circle cx="64" cy="18" fill="#1e2025" r="13" stroke="#383b44" stroke-width="1.5"></circle>
-            <circle cx="64" cy="18" fill="#282a30" r="9"></circle>
-            <circle cx="64" cy="18" fill="#e8c977" r="4.5" stroke="#a58532" stroke-width="1"></circle>
-            <path d="M64 24 L64 62 Q64 82 56 98 L36 132" fill="none" stroke="#d5d8e2" stroke-linecap="round" stroke-width="3"></path>
-            <rect fill="#181a1f" height="15" rx="1.5" stroke="#4b505c" stroke-width="0.8" transform="rotate(-24 33 130)" width="7" x="30" y="123"></rect>
-            <polygon fill="#e8c977" points="27,138 31,136 29,143"></polygon>
-            <circle cx="28.5" cy="143" fill="#ffffff" r="0.8"></circle>
+          {/* Trục Xoay Pivot Đồng Thau */}
+          <div className="absolute top-1 right-2 w-6 h-6 rounded-full bg-gradient-to-b from-[#3a3c40] to-[#141518] border border-[#ffe08e]/50 shadow-md flex items-center justify-center">
+            <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-[#c49b2c] to-[#ffe6a9]" />
+          </div>
+          {/* SVG Cần Kim Chữ S Kim Loại Audiophile */}
+          <svg className="w-[84px] h-[145px] drop-shadow-[1px_3px_5px_rgba(0,0,0,0.9)]" fill="none" viewBox="0 0 80 140" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 67 15 C 65 42, 72 65, 58 92 C 50 108, 40 115, 30 126" stroke="#e8c977" strokeLinecap="round" strokeWidth="2.5" />
+            <path d="M 28 126 L 16 134 L 19 139 L 31 131 Z" fill="#282a2d" stroke="#ffe08e" strokeWidth="0.8" />
+            <circle cx="17" cy="138" fill="#ffb4a7" r="1.2" />
           </svg>
         </div>
 

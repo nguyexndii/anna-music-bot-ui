@@ -4,15 +4,20 @@ import {
   SlidersHorizontal,
   Sparkles,
   AlignLeft,
-  Disc3,
-  Maximize2,
-  RotateCcw,
-  Volume2
+  Maximize2
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from '../config';
 import KaraokeFullscreenModal from './KaraokeFullscreenModal';
 
 const lyricsCache = new Map();
+
+function formatTime(ms) {
+  if (!ms || isNaN(ms) || ms < 0) return '00:00';
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m < 10 ? '0' : ''}${m}:${sec < 10 ? '0' : ''}${sec}`;
+}
 
 function parseDurationToMs(str) {
   if (!str || str.toLowerCase().includes('live')) return 0;
@@ -54,19 +59,6 @@ function saveOffset(title, offsetMs, isYtCc = false) {
   } catch (e) {}
 }
 
-function getTrackThumb(track) {
-  if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
-    return track.thumbnail;
-  }
-  if (track?.url) {
-    const match = track.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-    if (match && match[1]) {
-      return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
-    }
-  }
-  return DEFAULT_TRACK_THUMB;
-}
-
 export default function SyncedLyrics({ player, onAction, isActive = true, guildId, onSourceChange }) {
   const current = player?.current;
   const songKey = current?.title ? `${current.title}|${current.artist || ''}|${current.url || ''}` : '';
@@ -93,10 +85,10 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
   const [viewMode, setViewMode] = useState('synced');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fontSizeLevel, setFontSizeLevel] = useState(1); // 0: nhỏ, 1: chuẩn, 2: to
+  const [currentLineProgress, setCurrentLineProgress] = useState(0);
 
   const activeLineRef = useRef(null);
   const containerRef  = useRef(null);
-  const lastSeekRef   = useRef(null);
 
   useEffect(() => {
     const handleOpen = () => setIsFullscreen(true);
@@ -119,7 +111,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     setManualOffsetMs(saved !== null ? saved : 0);
   }, [current?.title, isYtCc]);
 
-  // Tải lời bài hát
+  // Tải lời bài hát (Sửa lỗi: dùng cả title và hỗ trợ /api/guilds/:guildId/lyrics)
   useEffect(() => {
     if (!current?.title || isLofiTrack) {
       setLyricsData(null);
@@ -140,38 +132,85 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     setLoading(true);
 
     const controller = new AbortController();
-    const query = new URLSearchParams({
-      track: current.title,
-      artist: current.artist || '',
-      duration: current.duration || '',
-      url: current.url || '',
-      guild: guildId || '',
-    });
 
-    fetch(`${API_BASE}/api/lyrics?${query.toString()}`, { signal: controller.signal })
-      .then(async res => {
-        if (!res.ok) throw new Error('Lyrics fetch failed');
-        return res.json();
-      })
-      .then(data => {
+    const fetchLyricsData = async () => {
+      try {
+        let resData = null;
+
+        // Ưu tiên 1: Lấy theo guildId nếu có
+        if (guildId) {
+          const res = await fetch(`${API_BASE}/api/guilds/${guildId}/lyrics`, {
+            signal: controller.signal
+          }).catch(() => null);
+          if (res && res.ok) {
+            const data = await res.json().catch(() => null);
+            if (data && data.success && (data.syncedLyrics?.length || data.lyrics)) {
+              resData = data;
+            }
+          }
+        }
+
+        // Ưu tiên 2: Gọi endpoint /api/lyrics với tham số chuẩn title
+        if (!resData) {
+          const query = new URLSearchParams({
+            title: current.title,
+            q: current.title,
+            artist: current.artist && current.artist !== 'YouTube Music' ? current.artist : '',
+            duration: String(parseDurationToMs(current.duration) || 0),
+            url: current.url || '',
+          });
+          const res = await fetch(`${API_BASE}/api/lyrics?${query.toString()}`, {
+            signal: controller.signal
+          }).catch(() => null);
+          if (res && res.ok) {
+            const data = await res.json().catch(() => null);
+            if (data && data.success && (data.syncedLyrics?.length || data.lyrics)) {
+              resData = data;
+            }
+          }
+        }
+
         if (!isMounted) return;
-        if (data.success && data.lyrics) {
-          lyricsCache.set(songKey, data.lyrics);
-          setLyricsData(data.lyrics);
-          updateSourceInfo(data.lyrics);
+
+        if (resData && (resData.syncedLyrics || resData.lyrics)) {
+          // Chuẩn hóa danh sách các dòng lời có timestamp bắt đầu và kết thúc
+          const rawLines = resData.syncedLyrics || resData.lines || [];
+          const lines = rawLines.map((l, idx, arr) => {
+            const timeMs = Number(l.time ?? l.timeMs ?? 0);
+            const nextTimeMs = arr[idx + 1] ? Number(arr[idx + 1].time ?? arr[idx + 1].timeMs ?? timeMs + 4000) : timeMs + 6000;
+            return {
+              text: l.text || l.line || '',
+              timeMs: timeMs,
+              endTimeMs: nextTimeMs,
+              durationMs: Math.max(1200, nextTimeMs - timeMs)
+            };
+          });
+
+          const normalizedData = {
+            ...resData,
+            synced: lines.length > 0,
+            lines: lines,
+            plainLyrics: resData.lyrics || lines.map(l => l.text).join('\n')
+          };
+
+          lyricsCache.set(songKey, normalizedData);
+          setLyricsData(normalizedData);
+          updateSourceInfo(normalizedData);
         } else {
           setLyricsData(null);
           onSourceChange?.(null);
         }
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         if (err.name !== 'AbortError' && isMounted) {
           setLyricsData(null);
-          setLoading(false);
           onSourceChange?.(null);
         }
-      });
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchLyricsData();
 
     return () => {
       isMounted = false;
@@ -193,15 +232,14 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     onSourceChange?.(info);
   };
 
-  // Tính toán dòng đang hát
-  const totalMs = parseDurationToMs(current?.duration);
   const isPlaying = player?.isPlaying && !player?.isPaused;
+  const lines = lyricsData?.lines || [];
 
+  // Tính toán câu hát đang phát và thanh tiến trình vạch tua câu hát
   useEffect(() => {
-    if (!lyricsData?.synced || !lyricsData.lines?.length || !isPlaying || !isActive) return;
+    if (!lyricsData?.synced || !lines.length || !isPlaying || !isActive) return;
 
     let animId;
-    const lines = lyricsData.lines;
 
     const tick = () => {
       let currentProgress = 0;
@@ -226,14 +264,24 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         setActiveLineIdx(foundIdx);
       }
 
+      // Tính phần trăm tiến trình của câu hát đang hát hiện tại (để thanh vạch tua chạy đồng bộ)
+      if (foundIdx >= 0 && lines[foundIdx]) {
+        const curLine = lines[foundIdx];
+        const elapsed = Math.max(0, effectiveTime - curLine.timeMs);
+        const p = Math.min(100, Math.max(0, (elapsed / curLine.durationMs) * 100));
+        setCurrentLineProgress(p);
+      } else {
+        setCurrentLineProgress(0);
+      }
+
       animId = requestAnimationFrame(tick);
     };
 
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [lyricsData, isPlaying, isActive, current?.playbackDurationMs, current?.serverTime, current?.startTime, manualOffsetMs, activeLineIdx]);
+  }, [lyricsData, lines, isPlaying, isActive, current?.playbackDurationMs, current?.serverTime, current?.startTime, manualOffsetMs, activeLineIdx]);
 
-  // Tự động cuộn theo câu hát
+  // Tự động cuộn
   useEffect(() => {
     if (!autoScroll || activeLineIdx < 0 || !activeLineRef.current || !containerRef.current) return;
     activeLineRef.current.scrollIntoView({
@@ -259,202 +307,195 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     saveOffset(current?.title, 0, isYtCc);
   };
 
-  const lines = lyricsData?.lines || [];
-
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden select-none">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden select-none bg-surface/40">
 
-      {/* ── 1. TOOLBAR LYRICS WORKSPACE ───────────────────────────────────── */}
-      <div className="shrink-0 bg-surface-container-low border border-white/5 p-2.5 rounded-xl flex items-center justify-between gap-2 shadow-sm mb-2.5 flex-wrap">
-        {/* Track Info */}
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-surface-container overflow-hidden shrink-0 border border-white/5 relative">
-            <img
-              src={getTrackThumb(current)}
-              alt=""
-              className="w-full h-full object-cover"
-              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
-            />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5 truncate">
-              <span className="text-xs sm:text-sm font-bold text-on-surface truncate">
-                {current?.title || 'Chưa có bài hát'}
-              </span>
-              <span className="text-[9px] text-tertiary bg-surface-container px-1 py-0.2 rounded border border-tertiary/20 shrink-0 font-bold uppercase font-mono">
-                {lyricsData?.synced ? 'KARAOKE SẴN SÀNG' : 'LỜI BÀI HÁT'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-outline font-mono truncate">
-              <span className="truncate text-on-surface-variant">{current?.artist || 'Anna Music'}</span>
-              <span>•</span>
-              <span className="text-primary-container">{current?.duration || '0:00'}</span>
-            </div>
-          </div>
+      {/* ── 1. SUB-HEADER CỦA LYRICS CANVAS (Chuẩn Stitch) ────────────────── */}
+      <div className="shrink-0 flex items-center justify-between pb-3 pt-1 border-b border-white/5 mb-3 px-1">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+          <span className="font-mono text-xs text-outline uppercase tracking-wider">
+            PHÁT ĐỒNG THỜI VỚI PHÒNG #{player?.voiceChannel?.name || 'LOUNGE-01'}
+          </span>
         </div>
 
-        {/* Controls Cluster */}
-        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-          {/* Mode Toggle: Synced vs Plain */}
-          <div className="bg-surface-container p-0.5 rounded-lg flex items-center border border-white/5 text-xs">
+        <div className="flex items-center gap-2">
+          {/* Cỡ chữ A- / A+ */}
+          <div className="flex items-center gap-1 bg-surface-container px-1 py-0.5 rounded-lg border border-white/5">
+            <button
+              onClick={() => setFontSizeLevel(p => Math.max(0, p - 1))}
+              className={`px-1.5 py-0.5 rounded text-xs font-bold transition-colors ${
+                fontSizeLevel === 0 ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
+              }`}
+              title="Giảm cỡ chữ"
+            >
+              A-
+            </button>
+            <button
+              onClick={() => setFontSizeLevel(p => Math.min(2, p + 1))}
+              className={`px-1.5 py-0.5 rounded text-xs font-bold transition-colors ${
+                fontSizeLevel === 2 ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
+              }`}
+              title="Tăng cỡ chữ"
+            >
+              A+
+            </button>
+          </div>
+
+          {/* Nút Chế độ: Lời chạy / Toàn bộ */}
+          <div className="flex items-center gap-0.5 bg-surface-container p-0.5 rounded-lg border border-white/5 text-[11px]">
             <button
               onClick={() => setViewMode('synced')}
-              className={`px-2 py-1 rounded text-[11px] font-semibold transition-colors ${
-                viewMode === 'synced' ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
+              className={`px-2 py-0.5 rounded transition-colors ${
+                viewMode === 'synced' ? 'bg-primary-container text-on-primary font-bold' : 'text-outline hover:text-on-surface'
               }`}
             >
               Lời Chạy
             </button>
             <button
               onClick={() => setViewMode('plain')}
-              className={`px-2 py-1 rounded text-[11px] font-semibold transition-colors ${
-                viewMode === 'plain' ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
+              className={`px-2 py-0.5 rounded transition-colors ${
+                viewMode === 'plain' ? 'bg-primary-container text-on-primary font-bold' : 'text-outline hover:text-on-surface'
               }`}
             >
               Toàn Bộ
             </button>
           </div>
 
-          {/* Font Size A / A+ */}
-          <div className="bg-surface-container p-0.5 rounded-lg flex items-center border border-white/5">
-            <button
-              onClick={() => setFontSizeLevel(prev => Math.max(0, prev - 1))}
-              className={`w-6 h-6 rounded flex items-center justify-center font-bold text-[11px] transition-colors ${
-                fontSizeLevel === 0 ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
-              }`}
-              title="Thu nhỏ cỡ chữ"
-            >
-              A
-            </button>
-            <button
-              onClick={() => setFontSizeLevel(prev => Math.min(2, prev + 1))}
-              className={`w-6 h-6 rounded flex items-center justify-center font-bold text-[11px] transition-colors ${
-                fontSizeLevel === 2 ? 'bg-primary-container text-on-primary' : 'text-outline hover:text-on-surface'
-              }`}
-              title="Phóng to cỡ chữ"
-            >
-              A+
-            </button>
-          </div>
-
-          {/* Autoscroll Toggle */}
-          <button
-            onClick={() => setAutoScroll(!autoScroll)}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface-container border border-white/5 hover:bg-surface-container-high text-[11px] font-medium transition-colors"
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${autoScroll ? 'bg-tertiary' : 'bg-outline'}`}></span>
-            <span className="font-mono text-[10px] text-on-surface uppercase">
-              {autoScroll ? 'TỰ CUỘN: BẬT' : 'TỰ CUỘN: TẮT'}
-            </span>
-          </button>
-
-          {/* Offset Trigger Button */}
+          {/* Bù trễ */}
           <button
             onClick={() => setShowSyncAdjust(!showSyncAdjust)}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-medium transition-colors ${
-              showSyncAdjust
-                ? 'bg-primary-container text-on-primary border-primary-container font-bold'
-                : 'bg-surface-container border-white/5 text-on-surface hover:bg-surface-container-high'
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition-colors ${
+              showSyncAdjust ? 'bg-primary-container text-on-primary font-bold border-primary-container' : 'bg-surface-container border-white/5 text-outline hover:text-on-surface'
             }`}
+            title="Chỉnh độ trễ"
           >
             <SlidersHorizontal size={13} />
-            <span>Bù Trễ</span>
+            <span className="hidden sm:inline">Bù Trễ</span>
             {manualOffsetMs !== 0 && (
-              <span className="font-mono text-[9px] px-1 rounded bg-black/40 text-primary-container font-bold">
+              <span className="font-mono text-[9px] px-1 rounded bg-black/40 text-primary-container">
                 {manualOffsetMs > 0 ? `+${(manualOffsetMs / 1000).toFixed(1)}s` : `${(manualOffsetMs / 1000).toFixed(1)}s`}
               </span>
             )}
           </button>
 
-          {/* Fullscreen Button */}
+          {/* Toàn màn hình */}
           <button
             onClick={() => setIsFullscreen(true)}
             className="p-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-outline hover:text-primary-container border border-white/5 transition-colors"
-            title="Mở toàn màn hình Karaoke"
+            title="Toàn màn hình Karaoke"
           >
-            <Maximize2 size={16} />
+            <Maximize2 size={15} />
           </button>
         </div>
       </div>
 
-      {/* ── 2. THANH ĐIỀU CHỈNH BÙ TRỄ OFFSET (Khi mở) ──────────────────────── */}
+      {/* ── 2. THANH BÙ TRỄ HIỆU CHỈNH ───────────────────────────────────────── */}
       {showSyncAdjust && (
-        <div className="bg-surface-container-low border border-white/5 p-2 rounded-xl flex items-center justify-between gap-2 shrink-0 mb-2 shadow-sm animate-fade-in flex-wrap text-xs">
-          <span className="text-[11px] text-outline font-mono">
-            Chỉnh độ trễ hiển thị: <b className="text-primary-container">{manualOffsetMs > 0 ? `+${manualOffsetMs}ms` : `${manualOffsetMs}ms`}</b>
+        <div className="bg-surface-container border border-white/10 p-2 rounded-xl flex items-center justify-between gap-2 shrink-0 mb-3 text-xs animate-fade-in flex-wrap">
+          <span className="font-mono text-outline text-[11px]">
+            Độ lệch: <b className="text-primary-container">{manualOffsetMs > 0 ? `+${manualOffsetMs}ms` : `${manualOffsetMs}ms`}</b>
           </span>
           <div className="flex items-center gap-1 font-mono text-[10px]">
-            <button onClick={() => handleAdjustOffset(-2000)} className="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface">-2s</button>
-            <button onClick={() => handleAdjustOffset(-1000)} className="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface">-1s</button>
-            <button onClick={() => handleAdjustOffset(-200)} className="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface">-0.2s</button>
+            <button onClick={() => handleAdjustOffset(-1000)} className="px-2 py-0.5 rounded bg-surface-container-highest hover:bg-surface-container-low text-on-surface">-1s</button>
+            <button onClick={() => handleAdjustOffset(-200)} className="px-2 py-0.5 rounded bg-surface-container-highest hover:bg-surface-container-low text-on-surface">-0.2s</button>
             <button onClick={handleResetOffset} className="px-2 py-0.5 rounded bg-secondary-container/40 text-secondary hover:bg-secondary-container font-bold">RESET</button>
-            <button onClick={() => handleAdjustOffset(200)} className="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface">+0.2s</button>
-            <button onClick={() => handleAdjustOffset(1000)} className="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface">+1s</button>
-            <button onClick={() => handleAdjustOffset(2000)} className="px-1.5 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface">+2s</button>
+            <button onClick={() => handleAdjustOffset(200)} className="px-2 py-0.5 rounded bg-surface-container-highest hover:bg-surface-container-low text-on-surface">+0.2s</button>
+            <button onClick={() => handleAdjustOffset(1000)} className="px-2 py-0.5 rounded bg-surface-container-highest hover:bg-surface-container-low text-on-surface">+1s</button>
           </div>
         </div>
       )}
 
-      {/* ── 3. VÙNG HIỂN THỊ LỜI NHẠC ───────────────────────────────────────── */}
+      {/* ── 3. KHUNG HIỂN THỊ LỜI NHẠC KARAOKE CHUẨN STITCH ─────────────────── */}
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto custom-scroll pr-1 flex flex-col relative"
+        className="flex-1 min-h-0 overflow-y-auto custom-scroll pr-2 flex flex-col relative"
       >
         {isLofiTrack ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center text-primary-container border border-white/5">
-              <span className="material-symbols-outlined text-2xl">spa</span>
-            </div>
+          <div className="flex flex-col items-center justify-center py-24 text-center gap-3 text-outline">
+            <span className="material-symbols-outlined text-4xl text-primary-container">spa</span>
             <div>
-              <h3 className="text-sm font-semibold text-on-surface">Nhạc Lofi 24/7 Thư Giãn</h3>
-              <p className="text-xs text-outline mt-1 max-w-xs">
-                Bản ghi này là nhạc nền không lời. Hãy thư giãn và tận hưởng không gian!
-              </p>
+              <h3 className="text-base font-bold text-on-surface">Nhạc Lofi 24/7 Thư Giãn</h3>
+              <p className="text-xs text-outline mt-1">Bản ghi này là nhạc nền không lời.</p>
             </div>
           </div>
         ) : loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-2 text-outline">
-            <Loader2 size={24} className="animate-spin text-primary-container" />
-            <span className="text-xs">Đang đồng bộ lời bài hát...</span>
+          <div className="flex flex-col items-center justify-center py-24 text-center gap-2 text-outline">
+            <Loader2 size={26} className="animate-spin text-primary-container" />
+            <span className="text-xs">Đang nạp lời bài hát...</span>
           </div>
         ) : !lyricsData ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-2 text-outline">
-            <span className="material-symbols-outlined text-3xl">mic_off</span>
-            <span className="text-xs">Chưa có lời bài hát cho bài này.</span>
+          <div className="flex flex-col items-center justify-center py-24 text-center gap-3 text-outline">
+            <span className="material-symbols-outlined text-4xl">mic_off</span>
+            <div className="text-xs">Chưa có lời bài hát cho bài này.</div>
           </div>
         ) : viewMode === 'plain' || !lyricsData.synced ? (
-          /* Chế độ lời toàn bộ */
-          <div className="p-4 bg-surface-container-low rounded-xl border border-white/5 text-on-surface leading-relaxed whitespace-pre-line font-body select-text text-sm sm:text-base">
-            {formatPlainLyrics(lyricsData.plainLyrics || lyricsData.text || '')}
+          <div className="p-4 rounded-2xl bg-surface-container-low border border-white/5 text-on-surface leading-relaxed whitespace-pre-line font-body select-text text-sm sm:text-base">
+            {formatPlainLyrics(lyricsData.plainLyrics || '')}
           </div>
         ) : (
-          /* Chế độ lời Karaoke đồng bộ từng dòng */
-          <div className="flex flex-col gap-2 py-12 px-2 text-center">
+          <div className="flex flex-col gap-3 py-16 px-1 sm:px-4">
             {lines.map((line, idx) => {
               const isActive = activeLineIdx === idx;
               const isPast = activeLineIdx > idx;
 
-              const fontClass =
-                fontSizeLevel === 2
-                  ? 'text-xl sm:text-2xl'
-                  : fontSizeLevel === 0
-                  ? 'text-sm sm:text-base'
-                  : 'text-base sm:text-lg';
+              if (isActive) {
+                return (
+                  /* ── CÂU ĐANG HÁT NỔI BẬT VỚI VẠCH TIẾN TRÌNH THỜI GIAN ── */
+                  <div
+                    key={idx}
+                    ref={activeLineRef}
+                    onClick={() => handleLineClick(line.timeMs)}
+                    className="bg-surface-container/80 border border-primary-container/30 rounded-2xl p-4 shadow-xl my-2 flex flex-col gap-2.5 transition-all cursor-pointer group"
+                    title="Nhấn để tua lại đầu câu này"
+                  >
+                    <div className="flex items-baseline gap-3">
+                      <span className="font-mono text-xs text-primary-container font-bold shrink-0">
+                        {formatTime(line.timeMs)}
+                      </span>
+                      <p className={`font-body font-bold text-primary-container leading-snug tracking-tight ${
+                        fontSizeLevel === 2 ? 'text-2xl sm:text-3xl' : fontSizeLevel === 0 ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'
+                      }`}>
+                        {capitalizeFirstLetter(line.text)}
+                      </p>
+                    </div>
 
+                    {/* Vạch tiến trình đồng bộ thời gian thực của câu hát (không bấm tua được) */}
+                    <div className="flex items-center gap-3 ml-12 pointer-events-none select-none">
+                      <div className="h-1.5 w-32 bg-surface-container-highest rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary-container rounded-full transition-all duration-150 ease-linear"
+                          style={{ width: `${currentLineProgress}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-[11px] text-primary-container font-semibold">
+                        {formatTime(line.timeMs)} • {formatTime(line.endTimeMs)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+
+              /* ── CÁC CÂU CHƯA HÁT HOẶC ĐÃ QUA ── */
               return (
                 <div
                   key={idx}
-                  ref={isActive ? activeLineRef : null}
                   onClick={() => handleLineClick(line.timeMs)}
-                  className={`py-2 px-3 rounded-xl transition-all duration-300 cursor-pointer ${fontClass} ${
-                    isActive
-                      ? 'text-primary-container font-bold scale-[1.03] bg-primary-container/10 border border-primary-container/20 shadow-md'
-                      : isPast
-                      ? 'text-outline hover:text-on-surface opacity-70'
-                      : 'text-on-surface-variant hover:text-on-surface'
+                  className={`flex items-baseline gap-4 py-2 px-3 rounded-xl transition-all cursor-pointer ${
+                    isPast
+                      ? 'opacity-35 hover:opacity-80 text-outline'
+                      : 'opacity-70 hover:opacity-100 text-on-surface'
                   }`}
+                  title={`Nhảy tới ${formatTime(line.timeMs)}`}
                 >
-                  {capitalizeFirstLetter(line.text)}
+                  <span className="font-mono text-[11px] text-outline w-12 shrink-0">
+                    {formatTime(line.timeMs)}
+                  </span>
+                  <p className={`font-body font-medium transition-colors ${
+                    fontSizeLevel === 2 ? 'text-lg sm:text-xl' : fontSizeLevel === 0 ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
+                  }`}>
+                    {capitalizeFirstLetter(line.text)}
+                  </p>
                 </div>
               );
             })}
@@ -462,7 +503,22 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         )}
       </div>
 
-      {/* ── 4. KARAOKE FULLSCREEN MODAL ────────────────────────────────────── */}
+      {/* ── 4. FOOTER CANVAS LỜI NHẠC ────────────────────────────────────────── */}
+      <div className="shrink-0 pt-2 border-t border-white/5 flex items-center justify-between text-outline text-[11px] font-mono px-1">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 text-tertiary">
+            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+            Đồng bộ thời gian thực
+          </span>
+          <span>•</span>
+          <span>Nhấp dòng để chuyển đoạn hát</span>
+        </div>
+        <span className="text-[10px] uppercase font-bold text-outline">
+          ANNA KARAOKE ENGINE
+        </span>
+      </div>
+
+      {/* Fullscreen Modal */}
       <KaraokeFullscreenModal
         isOpen={isFullscreen}
         onClose={() => setIsFullscreen(false)}

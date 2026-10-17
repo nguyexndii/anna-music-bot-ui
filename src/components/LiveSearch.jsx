@@ -58,8 +58,8 @@ function getTrackThumb(track) {
   return DEFAULT_TRACK_THUMB;
 }
 
-export default function LiveSearch({ onOrderSong, player, guildId, token }) {
-  const [query, setQuery] = useState('');
+export default function LiveSearch({ onOrderSong, player, guildId, token, externalQuery, onQueryChange }) {
+  const [query, setQuery] = useState(externalQuery || '');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(() => localStorage.getItem('anna_search_mode') || 'official');
@@ -71,6 +71,13 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
   const debounceRef = useRef(null);
   const abortControllerRef = useRef(null);
   const recentScrollRef = useRef(null);
+
+  // Đồng bộ với externalQuery từ Top Header nếu có
+  useEffect(() => {
+    if (externalQuery !== undefined && externalQuery !== query) {
+      setQuery(externalQuery);
+    }
+  }, [externalQuery]);
 
   const detected = useMemo(() => detectUrlType(query), [query]);
 
@@ -201,6 +208,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (abortControllerRef.current) abortControllerRef.current.abort();
     setQuery('');
+    onQueryChange?.('');
     setResults([]);
     setLoading(false);
   };
@@ -234,6 +242,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token }) {
           onChange={(e) => {
             const val = e.target.value;
             setQuery(val);
+            onQueryChange?.(val);
             if (!val.trim()) {
               setResults([]);
               setLoading(false);

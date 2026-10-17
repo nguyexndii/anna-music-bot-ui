@@ -482,6 +482,7 @@ export default function App() {
     }
     return 'search';
   });
+  const [searchQuery, setSearchQuery] = useState('');
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
   const [isLofiConfirmOpen, setIsLofiConfirmOpen]         = useState(false);
   const [authError, setAuthError]                         = useState(null);
@@ -931,47 +932,139 @@ export default function App() {
       {/* Dynamic Ambient Background */}
       <DynamicAmbientBackground currentTrack={player?.current} isPlaying={player?.isPlaying} />
 
-      {/* Main 3-Column Zero-scroll Workspace */}
+      {/* ── 1. TOP HEADER (Fixed 56px, h-[56px] flex-shrink-0 chạy suốt đỉnh màn hình) ── */}
+      <header className="h-[56px] flex-shrink-0 bg-surface-container-lowest border-b border-white/5 px-4 flex items-center justify-between z-30 select-none">
+        {/* Left: Brand Logo + Chip Voice Room */}
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => switchTab('search')}
+            className="flex items-center gap-2.5 text-left group"
+            title="Quay về Khám Phá"
+          >
+            <div className="w-8 h-8 rounded-lg bg-surface-container overflow-hidden border border-primary-container/40 shadow shrink-0">
+              <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+            </div>
+            <div className="flex items-baseline tracking-tight">
+              <span className="font-brand text-2xl font-bold text-primary-container leading-none">an</span>
+              <span className="font-brand text-2xl font-bold text-[#f5a192] leading-none">na</span>
+              <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-primary-container/15 text-primary-container tracking-wider uppercase border border-primary-container/20 hidden sm:inline-block">
+                PLAYER
+              </span>
+            </div>
+          </button>
+
+          {/* Quick Room Chip Voice Status */}
+          <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-container border border-white/5 text-xs shrink-0">
+            <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse shrink-0"></span>
+            <span className="font-mono text-[11px] text-tertiary font-semibold truncate max-w-[150px]">
+              🔊︱{player?.voiceChannel?.name || guild?.name || 'Phòng Voice Tổng'}
+            </span>
+            <span className="font-mono text-[10px] text-outline">• 48kHz Opus</span>
+          </div>
+        </div>
+
+        {/* Center: Search Input Bar */}
+        <div className="flex-1 max-w-md lg:max-w-lg mx-3 flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-white/5 focus-within:border-primary-container/50 transition-colors">
+          <span className="material-symbols-outlined text-[17px] text-outline">search</span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSearchQuery(val);
+              if (activeTab !== 'search') setActiveTab('search');
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (activeTab !== 'search') setActiveTab('search');
+              }
+            }}
+            placeholder="Dán liên kết YouTube / Spotify hoặc gõ tên bài..."
+            className="bg-transparent border-none text-xs text-on-surface placeholder:text-outline w-full focus:outline-none"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="text-outline hover:text-on-surface p-0.5"
+              title="Xóa tìm kiếm"
+            >
+              <span className="material-symbols-outlined text-[14px]">close</span>
+            </button>
+          )}
+          <button
+            onClick={() => {
+              if (activeTab !== 'search') setActiveTab('search');
+            }}
+            className="px-2 py-0.5 rounded bg-primary-container/20 text-primary-container hover:bg-primary-container/30 text-[10px] font-bold tracking-wider flex items-center gap-1 shrink-0 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[12px]">tune</span>
+            <span className="hidden sm:inline">TÌM</span>
+          </button>
+          <kbd className="hidden sm:inline-block font-mono text-[9px] text-outline bg-surface-container-high px-1 py-0.5 rounded border border-white/5">
+            ↵
+          </kbd>
+        </div>
+
+        {/* Right Header Utilities: Hi-Fi Status, Online Counter, Profile */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {/* 48kHz Hi-Fi Lossless */}
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container font-mono text-[10px] text-tertiary border border-white/5">
+            <span className="material-symbols-outlined text-[13px]">graphic_eq</span>
+            <span>48kHz Hi-Fi Lossless</span>
+          </div>
+
+          {/* Online Users Avatar Stack */}
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container border border-white/5">
+            <div className="flex -space-x-2 items-center">
+              {(() => {
+                const myId = String(user?.userId || user?.id || '');
+                const myUser = user ? [{ ...user, isMe: true, userId: myId }] : [];
+                const otherOnline = (activeWebUsers || []).filter(u => String(u.userId || u.id) !== myId);
+                const allOnline = [...myUser, ...otherOnline];
+                const visible = allOnline.slice(0, 3);
+                return visible.map((u, i) => (
+                  <img
+                    key={u.userId || u.id || i}
+                    src={u.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                    alt=""
+                    className="w-5 h-5 rounded-full object-cover ring-1 ring-surface shrink-0"
+                    title={u.displayName || u.username}
+                  />
+                ));
+              })()}
+            </div>
+            <span className="font-mono text-[10px] text-primary-container font-semibold">
+              {Math.max(1, (activeWebUsers?.length || 0) + 1)} ONLINE
+            </span>
+          </div>
+
+          {/* User Profile */}
+          <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+            <img
+              src={user.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+              alt=""
+              className="w-7 h-7 rounded-full object-cover border border-primary-container/40 shrink-0"
+              title={user.displayName || user.username}
+            />
+            <span className="font-medium text-xs text-on-surface hidden md:inline truncate max-w-[100px]">
+              {user.displayName || user.username}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* ── 2. MAIN 3-COLUMN ZERO-SCROLL WORKSPACE ─────────────────────────── */}
       <div className="flex-1 flex overflow-hidden w-full min-h-0 relative z-10">
 
-        {/* ── CỘT 1: LEFT SIDEBAR (Desktop 220px) ───────────────────────────── */}
-        <aside className="hidden lg:flex w-[220px] shrink-0 bg-surface-container-low/95 backdrop-blur-xl border-r border-white/5 flex-col justify-between p-3 select-none z-20">
-          <div className="flex flex-col gap-3">
-            {/* Brand Header */}
-            <button
-              onClick={() => switchTab('search')}
-              className="flex items-center gap-2.5 text-left p-1 rounded-xl hover:bg-surface-container transition-colors group"
-              title="Quay về Khám Phá"
-            >
-              <div className="w-9 h-9 rounded-xl bg-surface-container overflow-hidden border border-primary-container/40 shadow shrink-0">
-                <img src="/logo.gif" alt="Anna Logo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-baseline tracking-tight">
-                  <span className="font-brand text-2xl font-bold text-primary-container leading-none">an</span>
-                  <span className="font-brand text-2xl font-bold text-[#f5a192] leading-none">na</span>
-                </div>
-                <span className="font-mono text-[9px] tracking-widest text-outline uppercase mt-0.5">
-                  MUSIC WEB PLAYER
-                </span>
-              </div>
-            </button>
+        {/* ── CỘT 1: LEFT SIDEBAR (Desktop 200px) ───────────────────────────── */}
+        <aside className="hidden lg:flex w-[200px] shrink-0 bg-surface-container-low/95 backdrop-blur-xl border-r border-white/5 flex-col justify-between p-3 select-none z-20">
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-[10px] tracking-widest text-outline px-2.5 py-1 uppercase font-semibold">
+              MENU CHÍNH
+            </span>
 
-            {/* Room Live Badge */}
-            <div className="px-2.5 py-1.5 rounded-lg bg-surface-container border border-white/5 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse shrink-0"></span>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[9px] font-bold text-tertiary uppercase tracking-wider truncate">
-                  Phòng Thoại Đang Phát
-                </span>
-                <span className="font-mono text-[10px] text-on-surface truncate">
-                  {player?.voiceChannel?.name || guild?.name || 'Discord Voice'}
-                </span>
-              </div>
-            </div>
-
-            {/* Navigation 5 Tabs */}
-            <nav className="flex flex-col gap-1 mt-1 text-xs font-medium" aria-label="Điều hướng chính">
+            {/* Navigation 5 Tabs (Chuẩn phong cách Stitch) */}
+            <nav className="flex flex-col gap-1 text-xs font-medium" aria-label="Điều hướng chính">
               {TABS.filter(t => !t.mobileOnly).map(({ id, label, iconName }) => {
                 const isActive = effectiveContentTab === id;
                 const queueCount = id === 'queue' ? (player?.queue?.length || 0) : 0;
@@ -979,20 +1072,23 @@ export default function App() {
                   <button
                     key={id}
                     onClick={() => switchTab(id)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left text-[13px] ${
                       isActive
-                        ? 'bg-primary-container/15 text-primary-container font-semibold border-l-2 border-primary-container'
-                        : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                        ? 'bg-surface-container text-primary font-semibold border border-white/5 shadow-sm'
+                        : 'text-on-surface-variant hover:bg-surface-container/60 hover:text-on-surface'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="material-symbols-outlined text-[19px]">{iconName}</span>
+                      <span className={`material-symbols-outlined text-[19px] ${isActive ? 'text-primary' : ''}`}>{iconName}</span>
                       <span>{label}</span>
                     </div>
                     {queueCount > 0 && (
-                      <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-highest text-primary-container font-bold">
+                      <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-surface-container-high text-primary font-bold">
                         {queueCount > 99 ? '99+' : queueCount}
                       </span>
+                    )}
+                    {isActive && queueCount === 0 && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
                     )}
                   </button>
                 );
@@ -1000,7 +1096,7 @@ export default function App() {
             </nav>
           </div>
 
-          {/* User Profile & Actions Box */}
+          {/* User Profile & Actions Box (Bỏ nút Chia sẻ theo yêu cầu) */}
           <div className="p-2.5 bg-surface-container-lowest rounded-xl border border-white/5 flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <img
@@ -1023,110 +1119,41 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/5">
-              <button
-                onClick={() => {
-                  const shareUrl = `${window.location.origin}/?token=${token}&guild=${guildId}`;
-                  navigator.clipboard?.writeText(shareUrl).then(() => {
-                    showToast('Đã sao chép liên kết phòng nghe nhạc!');
-                  }).catch(() => {
-                    showToast('Không thể sao chép liên kết!', 'error');
-                  });
-                }}
-                className="flex items-center justify-center gap-1 py-1 rounded bg-surface-container hover:bg-surface-container-high text-[11px] text-on-surface-variant hover:text-on-surface transition-colors"
-                title="Sao chép link phòng"
-              >
-                <span className="material-symbols-outlined text-[14px]">share</span>
-                <span>Chia sẻ</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center justify-center gap-1 py-1 rounded bg-surface-container hover:bg-secondary-container hover:text-white text-[11px] text-on-surface-variant transition-colors"
-                title="Rời phiên nghe nhạc"
-              >
-                <span className="material-symbols-outlined text-[14px]">logout</span>
-                <span>Rời phòng</span>
-              </button>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-surface-container hover:bg-secondary-container hover:text-white text-[11px] text-on-surface-variant transition-colors"
+              title="Rời phiên nghe nhạc"
+            >
+              <span className="material-symbols-outlined text-[14px]">logout</span>
+              <span>Rời phòng</span>
+            </button>
           </div>
         </aside>
 
-        {/* ── CỘT 2: MAIN CENTER CONSOLE ────────────────────────────────────── */}
+        {/* ── CỘT 2: MAIN CENTER CONSOLE (Không còn header con và nút logo thừa) ── */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-surface/70 backdrop-blur-md overflow-hidden relative">
 
-          {/* Top Fixed Header Bar */}
-          <header className="h-14 border-b border-white/5 px-4 flex items-center justify-between gap-3 shrink-0 bg-surface-container-lowest/80 z-20">
-            {/* Left: Tab Title & Server Name */}
-            <div className="flex items-center gap-2.5 min-w-0">
-              <h1 className="text-sm sm:text-base font-bold text-on-surface flex items-center gap-2 truncate">
-                <span>{activeTabDef?.label || 'Khám Phá'}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse shrink-0" />
-              </h1>
-              <span className="font-mono text-[10px] text-outline truncate hidden sm:inline-block border-l border-white/10 pl-2 uppercase">
-                {guild?.name || user?.guildName || 'Discord Voice'}
-              </span>
-            </div>
-
-            {/* Right: Lossless Badge + Online Stack + Logo Home Trigger */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              {/* Lyrics Source Pill (nếu đang ở tab lời nhạc) */}
-              {effectiveContentTab === 'lyrics' && lyricsSourceInfo && (
-                <div
-                  className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] border"
-                  style={{
-                    color: lyricsSourceInfo.color || 'var(--muted)',
-                    background: lyricsSourceInfo.bg || 'transparent',
-                    borderColor: lyricsSourceInfo.border || 'transparent'
-                  }}
-                  title={lyricsSourceInfo.title || undefined}
-                >
-                  <span className="material-symbols-outlined text-[12px]">database</span>
-                  <span>{lyricsSourceInfo.text}</span>
-                </div>
-              )}
-
-              {/* 48kHz Hi-Fi Lossless */}
-              <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded bg-surface-container font-mono text-[10px] text-tertiary border border-white/5">
-                <span className="material-symbols-outlined text-[13px]">graphic_eq</span>
-                <span>48kHz Hi-Fi Lossless</span>
+          {/* Sub-bar hiển thị nguồn lời bài hát nếu đang ở tab Lời Nhạc */}
+          {effectiveContentTab === 'lyrics' && lyricsSourceInfo && (
+            <div className="px-4 py-1.5 flex items-center justify-between bg-surface-container-lowest/60 border-b border-white/5 text-xs shrink-0 z-20">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-on-surface">Lời Nhạc Đồng Bộ</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
               </div>
-
-              {/* Online Users Avatar Stack */}
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container border border-white/5">
-                <div className="flex -space-x-2 items-center">
-                  {(() => {
-                    const myId = String(user?.userId || user?.id || '');
-                    const myUser = user ? [{ ...user, isMe: true, userId: myId }] : [];
-                    const otherOnline = (activeWebUsers || []).filter(u => String(u.userId || u.id) !== myId);
-                    const allOnline = [...myUser, ...otherOnline];
-                    const visible = allOnline.slice(0, 3);
-                    return visible.map((u, i) => (
-                      <img
-                        key={u.userId || u.id || i}
-                        src={u.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
-                        alt=""
-                        className="w-5 h-5 rounded-full object-cover ring-1 ring-surface shrink-0"
-                        title={u.displayName || u.username}
-                      />
-                    ));
-                  })()}
-                </div>
-                <span className="font-mono text-[10px] text-primary-container font-semibold">
-                  {Math.max(1, (activeWebUsers?.length || 0) + 1)} ONLINE
-                </span>
-              </div>
-
-              {/* Nút Logo ở góc trên bên phải: Nhấn vào quay về trang chính */}
-              <button
-                onClick={() => switchTab('search')}
-                className="w-8 h-8 rounded-xl bg-surface-container hover:bg-surface-container-high border border-primary-container/40 p-0.5 flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow shrink-0"
-                title="Quay về trang chính (Khám Phá)"
-                aria-label="Quay về trang chính"
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] border"
+                style={{
+                  color: lyricsSourceInfo.color || 'var(--muted)',
+                  background: lyricsSourceInfo.bg || 'transparent',
+                  borderColor: lyricsSourceInfo.border || 'transparent'
+                }}
+                title={lyricsSourceInfo.title || undefined}
               >
-                <img src="/logo.gif" alt="Home" className="w-full h-full object-cover rounded-lg" />
-              </button>
+                <span className="material-symbols-outlined text-[12px]">database</span>
+                <span>{lyricsSourceInfo.text}</span>
+              </div>
             </div>
-          </header>
+          )}
 
           {/* Vùng Nội Dung Tab (Đảm bảo min-h-0 và không bị cắt màn hình) */}
           <main className="flex-1 min-h-0 p-3 sm:p-4 overflow-hidden flex flex-col pb-[110px] lg:pb-3">
@@ -1146,7 +1173,14 @@ export default function App() {
 
             {/* Tab Khám Phá */}
             <div className={`flex-1 min-h-0 ${effectiveContentTab === 'search' ? 'flex flex-col' : 'hidden'}`}>
-              <LiveSearch onOrderSong={handleOrderSong} player={player} guildId={guildId} token={token} />
+              <LiveSearch
+                onOrderSong={handleOrderSong}
+                player={player}
+                guildId={guildId}
+                token={token}
+                externalQuery={searchQuery}
+                onQueryChange={setSearchQuery}
+              />
             </div>
 
             {/* Tab Hàng Chờ */}
