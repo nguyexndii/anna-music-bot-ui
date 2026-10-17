@@ -73,10 +73,6 @@ function PinCodeInput({ length = 6, value = '', onChange, onComplete, disabled =
     if (char && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
-
-    if (newValue.length === length && onComplete) {
-      onComplete(newValue);
-    }
   };
 
   const handleKeyDown = (e, index) => {
@@ -198,8 +194,8 @@ function AuthScreen({ onVerify, authError, isVerifying }) {
             MUSIC WEB PLAYER
           </span>
 
-          {/* Sóng nhạc 5 bars động */}
-          <div className="flex items-end gap-1 h-5 px-3 py-1 bg-surface-container rounded-full border border-white/5 mt-3">
+          {/* Sóng nhạc 5 bars động uốn cong theo viền */}
+          <div className="flex items-center justify-center gap-1.5 h-6 px-3 bg-surface-container rounded-full border border-white/10 mt-3 shadow-inner">
             <span className="w-1 bg-primary-container rounded-full animate-equalizer-1" />
             <span className="w-1 bg-primary-container rounded-full animate-equalizer-2" />
             <span className="w-1 bg-secondary rounded-full animate-equalizer-3" />

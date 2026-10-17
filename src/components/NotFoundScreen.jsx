@@ -36,8 +36,8 @@ export default function NotFoundScreen({ onGoHome }) {
           </span>
         </div>
 
-        {/* Dynamic Sóng nhạc 5 bars */}
-        <div className="flex items-end gap-1 h-5 px-3 py-1 bg-surface-container rounded-full border border-white/5 mb-3">
+        {/* Dynamic Sóng nhạc 5 bars uốn cong theo viền */}
+        <div className="flex items-center justify-center gap-1.5 h-6 px-3 bg-surface-container rounded-full border border-white/10 mb-3 shadow-inner">
           <span className="w-1 bg-primary-container rounded-full animate-equalizer-1" />
           <span className="w-1 bg-primary-container rounded-full animate-equalizer-2" />
           <span className="w-1 bg-secondary rounded-full animate-equalizer-3" />
