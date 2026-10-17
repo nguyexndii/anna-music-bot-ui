@@ -29,9 +29,7 @@ export default function FavoritesTab({ favorites = [], onOrderSong, onAction }) 
 
   const handlePlayAll = () => {
     if (!favorites.length) return;
-    favorites.forEach(song => {
-      onOrderSong?.(song);
-    });
+    onAction?.('playFavorites');
   };
 
   const handleRemoveFavorite = (song, e) => {

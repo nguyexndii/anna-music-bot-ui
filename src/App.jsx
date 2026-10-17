@@ -848,6 +848,20 @@ export default function App() {
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
+                  const trimmed = (searchQuery || '').trim();
+                  if (!trimmed) return;
+                  if (
+                    trimmed.startsWith('http://') ||
+                    trimmed.startsWith('https://') ||
+                    trimmed.includes('youtube.com/') ||
+                    trimmed.includes('youtu.be/') ||
+                    trimmed.includes('spotify.com/') ||
+                    trimmed.includes('soundcloud.com/')
+                  ) {
+                    handleOrderSong({ url: trimmed });
+                    setSearchQuery('');
+                    return;
+                  }
                   if (activeTab !== 'search') setActiveTab('search');
                 }
               }}
@@ -863,14 +877,23 @@ export default function App() {
                 <span className="material-symbols-outlined text-[14px]">close</span>
               </button>
             )}
+            {/* Nút bật/tắt Tìm kiếm Nâng Cao */}
             <button
+              type="button"
               onClick={() => {
-                if (activeTab !== 'search') setActiveTab('search');
+                const currentMode = localStorage.getItem('anna_search_mode') || 'official';
+                const nextMode = currentMode === 'official' ? 'all' : 'official';
+                localStorage.setItem('anna_search_mode', nextMode);
+                window.dispatchEvent(new CustomEvent('anna_search_mode_change', { detail: nextMode }));
+                setSearchQuery(q => q); // trigger rerender
               }}
-              className="px-2 py-0.5 rounded bg-primary-container/20 text-primary-container hover:bg-primary-container/30 text-[10px] font-bold tracking-wider flex items-center gap-1 shrink-0 transition-colors"
+              className="px-2 py-0.5 rounded text-[10px] font-bold font-mono tracking-wider flex items-center gap-1 shrink-0 transition-all bg-primary-container/20 text-primary-container hover:bg-primary-container/30 border border-primary-container/30"
+              title="Chuyển đổi giữa chế độ Chính thức (Official) và Mở rộng (Tất cả nguồn)"
             >
-              <span className="material-symbols-outlined text-[12px]">tune</span>
-              <span className="hidden sm:inline">TÌM</span>
+              <span className="material-symbols-outlined text-[13px]">tune</span>
+              <span className="hidden sm:inline">
+                {(localStorage.getItem('anna_search_mode') || 'official') === 'all' ? 'NÂNG CAO' : 'CHÍNH CHỦ'}
+              </span>
             </button>
             <kbd className="hidden sm:inline-block font-mono text-[9px] text-outline bg-surface-container-high px-1 py-0.5 rounded border border-white/5">
               ↵
@@ -1057,6 +1080,7 @@ export default function App() {
                 onAction={handlePlayerAction}
                 isActive={effectiveContentTab === 'lyrics'}
                 guildId={guildId}
+                token={token}
                 onSourceChange={setLyricsSourceInfo}
               />
             </div>

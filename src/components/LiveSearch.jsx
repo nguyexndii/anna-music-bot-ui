@@ -13,9 +13,17 @@ import {
   ListMusic
 } from 'lucide-react';
 import { API_BASE, DEFAULT_TRACK_THUMB } from '../config';
-import FavoritesModal from './FavoritesModal';
 import PlaylistDetailModal from './PlaylistDetailModal';
 import AllPlaylistsModal from './AllPlaylistsModal';
+
+function getPlaylistPreviewImage(url) {
+  if (!url) return '/default-playlist.jpg';
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (match && match[1]) {
+    return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
+  }
+  return '/default-playlist.jpg';
+}
 
 // Helper nhận diện URL & Playlist
 function detectUrlType(text) {
@@ -62,7 +70,6 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState(() => localStorage.getItem('anna_search_mode') || 'official');
-  const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [isAllPlaylistsModalOpen, setIsAllPlaylistsModalOpen] = useState(false);
@@ -77,6 +84,17 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
       setQuery(externalQuery);
     }
   }, [externalQuery]);
+
+  // Lắng nghe thay đổi chế độ tìm kiếm từ Header
+  useEffect(() => {
+    const handleModeChangeEvt = (e) => {
+      if (e.detail) {
+        setSearchMode(e.detail);
+      }
+    };
+    window.addEventListener('anna_search_mode_change', handleModeChangeEvt);
+    return () => window.removeEventListener('anna_search_mode_change', handleModeChangeEvt);
+  }, []);
 
   const detected = useMemo(() => detectUrlType(query), [query]);
 
@@ -518,8 +536,8 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                  {recentPlaylists.slice(0, 2).map((pl, idx) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {recentPlaylists.slice(0, 6).map((pl, idx) => (
                     <div
                       key={pl.id || pl.url || idx}
                       onClick={() => {
@@ -530,7 +548,7 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                     >
                       <div className="w-12 h-12 rounded-lg bg-surface-container-highest overflow-hidden shrink-0 border border-white/5">
                         <img
-                          src={pl.thumbnail || '/default-playlist.jpg'}
+                          src={pl.thumbnail || getPlaylistPreviewImage(pl.url)}
                           alt=""
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/default-playlist.jpg'; }}
@@ -543,7 +561,12 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
                         <div className="flex items-center gap-1.5 text-[10px] text-outline font-mono mt-0.5">
                           <span>{pl.itemCount || pl.trackCount || 0} bài</span>
                           <span>•</span>
-                          <span className="truncate">Thêm bởi {pl.addedBy || 'Thành viên'}</span>
+                          <div className="flex items-center gap-1 truncate">
+                            {pl.addedByAvatar && (
+                              <img src={pl.addedByAvatar} alt="" className="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
+                            )}
+                            <span className="truncate">@{pl.addedBy || 'Thành viên'}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -558,23 +581,20 @@ export default function LiveSearch({ onOrderSong, player, guildId, token, extern
       </div>
 
       {/* ── MODALS ────────────────────────────────────────────────────────── */}
-      <FavoritesModal
-        isOpen={isFavoritesModalOpen}
-        onClose={() => setIsFavoritesModalOpen(false)}
-        favorites={favorites}
-        onOrderSong={handleOrderTrack}
-      />
       <PlaylistDetailModal
         isOpen={isPlaylistModalOpen}
         onClose={() => setIsPlaylistModalOpen(false)}
         playlist={selectedPlaylist}
         onOrderSong={handleOrderTrack}
+        guildId={guildId || player?.guildId}
+        token={token}
       />
       <AllPlaylistsModal
         isOpen={isAllPlaylistsModalOpen}
         onClose={() => setIsAllPlaylistsModalOpen(false)}
         playlists={recentPlaylists}
         onSelectPlaylist={(pl) => {
+          setIsAllPlaylistsModalOpen(false);
           setSelectedPlaylist(pl);
           setIsPlaylistModalOpen(true);
         }}

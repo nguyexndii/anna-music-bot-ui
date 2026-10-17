@@ -16,7 +16,7 @@ function getTrackThumb(track) {
   return DEFAULT_TRACK_THUMB;
 }
 
-export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrderSong }) {
+export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrderSong, onAction }) {
   // Đóng modal khi nhấn phím ESC
   useEffect(() => {
     if (!isOpen) return;
@@ -30,9 +30,11 @@ export default function FavoritesModal({ isOpen, onClose, favorites = [], onOrde
   if (!isOpen) return null;
 
   const handlePlayAll = () => {
-    favorites.forEach((song) => {
-      onOrderSong?.(song);
-    });
+    if (onAction) {
+      onAction('playFavorites');
+    } else if (onOrderSong) {
+      onOrderSong({ isFavorites: true, tracks: favorites });
+    }
     onClose?.();
   };
 

@@ -5,9 +5,7 @@ export default function Navbar({ guild, user, activeWebUsers = [], onOpenAuthMod
   const [copied, setCopied] = useState(false);
 
   const copyWebLink = () => {
-    const token = localStorage.getItem('anna_web_token');
-    const guildId = localStorage.getItem('anna_guild_id');
-    const link = token && guildId ? `${window.location.origin}/?token=${token}&guild=${guildId}` : window.location.href;
+    const link = window.location.origin;
     
     navigator.clipboard.writeText(link).then(() => {
       setCopied(true);

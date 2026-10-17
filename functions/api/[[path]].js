@@ -12,21 +12,7 @@ export async function onRequest(context) {
 
   const url = new URL(context.request.url);
 
-  const deadTunnels = [
-    'pockets-morrison-sells-nurse',
-    'jvc-labs-farmer-gardens',
-    'miniature-supplier-say-qualifying',
-    'joseph-desperate-samples-router'
-  ];
-
-  let apiBase = 'https://asking-grain-result-knew.trycloudflare.com';
-  if (context.env.API_BASE) {
-    const custom = context.env.API_BASE.replace(/\/$/, '');
-    if (!deadTunnels.some(dead => custom.includes(dead)) && !custom.includes('160.191') && !custom.includes('http://')) {
-      apiBase = custom;
-    }
-  }
-  apiBase = apiBase.replace(/\/$/, '');
+  const apiBase = (context.env.API_BASE || 'https://asking-grain-result-knew.trycloudflare.com').replace(/\/$/, '');
   const pathname = url.pathname === '/api/health' ? '/health' : url.pathname;
   const targetUrl = `${apiBase}${pathname}${url.search}`;
 

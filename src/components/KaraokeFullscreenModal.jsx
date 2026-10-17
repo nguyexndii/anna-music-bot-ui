@@ -64,8 +64,18 @@ export default function KaraokeFullscreenModal({
   const totalMs = parseDurationToMs(current?.duration);
 
   const [fontSize, setFontSize] = useState('md'); // 'md' | 'lg'
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(() => localStorage.getItem('anna_karaoke_autoscroll') !== 'false');
   const [showOffsetBar, setShowOffsetBar] = useState(false);
+
+  useEffect(() => {
+    const handleAutoScrollChange = (e) => {
+      if (typeof e.detail === 'boolean') {
+        setAutoScroll(e.detail);
+      }
+    };
+    window.addEventListener('anna_autoscroll_change', handleAutoScrollChange);
+    return () => window.removeEventListener('anna_autoscroll_change', handleAutoScrollChange);
+  }, []);
 
   // Tiến trình phát realtime
   const [localProgressMs, setLocalProgressMs] = useState(0);
@@ -371,7 +381,12 @@ export default function KaraokeFullscreenModal({
           {/* Tự cuộn */}
           {hasSynced && (
             <button
-              onClick={() => setAutoScroll(p => !p)}
+              onClick={() => {
+                const next = !autoScroll;
+                setAutoScroll(next);
+                localStorage.setItem('anna_karaoke_autoscroll', String(next));
+                window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
+              }}
               className={`px-2.5 py-1.5 rounded-lg border text-[10px] font-mono font-semibold transition-all hidden sm:inline-flex ${
                 autoScroll
                   ? 'bg-surface-container border-white/5 text-tertiary'

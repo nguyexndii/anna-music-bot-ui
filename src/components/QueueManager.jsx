@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import {
   Trash2,
   Play,
@@ -14,6 +15,15 @@ import {
   Square
 } from 'lucide-react';
 import { DEFAULT_TRACK_THUMB } from '../config';
+
+function parseDurationToSec(str) {
+  if (!str || typeof str !== 'string' || str.toLowerCase().includes('live')) return 0;
+  const parts = str.split(':').map(Number);
+  if (parts.some(isNaN)) return 0;
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parts[0];
+}
 
 function getTrackThumb(track) {
   if (track?.thumbnail && !track.thumbnail.includes('yt3.ggpht.com') && !track.thumbnail.includes('default_user')) {
@@ -36,10 +46,11 @@ function formatRequesterName(name) {
 
 export default function QueueManager({ queue, onAction, pendingAction, player }) {
   const songs = queue || [];
+  const isEmptyRoom = player?.voiceChannel?.humanMemberCount === 0;
   const isLofiMode = Boolean(
     player?.current && (player?.current?.is247 || player?.current?.requestedBy === 'Auto (24/7)')
   );
-  const isSwitchingTo247 = pendingAction === 'switchTo247';
+  const isChangingMode = pendingAction === 'toggleLofiMode' || pendingAction === 'switchTo247';
 
   const [selectedIndices, setSelectedIndices] = useState(new Set());
   const [draggedIndex, setDraggedIndex] = useState(null);
@@ -47,12 +58,28 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
   const [jumpModalData, setJumpModalData] = useState(null);
   const [targetPosition, setTargetPosition] = useState('1');
   const [activeMenuIdx, setActiveMenuIdx] = useState(null);
+  const [menuPlacement, setMenuPlacement] = useState('bottom');
 
   const [showClearModal, setShowClearModal] = useState(false);
   const [showBatchModal, setShowBatchModal] = useState(false);
 
   const lastClickedIndexRef = useRef(null);
   const listContainerRef = useRef(null);
+  const autoScrollTimerRef = useRef(null);
+
+  // Tính tổng thời lượng các bài trong hàng chờ
+  const totalDurationSec = useMemo(() => {
+    return songs.reduce((acc, song) => acc + parseDurationToSec(song.duration), 0);
+  }, [songs]);
+
+  const formattedTotalDuration = useMemo(() => {
+    if (totalDurationSec <= 0) return '';
+    const h = Math.floor(totalDurationSec / 3600);
+    const m = Math.floor((totalDurationSec % 3600) / 60);
+    const s = totalDurationSec % 60;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    return `${m}m ${s}s`;
+  }, [totalDurationSec]);
 
   // Đóng menu context khi click ra ngoài
   useEffect(() => {
@@ -61,7 +88,23 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
     return () => window.removeEventListener('click', close);
   }, []);
 
-  // Drag and Drop
+  const stopAutoScroll = () => {
+    if (autoScrollTimerRef.current) {
+      clearInterval(autoScrollTimerRef.current);
+      autoScrollTimerRef.current = null;
+    }
+  };
+
+  const startAutoScroll = (direction) => {
+    if (autoScrollTimerRef.current) return;
+    autoScrollTimerRef.current = setInterval(() => {
+      if (listContainerRef.current) {
+        listContainerRef.current.scrollTop += direction === 'up' ? -10 : 10;
+      }
+    }, 20);
+  };
+
+  // Drag and Drop có Auto-scroll
   const handleDragStart = (e, index) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
@@ -74,15 +117,28 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
     if (dragOverIndex !== index) {
       setDragOverIndex(index);
     }
+    if (listContainerRef.current) {
+      const rect = listContainerRef.current.getBoundingClientRect();
+      const y = e.clientY;
+      if (y - rect.top < 45) {
+        startAutoScroll('up');
+      } else if (rect.bottom - y < 45) {
+        startAutoScroll('down');
+      } else {
+        stopAutoScroll();
+      }
+    }
   };
 
   const handleDragEnd = () => {
+    stopAutoScroll();
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
 
   const handleDrop = (e, toIndex) => {
     e.preventDefault();
+    stopAutoScroll();
     if (draggedIndex === null || draggedIndex === toIndex) {
       handleDragEnd();
       return;
@@ -161,11 +217,23 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
     setJumpModalData(null);
   };
 
+  const handleToggleMenu = (idx, e) => {
+    e.stopPropagation();
+    if (activeMenuIdx === idx) {
+      setActiveMenuIdx(null);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    setMenuPlacement(spaceBelow < 185 ? 'top' : 'bottom');
+    setActiveMenuIdx(idx);
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden select-none">
 
       {/* ── 1. HEADER CONTROLS HÀNG CHỜ ───────────────────────────────────── */}
-      <div className="flex items-center justify-between pb-2 shrink-0 border-b border-white/5 mb-2 gap-2">
+      <div className="flex items-center justify-between pb-2 shrink-0 border-b border-white/5 mb-2 gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <button
             onClick={toggleSelectAll}
@@ -197,22 +265,78 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
               <span>Xóa ({selectedIndices.size})</span>
             </button>
           )}
+
+          {songs.length > 0 && (
+            <span className="font-mono text-[10px] text-outline hidden md:inline-block">
+              {songs.length} bài{formattedTotalDuration ? ` • ${formattedTotalDuration}` : ''}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Nút Chuyển Đổi Chế Độ Thông Minh (Hiển thị 2 chiều ngay cả khi có bài) */}
+          {isEmptyRoom ? (
+            <button
+              type="button"
+              onClick={() => onAction('notifyEmptyRoom')}
+              className="px-2.5 py-1 rounded-lg bg-surface-container border border-white/5 text-[11px] font-semibold text-outline flex items-center gap-1.5 transition-colors"
+              title="Phòng Voice hiện đang trống, bot duy trì phát Lofi 24/7"
+            >
+              <Radio size={13} className="text-outline" />
+              <span>PHÒNG TRỐNG (24/7)</span>
+            </button>
+          ) : isLofiMode ? (
+            <button
+              type="button"
+              onClick={() => onAction('toggleLofiMode')}
+              disabled={isChangingMode}
+              className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 text-[11px] font-bold tracking-wider flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+              title="Nhấn để tiếp tục phát danh sách bài hát người dùng"
+            >
+              {isChangingMode ? (
+                <>
+                  <Loader2 size={13} className="animate-spin text-emerald-400" />
+                  <span>ĐANG CHUYỂN...</span>
+                </>
+              ) : (
+                <>
+                  <Play size={12} fill="currentColor" />
+                  <span>TIẾP TỤC PHÁT NHẠC</span>
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAction('toggleLofiMode')}
+              disabled={isChangingMode}
+              className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 text-[11px] font-bold tracking-wider flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+              title="Nhấn để tạm dừng nhạc hiện tại và chuyển sang phát Lofi 24/7"
+            >
+              {isChangingMode ? (
+                <>
+                  <Loader2 size={13} className="animate-spin text-amber-400" />
+                  <span>ĐANG CHUYỂN...</span>
+                </>
+              ) : (
+                <>
+                  <Coffee size={13} />
+                  <span>VỀ NHẠC LOFI</span>
+                </>
+              )}
+            </button>
+          )}
+
           {songs.length > 0 && (
             <button
               onClick={() => setShowClearModal(true)}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container hover:bg-secondary-container/40 hover:text-secondary text-xs text-outline transition-colors"
+              title="Xóa toàn bộ hàng chờ"
             >
               <Trash2 size={13} />
-              <span>Xóa Hết</span>
+              <span className="hidden sm:inline">Xóa Hết</span>
             </button>
           )}
-
-          <span className="font-mono text-[10px] text-outline hidden sm:inline-block">
-            Kéo thả để đổi vị trí
-          </span>
         </div>
       </div>
 
@@ -227,18 +351,26 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
               <span className="material-symbols-outlined text-2xl">queue_music</span>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-on-surface">Hàng chờ đang trống</h3>
+              <h3 className="text-sm font-semibold text-on-surface">
+                {isLofiMode ? 'Đang Phát Nhạc Lofi Thư Giãn' : 'Hàng chờ đang trống'}
+              </h3>
               <p className="text-xs text-outline mt-1 max-w-xs">
-                Chuyển sang tab Khám Phá để thêm bài hát hoặc bật nhạc Lofi 24/7 để nghe thư giãn.
+                {isLofiMode
+                  ? 'Hàng chờ người dùng đang trống, bot đang duy trì phát nhạc nền Lofi 24/7 cho phòng thoại.'
+                  : 'Chuyển sang tab Khám Phá để thêm bài hát hoặc bật nhạc Lofi 24/7 để nghe thư giãn.'}
               </p>
             </div>
             <button
               onClick={() => onAction('toggleLofiMode')}
               disabled={Boolean(pendingAction)}
-              className="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high border border-white/5 text-primary-container text-xs font-semibold flex items-center gap-2 transition-all mt-1"
+              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all mt-1 ${
+                isLofiMode
+                  ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30'
+                  : 'bg-surface-container hover:bg-surface-container-high border border-white/5 text-primary-container'
+              }`}
             >
-              <Coffee size={15} />
-              <span>Bật Nhạc Lofi 24/7 Thư Giãn</span>
+              {isLofiMode ? <Play size={14} fill="currentColor" /> : <Coffee size={15} />}
+              <span>{isLofiMode ? 'Tiếp Tục Phát Nhạc' : 'Bật Nhạc Lofi 24/7 Thư Giãn'}</span>
             </button>
           </div>
         ) : (
@@ -345,26 +477,28 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                 <div className="flex items-center gap-1 shrink-0 relative" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={(e) => handlePlayNow(idx, e)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-outline hover:text-primary-container hover:bg-surface-container-high transition-colors"
+                    disabled={Boolean(pendingAction)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-outline hover:text-primary-container hover:bg-surface-container-high transition-colors disabled:opacity-40"
                     title="Phát ngay bài này"
                   >
-                    <Play size={16} fill="currentColor" />
+                    {pendingAction === 'playNow' ? (
+                      <Loader2 size={14} className="animate-spin text-primary-container" />
+                    ) : (
+                      <Play size={16} fill="currentColor" />
+                    )}
                   </button>
 
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveMenuIdx(activeMenuIdx === idx ? null : idx);
-                    }}
+                    onClick={(e) => handleToggleMenu(idx, e)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors"
                     title="Tùy chọn"
                   >
                     <MoreVertical size={16} />
                   </button>
 
-                  {/* Context Dropdown Menu */}
+                  {/* Context Dropdown Menu (Tự động đảo chiều lên trên khi gần đáy) */}
                   {activeMenuIdx === idx && (
-                    <div className="absolute right-0 top-8 w-44 bg-surface-container-high border border-outline-variant/40 rounded-xl shadow-2xl p-1 z-30 flex flex-col gap-0.5 text-xs text-on-surface">
+                    <div className={`absolute right-0 ${menuPlacement === 'top' ? 'bottom-8' : 'top-8'} w-44 bg-surface-container-high border border-outline-variant/40 rounded-xl shadow-2xl p-1 z-30 flex flex-col gap-0.5 text-xs text-on-surface`}>
                       <button
                         onClick={(e) => handlePlayNow(idx, e)}
                         className="flex items-center gap-2 px-2.5 py-1.5 text-left rounded-lg hover:bg-surface-container transition-colors w-full"
@@ -409,7 +543,7 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
 
       {/* ── 3. MODALS (Xác nhận xóa & Chuyển vị trí) ───────────────────────── */}
       {/* Modal Chuyển Vị Trí Bài Hát */}
-      {jumpModalData && (
+      {jumpModalData && ReactDOM.createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm bg-surface-container-low border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col gap-3">
             <div className="flex items-center justify-between">
@@ -439,7 +573,43 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
                   className="w-full mt-1 px-3 py-2 bg-surface-container-lowest text-on-surface font-mono rounded-lg border border-white/10 focus:border-primary-container outline-none"
                 />
               </div>
-              <div className="flex items-center justify-end gap-2 pt-1">
+
+              {/* Nút chọn nhanh vị trí */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] text-outline">Nhanh:</span>
+                <button
+                  type="button"
+                  onClick={() => setTargetPosition('1')}
+                  className="px-2 py-0.5 rounded bg-surface-container hover:bg-primary-container/20 hover:text-primary-container text-[11px] font-mono border border-white/5 transition-colors"
+                >
+                  #1 (Kế tiếp)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTargetPosition('2')}
+                  className="px-2 py-0.5 rounded bg-surface-container hover:bg-primary-container/20 hover:text-primary-container text-[11px] font-mono border border-white/5 transition-colors"
+                >
+                  #2
+                </button>
+                {songs.length >= 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setTargetPosition('5')}
+                    className="px-2 py-0.5 rounded bg-surface-container hover:bg-primary-container/20 hover:text-primary-container text-[11px] font-mono border border-white/5 transition-colors"
+                  >
+                    #5
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setTargetPosition(String(songs.length))}
+                  className="px-2 py-0.5 rounded bg-surface-container hover:bg-primary-container/20 hover:text-primary-container text-[11px] font-mono border border-white/5 transition-colors"
+                >
+                  Cuối (#{songs.length})
+                </button>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setJumpModalData(null)}
@@ -456,11 +626,12 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Xác Nhận Xóa Hàng Loạt */}
-      {showBatchModal && (
+      {showBatchModal && ReactDOM.createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm bg-surface-container-low border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col gap-3 text-center">
             <div className="w-10 h-10 rounded-full bg-secondary-container/40 text-secondary flex items-center justify-center mx-auto">
@@ -485,11 +656,12 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal Xác Nhận Xóa Hết Hàng Chờ */}
-      {showClearModal && (
+      {showClearModal && ReactDOM.createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm bg-surface-container-low border border-white/10 rounded-2xl p-5 shadow-2xl flex flex-col gap-3 text-center">
             <div className="w-10 h-10 rounded-full bg-secondary-container/40 text-secondary flex items-center justify-center mx-auto">
@@ -514,7 +686,8 @@ export default function QueueManager({ queue, onAction, pendingAction, player })
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

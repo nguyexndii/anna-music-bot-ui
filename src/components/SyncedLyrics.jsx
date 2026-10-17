@@ -58,7 +58,7 @@ function saveOffset(title, offsetMs, isYtCc = false) {
   } catch (e) {}
 }
 
-export default function SyncedLyrics({ player, onAction, isActive = true, guildId, onSourceChange }) {
+export default function SyncedLyrics({ player, onAction, isActive = true, guildId, token, onSourceChange }) {
   const current = player?.current;
   const songKey = current?.title ? `${current.title}|${current.artist || ''}|${current.url || ''}` : '';
 
@@ -73,7 +73,8 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     return !isLofiTrack && Boolean(songKey && !lyricsCache.has(songKey));
   });
   const [activeLineIdx, setActiveLineIdx] = useState(-1);
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(() => localStorage.getItem('anna_karaoke_autoscroll') !== 'false');
+  const [lyricsSourceInfo, setLyricsSourceInfo] = useState(null);
 
   const isYtCc = lyricsData?.source === 'youtube_cc';
 
@@ -97,18 +98,29 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       setLoading(false);
       setActiveLineIdx(-1);
     };
+    const handleAutoScrollChange = (e) => {
+      if (typeof e.detail === 'boolean') {
+        setAutoScroll(e.detail);
+      }
+    };
     window.addEventListener('anna_open_karaoke', handleOpen);
     window.addEventListener('anna_switch_lofi', handleSwitchLofi);
+    window.addEventListener('anna_autoscroll_change', handleAutoScrollChange);
     return () => {
       window.removeEventListener('anna_open_karaoke', handleOpen);
       window.removeEventListener('anna_switch_lofi', handleSwitchLofi);
+      window.removeEventListener('anna_autoscroll_change', handleAutoScrollChange);
     };
   }, []);
 
+  // Reset cuộn lên đầu danh sách và reset activeLine khi chuyển bài mới
   useEffect(() => {
     setActiveLineIdx(-1);
     const saved = getSavedOffset(current?.title, isYtCc);
     setManualOffsetMs(saved !== null ? saved : 0);
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
   }, [current?.title, isYtCc]);
 
   // Tải lời bài hát (Sửa lỗi: dùng cả title và hỗ trợ /api/guilds/:guildId/lyrics)
@@ -116,6 +128,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     if (!current?.title || isLofiTrack) {
       setLyricsData(null);
       setLoading(false);
+      setLyricsSourceInfo(null);
       onSourceChange?.(null);
       return;
     }
@@ -136,11 +149,14 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     const fetchLyricsData = async () => {
       try {
         let resData = null;
+        const authHeaders = {};
+        if (token) authHeaders['Authorization'] = `Bearer ${token}`;
 
         // Ưu tiên 1: Lấy theo guildId nếu có
         if (guildId) {
           const res = await fetch(`${API_BASE}/api/guilds/${guildId}/lyrics`, {
-            signal: controller.signal
+            signal: controller.signal,
+            headers: authHeaders
           }).catch(() => null);
           if (res && res.ok) {
             const data = await res.json().catch(() => null);
@@ -173,6 +189,9 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         if (!isMounted) return;
 
         if (resData && (resData.syncedLyrics || resData.lyrics)) {
+          if (getSavedOffset(current?.title, isYtCc) === null && resData.autoOffsetMs !== undefined) {
+            setManualOffsetMs(Number(resData.autoOffsetMs) || 0);
+          }
           // Chuẩn hóa danh sách các dòng lời có timestamp bắt đầu và kết thúc
           const rawLines = resData.syncedLyrics || resData.lines || [];
           const lines = rawLines.map((l, idx, arr) => {
@@ -198,11 +217,13 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
           updateSourceInfo(normalizedData);
         } else {
           setLyricsData(null);
+          setLyricsSourceInfo(null);
           onSourceChange?.(null);
         }
       } catch (err) {
         if (err.name !== 'AbortError' && isMounted) {
           setLyricsData(null);
+          setLyricsSourceInfo(null);
           onSourceChange?.(null);
         }
       } finally {
@@ -216,10 +237,11 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       isMounted = false;
       controller.abort();
     };
-  }, [songKey, current?.title, current?.artist, current?.duration, isLofiTrack, guildId]);
+  }, [songKey, current?.title, current?.artist, current?.duration, isLofiTrack, guildId, token]);
 
   const updateSourceInfo = (lyrics) => {
     if (!lyrics) {
+      setLyricsSourceInfo(null);
       onSourceChange?.(null);
       return;
     }
@@ -229,6 +251,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
       border: 'rgba(232,201,119,0.3)',
       bg: 'rgba(232,201,119,0.08)'
     };
+    setLyricsSourceInfo(info);
     onSourceChange?.(info);
   };
 
@@ -285,12 +308,15 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
     return () => cancelAnimationFrame(animId);
   }, [lyricsData, lines, isPlaying, isActive, current?.playbackDurationMs, current?.serverTime, current?.startTime, manualOffsetMs, activeLineIdx]);
 
-  // Tự động cuộn
+  // Tự động cuộn căn giữa câu đang hát (dùng scrollTo mượt mà, không làm trôi layout)
   useEffect(() => {
     if (!autoScroll || activeLineIdx < 0 || !activeLineRef.current || !containerRef.current) return;
-    activeLineRef.current.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
+    const container = containerRef.current;
+    const target = activeLineRef.current;
+    const desiredScrollTop = target.offsetTop - (container.clientHeight / 2) + (target.offsetHeight / 2);
+    container.scrollTo({
+      top: Math.max(0, desiredScrollTop),
+      behavior: 'smooth'
     });
   }, [activeLineIdx, autoScroll]);
 
@@ -365,6 +391,26 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
               Toàn Bộ
             </button>
           </div>
+
+          {/* Nút bật/tắt TỰ CUỘN */}
+          <button
+            type="button"
+            onClick={() => {
+              const next = !autoScroll;
+              setAutoScroll(next);
+              localStorage.setItem('anna_karaoke_autoscroll', String(next));
+              window.dispatchEvent(new CustomEvent('anna_autoscroll_change', { detail: next }));
+            }}
+            className={`px-2 py-0.5 rounded text-[11px] font-bold font-mono transition-colors flex items-center gap-1 border ${
+              autoScroll
+                ? 'bg-primary-container/20 border-primary-container/40 text-primary-container'
+                : 'bg-surface-container border-white/5 text-outline hover:text-on-surface'
+            }`}
+            title="Bật/Tắt tự động cuộn theo câu hát"
+          >
+            <span className="material-symbols-outlined text-[13px]">{autoScroll ? 'unfold_more' : 'unfold_less'}</span>
+            <span className="hidden sm:inline">{autoScroll ? 'TỰ CUỘN: BẬT' : 'TỰ CUỘN: TẮT'}</span>
+          </button>
 
           {/* Bù trễ */}
           <button
@@ -549,6 +595,7 @@ export default function SyncedLyrics({ player, onAction, isActive = true, guildI
         onLineClick={handleLineClick}
         onAction={onAction}
         manualOffsetMs={manualOffsetMs}
+        lyricsSourceInfo={lyricsSourceInfo}
         onUpdateOffset={(offset) => {
           setManualOffsetMs(offset);
           saveOffset(current?.title, offset, isYtCc);
